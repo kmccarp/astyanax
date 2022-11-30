@@ -18,7 +18,7 @@ package com.netflix.astyanax.shallows;
 import com.netflix.astyanax.CassandraOperationTracer;
 import com.netflix.astyanax.connectionpool.exceptions.ConnectionException;
 
-public class EmptyKeyspaceTracer implements CassandraOperationTracer {
+public final class EmptyKeyspaceTracer implements CassandraOperationTracer {
 
     private static EmptyKeyspaceTracer instance = new EmptyKeyspaceTracer();
 

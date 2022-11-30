@@ -55,13 +55,7 @@ public class RowUniquenessConstraintTest extends KeyspaceTests {
 	}
 
 
-	Supplier<String> UniqueColumnSupplier = new Supplier<String>() {
-
-		@Override
-		public String get() {
-			return UUID.randomUUID().toString();
-		}
-	};
+	Supplier<String> UniqueColumnSupplier = () -> UUID.randomUUID().toString();
 
 	@Test
 	public void testUnique() throws Exception {

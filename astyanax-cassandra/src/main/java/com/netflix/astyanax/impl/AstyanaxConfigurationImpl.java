@@ -47,7 +47,7 @@ public class AstyanaxConfigurationImpl implements AstyanaxConfiguration {
     private NodeDiscoveryType   discoveryType               = NodeDiscoveryType.NONE;
     private int                 discoveryIntervalInSeconds  = 30;
     private ConnectionPoolType  connectionPoolType          = ConnectionPoolType.ROUND_ROBIN;
-    private String              cqlVersion                  = null;
+    private String              cqlVersion;
     private String              targetCassandraVersion      = "1.1";
     private Map<String, Partitioner> partitioners           = Maps.newHashMap();
     private int                 maxThriftSize               = 16384000;
@@ -182,8 +182,9 @@ public class AstyanaxConfigurationImpl implements AstyanaxConfiguration {
     @Override
     public Partitioner getPartitioner(String partitionerName) throws Exception {
         Partitioner partitioner = partitioners.get(partitionerName);
-        if (partitioner == null)
+        if (partitioner == null) {
             throw new Exception("Unsupported partitioner " + partitionerName);
+        }
         return partitioner;
     }
     public AstyanaxConfigurationImpl setMaxThriftSize(int maxthriftsize) {

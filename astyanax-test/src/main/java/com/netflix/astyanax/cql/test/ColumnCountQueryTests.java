@@ -38,24 +38,24 @@ import com.netflix.astyanax.model.ColumnFamily;
 
 public class ColumnCountQueryTests extends ReadTests {
 
-	private static ColumnFamily<String, String> CF_COLUMN_RANGE_TEST = TestUtils.CF_COLUMN_RANGE_TEST;
+	private static ColumnFamily<String, String> cfColumnRangeTest = TestUtils.CF_COLUMN_RANGE_TEST;
 
 	@BeforeClass
 	public static void init() throws Exception {
 		initContext();
-		keyspace.createColumnFamily(CF_COLUMN_RANGE_TEST, null);
-		CF_COLUMN_RANGE_TEST.describe(keyspace);
+		keyspace.createColumnFamily(cfColumnRangeTest, null);
+		cfColumnRangeTest.describe(keyspace);
 	}
 	
 	@AfterClass
 	public static void tearDown() throws Exception {
-		keyspace.dropColumnFamily(CF_COLUMN_RANGE_TEST);
+		keyspace.dropColumnFamily(cfColumnRangeTest);
 	}
 
 	@Test
 	public void runAllTests() throws Exception {
 		
-		CF_COLUMN_RANGE_TEST.describe(keyspace);
+		cfColumnRangeTest.describe(keyspace);
 		
 		boolean rowDeleted = false; 
 		
@@ -102,7 +102,7 @@ public class ColumnCountQueryTests extends ReadTests {
 			String rowKey = String.valueOf(ch);
 
 			Integer columnCount = keyspace
-					.prepareQuery(CF_COLUMN_RANGE_TEST)
+					.prepareQuery(cfColumnRangeTest)
 					.getKey(rowKey)
 					.getCount()
 					.execute().getResult();
@@ -124,7 +124,7 @@ public class ColumnCountQueryTests extends ReadTests {
 			int numColumns = random.nextInt(26) + 1; // avoid 0
 			
 			Integer columnCount = keyspace
-					.prepareQuery(CF_COLUMN_RANGE_TEST)
+					.prepareQuery(cfColumnRangeTest)
 					.getKey(rowKey)
 					.withColumnSlice(getRandomColumns(numColumns))
 					.getCount()
@@ -151,7 +151,7 @@ public class ColumnCountQueryTests extends ReadTests {
 			String startCol = String.valueOf(randCH);
 			
 			Integer columnCount = keyspace
-					.prepareQuery(CF_COLUMN_RANGE_TEST)
+					.prepareQuery(cfColumnRangeTest)
 					.getKey(rowKey)
 					.withColumnRange(startCol, "z", false, -1)
 					.getCount()
@@ -179,12 +179,12 @@ public class ColumnCountQueryTests extends ReadTests {
 		Collection<String> rowKeys = getRandomRowKeys();
 		
 		Map<String, Integer> columnCountsPerRowKey = keyspace
-				.prepareQuery(CF_COLUMN_RANGE_TEST)
+				.prepareQuery(cfColumnRangeTest)
 				.getRowSlice(rowKeys)
 				.getColumnCounts()
 				.execute().getResult();
 
-		Map<String, Integer> expected = new HashMap<String, Integer>();
+		Map<String, Integer> expected = new HashMap<>();
 		if (!rowDeleted) {
 			for (String key : rowKeys) {
 				expected.put(key, 26);
@@ -200,13 +200,13 @@ public class ColumnCountQueryTests extends ReadTests {
 		
 		
 		Map<String, Integer> columnCountsPerRowKey = keyspace
-				.prepareQuery(CF_COLUMN_RANGE_TEST)
+				.prepareQuery(cfColumnRangeTest)
 				.getRowSlice(rowKeys)
 				.withColumnSlice(columns)
 				.getColumnCounts()
 				.execute().getResult();
 
-		Map<String, Integer> expected = new HashMap<String, Integer>();
+		Map<String, Integer> expected = new HashMap<>();
 		if (!rowDeleted) {
 			for (String key : rowKeys) {
 				expected.put(key, columns.size());
@@ -225,7 +225,7 @@ public class ColumnCountQueryTests extends ReadTests {
 		String startCol = String.valueOf(randCH);
 		
 		Map<String, Integer> columnCountsPerRowKey = keyspace
-				.prepareQuery(CF_COLUMN_RANGE_TEST)
+				.prepareQuery(cfColumnRangeTest)
 				.getRowSlice(rowKeys)
 				.withColumnRange(startCol, "z", false, -1)
 				.getColumnCounts()
@@ -234,7 +234,7 @@ public class ColumnCountQueryTests extends ReadTests {
 		int charOffset = startCol.charAt(0) - 'a' + 1;
 		int expectedColCount = 26 - charOffset + 1;
 
-		Map<String, Integer> expected = new HashMap<String, Integer>();
+		Map<String, Integer> expected = new HashMap<>();
 		if (!rowDeleted) {
 			for (String key : rowKeys) {
 				expected.put(key, expectedColCount);
@@ -248,11 +248,11 @@ public class ColumnCountQueryTests extends ReadTests {
 		List<TestTokenRange> testRanges = TestUtils.getTestTokenRanges();
 		
 		Map<String, Integer> expectedRowCounts = rowDeleted ? new HashMap<String, Integer>() : getExpectedRowCountsForTokenRanges(testRanges, 26);
-		Map<String, Integer> resultRowCounts = new HashMap<String, Integer>();
+		Map<String, Integer> resultRowCounts = new HashMap<>();
 		
 		for (TestTokenRange testRange : testRanges) {
 			
-			Map<String, Integer> rowCounts = keyspace.prepareQuery(CF_COLUMN_RANGE_TEST)
+			Map<String, Integer> rowCounts = keyspace.prepareQuery(cfColumnRangeTest)
 					.getRowRange(null, null, testRange.startToken, testRange.endToken, -1)
 					.getColumnCounts()
 					.execute().getResult();
@@ -270,11 +270,11 @@ public class ColumnCountQueryTests extends ReadTests {
 		List<TestTokenRange> testRanges = TestUtils.getTestTokenRanges();
 		
 		Map<String, Integer> expectedRowCounts = rowDeleted ? new HashMap<String, Integer>() : getExpectedRowCountsForTokenRanges(testRanges, columns.size());
-		Map<String, Integer> resultRowCounts = new HashMap<String, Integer>();
+		Map<String, Integer> resultRowCounts = new HashMap<>();
 		
 		for (TestTokenRange testRange : testRanges) {
 			
-			Map<String, Integer> rowCounts = keyspace.prepareQuery(CF_COLUMN_RANGE_TEST)
+			Map<String, Integer> rowCounts = keyspace.prepareQuery(cfColumnRangeTest)
 					.getRowRange(null, null, testRange.startToken, testRange.endToken, -1)
 					.withColumnSlice(columns)
 					.getColumnCounts()
@@ -298,11 +298,11 @@ public class ColumnCountQueryTests extends ReadTests {
 		List<TestTokenRange> testRanges = TestUtils.getTestTokenRanges();
 		
 		Map<String, Integer> expectedRowCounts = rowDeleted ? new HashMap<String, Integer>() : getExpectedRowCountsForTokenRanges(testRanges, expectedColCount);
-		Map<String, Integer> resultRowCounts = new HashMap<String, Integer>();
+		Map<String, Integer> resultRowCounts = new HashMap<>();
 		
 		for (TestTokenRange testRange : testRanges) {
 			
-			Map<String, Integer> rowCounts = keyspace.prepareQuery(CF_COLUMN_RANGE_TEST)
+			Map<String, Integer> rowCounts = keyspace.prepareQuery(cfColumnRangeTest)
 					.getRowRange(null, null, testRange.startToken, testRange.endToken, -1)
 					.withColumnRange(startColumn, "z", false, -1)
 					.getColumnCounts()
@@ -320,7 +320,7 @@ public class ColumnCountQueryTests extends ReadTests {
 
         for (char keyName = 'A'; keyName <= 'Z'; keyName++) {
         	String rowKey = Character.toString(keyName);
-        	ColumnListMutation<String> colMutation = m.withRow(CF_COLUMN_RANGE_TEST, rowKey);
+        	ColumnListMutation<String> colMutation = m.withRow(cfColumnRangeTest, rowKey);
               for (char cName = 'a'; cName <= 'z'; cName++) {
             	  colMutation.putColumn(Character.toString(cName), (int) (cName - 'a') + 1, null);
               }
@@ -335,7 +335,7 @@ public class ColumnCountQueryTests extends ReadTests {
         for (char keyName = 'A'; keyName <= 'Z'; keyName++) {
             MutationBatch m = keyspace.prepareMutationBatch();
         	String rowKey = Character.toString(keyName);
-        	m.withRow(CF_COLUMN_RANGE_TEST, rowKey).delete();
+        	m.withRow(cfColumnRangeTest, rowKey).delete();
         	m.execute();
         	m.discardMutations();
         }
@@ -347,7 +347,7 @@ public class ColumnCountQueryTests extends ReadTests {
 		
 		int numRowKeys = random.nextInt(26) + 1;
 		
-		Set<String> hashSet = new HashSet<String>();
+		Set<String> hashSet = new HashSet<>();
 
 		while(hashSet.size() < numRowKeys) {
 			int pick = random.nextInt(26);
@@ -359,7 +359,7 @@ public class ColumnCountQueryTests extends ReadTests {
 	
 	private Map<String, Integer> getExpectedRowCountsForTokenRanges(List<TestTokenRange> testRanges, int expectedColumnCountForEachRow) {
 		
-		Map<String, Integer> expectedRowCounts = new HashMap<String, Integer>();
+		Map<String, Integer> expectedRowCounts = new HashMap<>();
 
 		for (TestTokenRange range : testRanges) {
 			for (String rowKey : range.expectedRowKeys) {

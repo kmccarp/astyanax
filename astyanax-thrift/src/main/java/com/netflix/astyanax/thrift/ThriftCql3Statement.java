@@ -52,7 +52,7 @@ public class ThriftCql3Statement implements CqlStatement {
                         CassandraOperationType.CQL, null), null, keyspace.getKeyspaceName()) {
                     @Override
                     public CqlStatementResult internalExecute(Client client, ConnectionContext context) throws Exception {
-                        return new ThriftCqlStatementResult(client.execute_cql3_query(query, compression, ThriftConverter.ToThriftConsistencyLevel(cl)));
+                        return new ThriftCqlStatementResult(client.execute_cql3_query(query, compression, ThriftConverter.toThriftConsistencyLevel(cl)));
                     }
                 }, retry);
     }
@@ -70,10 +70,12 @@ public class ThriftCql3Statement implements CqlStatement {
     }
     
     public CqlStatement withCompression(Boolean flag) {
-        if (flag)
+        if (flag) {
             compression = Compression.GZIP;
-        else
+        }
+        else {
             compression = Compression.NONE;
+        }
         return this;
     }
 

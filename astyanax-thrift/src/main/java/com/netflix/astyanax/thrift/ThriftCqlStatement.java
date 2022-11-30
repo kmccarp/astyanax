@@ -68,10 +68,12 @@ class ThriftCqlStatement implements CqlStatement {
     }
     
     public CqlStatement withCompression(Boolean flag) {
-        if (flag)
+        if (flag) {
             compression = Compression.GZIP;
-        else
+        }
+        else {
             compression = Compression.NONE;
+        }
         return this;
     }
 

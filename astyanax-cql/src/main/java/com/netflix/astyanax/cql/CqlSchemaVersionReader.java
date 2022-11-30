@@ -49,7 +49,7 @@ public class CqlSchemaVersionReader {
 	
 	public Map<String, List<String>> exec() {
 		
-	    Map<String, List<String>> versions = new HashMap<String, List<String>>();
+	    Map<String, List<String>> versions = new HashMap<>();
 
 		ResultSet rs = session.execute(SELECT_SCHEMA_LOCAL);
 		
@@ -64,8 +64,9 @@ public class CqlSchemaVersionReader {
 
         for (Row row : rs.all()) {
 
-        	if (row.isNull("rpc_address") || row.isNull("schema_version"))
+            if (row.isNull("rpc_address") || row.isNull("schema_version")) {
                 continue;
+            }
             
         	UUID schema = row.getUUID("schema_version");
             InetAddress remoteEndpoint = row.getInet("rpc_address");
@@ -84,7 +85,7 @@ public class CqlSchemaVersionReader {
 		String version = versionUUID.toString();
 		List<String> endpoints = map.get(version);
 		if (endpoints == null) {
-			endpoints = new ArrayList<String>();
+			endpoints = new ArrayList<>();
 			map.put(version, endpoints);
 		}
 		endpoints.add(endpoint.toString());

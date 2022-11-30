@@ -30,7 +30,6 @@ import com.netflix.astyanax.impl.AstyanaxConfigurationImpl;
 import com.netflix.astyanax.model.Column;
 import com.netflix.astyanax.model.ColumnFamily;
 import com.netflix.astyanax.model.Row;
-import com.netflix.astyanax.recipes.ReverseIndexQuery.IndexEntryCallback;
 import com.netflix.astyanax.serializers.AnnotatedCompositeSerializer;
 import com.netflix.astyanax.serializers.LongSerializer;
 import com.netflix.astyanax.serializers.StringSerializer;
@@ -38,7 +37,7 @@ import com.netflix.astyanax.thrift.ThriftFamilyFactory;
 
 public class ReverseIndexQueryTest {
 
-    private static Logger LOG = LoggerFactory.getLogger(ReverseIndexQueryTest.class);
+    private static Logger log = LoggerFactory.getLogger(ReverseIndexQueryTest.class);
 
     private static AstyanaxContext<Cluster> clusterContext;
 
@@ -53,7 +52,7 @@ public class ReverseIndexQueryTest {
 
     public static final String SEEDS = "localhost:7102";
 
-    private static ColumnFamily<Long, String> CF_DATA = ColumnFamily
+    private static ColumnFamily<Long, String> cfData = ColumnFamily
             .newColumnFamily(TEST_DATA_CF, LongSerializer.get(),
                     StringSerializer.get());
 
@@ -69,10 +68,10 @@ public class ReverseIndexQueryTest {
         }
     }
 
-    private static Serializer<IndexEntry> indexEntitySerializer = new AnnotatedCompositeSerializer<IndexEntry>(
+    private static Serializer<IndexEntry> indexEntitySerializer = new AnnotatedCompositeSerializer<>(
             IndexEntry.class);
 
-    private static ColumnFamily<String, IndexEntry> CF_INDEX = ColumnFamily
+    private static ColumnFamily<String, IndexEntry> cfIndex = ColumnFamily
             .newColumnFamily(TEST_INDEX_CF, StringSerializer.get(),
                     indexEntitySerializer);
 
@@ -94,18 +93,18 @@ public class ReverseIndexQueryTest {
         if (TEST_INIT_KEYSPACE) {
             Cluster cluster = clusterContext.getEntity();
             try {
-                LOG.info("Dropping keyspace: " + TEST_KEYSPACE_NAME);
+                log.info("Dropping keyspace: " + TEST_KEYSPACE_NAME);
                 cluster.dropKeyspace(TEST_KEYSPACE_NAME);
                 Thread.sleep(10000);
             } catch (ConnectionException e) {
-                LOG.warn(e.getMessage());
+                log.warn(e.getMessage());
             }
 
-            Map<String, String> stratOptions = new HashMap<String, String>();
+            Map<String, String> stratOptions = new HashMap<>();
             stratOptions.put("replication_factor", "3");
 
             try {
-                LOG.info("Creating keyspace: " + TEST_KEYSPACE_NAME);
+                log.info("Creating keyspace: " + TEST_KEYSPACE_NAME);
 
                 KeyspaceDefinition ksDef = cluster.makeKeyspaceDefinition();
 
@@ -114,14 +113,14 @@ public class ReverseIndexQueryTest {
                         .setStrategyClass("SimpleStrategy")
                         .addColumnFamily(
                                 cluster.makeColumnFamilyDefinition()
-                                        .setName(CF_DATA.getName())
+                                        .setName(cfData.getName())
                                         .setComparatorType("UTF8Type")
                         // .setKeyValidationClass("LongType")
                         // .setDefaultValidationClass("BytesType")
                         )
                         .addColumnFamily(
                                 cluster.makeColumnFamilyDefinition()
-                                        .setName(CF_INDEX.getName())
+                                        .setName(cfIndex.getName())
                                         .setComparatorType(
                                                 "CompositeType(LongType, LongType)")
                                         .setDefaultValidationClass("BytesType"));
@@ -129,19 +128,20 @@ public class ReverseIndexQueryTest {
                 Thread.sleep(2000);
                 populateKeyspace();
             } catch (ConnectionException e) {
-                LOG.error(e.getMessage());
+                log.error(e.getMessage());
             }
         }
     }
 
     @AfterClass
     public static void teardown() {
-        if (clusterContext != null)
+        if (clusterContext != null) {
             clusterContext.shutdown();
+        }
     }
 
     public static void populateKeyspace() throws Exception {
-        LOG.info("Ppoulating keyspace: " + TEST_KEYSPACE_NAME);
+        log.info("Ppoulating keyspace: " + TEST_KEYSPACE_NAME);
 
         Keyspace keyspace = clusterContext.getEntity().getKeyspace(
                 TEST_KEYSPACE_NAME);
@@ -162,28 +162,28 @@ public class ReverseIndexQueryTest {
 
             for (long row = 0; row < ROW_COUNT; row++) {
                 long value = row * 100;
-                m.withRow(CF_DATA, row).putColumn("A", "ABC", null)
+                m.withRow(cfData, row).putColumn("A", "ABC", null)
                         .putColumn("B", "DEF", null);
-                m.withRow(CF_INDEX, "B_" + (row % SHARD_COUNT)).putColumn(
+                m.withRow(cfIndex, "B_" + (row % SHARD_COUNT)).putColumn(
                         new IndexEntry(value, row), row, null);
             }
 
             // System.out.println(m);
             m.execute();
         } catch (Exception e) {
-            LOG.error(e.getMessage());
+            log.error(e.getMessage());
             Assert.fail();
         }
     }
 
     @Test
     public void testReverseIndex() throws Exception{
-        LOG.info("Starting");
+        log.info("Starting");
         final AtomicLong counter = new AtomicLong();
 
         Keyspace keyspace = clusterContext.getEntity().getKeyspace(TEST_KEYSPACE_NAME);
         ReverseIndexQuery
-                .newQuery(keyspace, CF_DATA, CF_INDEX.getName(),
+                .newQuery(keyspace, cfData, cfIndex.getName(),
                         LongSerializer.get())
                 .fromIndexValue(100L)
                 .toIndexValue(10000L)
@@ -199,24 +199,19 @@ public class ReverseIndexQueryTest {
                             sb.append(column.getName()).append(", ");
                         }
                         counter.incrementAndGet();
-                        LOG.info("Row: " + row.getKey() + " Columns: "
+                        log.info("Row: " + row.getKey() + " Columns: "
                                 + sb.toString());
                         return null;
                     }
-                }).forEachIndexEntry(new IndexEntryCallback<Long, Long>() {
-                    @Override
-                    public boolean handleEntry(Long key, Long value,
-                            ByteBuffer meta) {
-                        LOG.info("Row : " + key + " IndexValue: " + value
-                                + " Meta: "
-                                + LongSerializer.get().fromByteBuffer(meta));
-                        if (key % 2 == 1)
-                            return false;
-                        return true;
-                    }
-                }).execute();
+                }).forEachIndexEntry((key, value,
+                meta) -> {
+            log.info("Row : " + key + " IndexValue: " + value
+                    + " Meta: "
+                    + LongSerializer.get().fromByteBuffer(meta));
+            return key % 2 != 1;
+        }).execute();
 
-        LOG.info("Read " + counter.get() + " rows");
+        log.info("Read " + counter.get() + " rows");
     }
 
 }

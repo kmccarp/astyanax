@@ -32,8 +32,8 @@ public class DefaultEntityManagerNullableTest {
 	private static Keyspace                  keyspace;
 	private static AstyanaxContext<Keyspace> keyspaceContext;
 
-	private static String TEST_CLUSTER_NAME  = "junit_cass_sandbox";
-	private static String TEST_KEYSPACE_NAME = "EntityPersisterTestKeyspace";
+	private static String testClusterName  = "junit_cass_sandbox";
+	private static String testKeyspaceName = "EntityPersisterTestKeyspace";
 	private static final String SEEDS = "localhost:9160";
 
 	public static ColumnFamily<String, String> CF_SAMPLE_ENTITY = ColumnFamily.newColumnFamily(
@@ -60,23 +60,24 @@ public class DefaultEntityManagerNullableTest {
 
 	@AfterClass
 	public static void teardown() throws Exception {
-		if (keyspaceContext != null)
-			keyspaceContext.shutdown();
+        if (keyspaceContext != null) {
+            keyspaceContext.shutdown();
+        }
 
 		Thread.sleep(1000 * 10);
 	}
 
 	private static void createKeyspace() throws Exception {
 		keyspaceContext = new AstyanaxContext.Builder()
-		.forCluster(TEST_CLUSTER_NAME)
-		.forKeyspace(TEST_KEYSPACE_NAME)
+		.forCluster(testClusterName)
+		.forKeyspace(testKeyspaceName)
 		.withAstyanaxConfiguration(
 				new AstyanaxConfigurationImpl()
 				.setDiscoveryType(NodeDiscoveryType.RING_DESCRIBE)
 				.setConnectionPoolType(ConnectionPoolType.ROUND_ROBIN))
 				.withConnectionPoolConfiguration(
-						new ConnectionPoolConfigurationImpl(TEST_CLUSTER_NAME
-								+ "_" + TEST_KEYSPACE_NAME)
+						new ConnectionPoolConfigurationImpl(testClusterName
+								+ "_" + testKeyspaceName)
 						.setSocketTimeout(30000)
 						.setMaxTimeoutWhenExhausted(2000)
 						.setMaxConnsPerHost(20)

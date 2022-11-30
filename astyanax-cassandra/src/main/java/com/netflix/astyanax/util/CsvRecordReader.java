@@ -31,7 +31,7 @@ import org.apache.commons.csv.CSVParser;
 public class CsvRecordReader implements RecordReader {
     private CSVParser parser;
     private boolean hasHeaderLine = true;
-    private String[] names = null;
+    private String[] names;
 
     public CsvRecordReader(Reader reader) {
         this.parser = new CSVParser(reader);
@@ -65,10 +65,11 @@ public class CsvRecordReader implements RecordReader {
     public List<Pair<String, String>> next() throws IOException {
         // Iterate rows
         String[] row = parser.getLine();
-        if (null == row)
+        if (null == row) {
             return null;
+        }
 
-        List<Pair<String, String>> columns = new ArrayList<Pair<String, String>>();
+        List<Pair<String, String>> columns = new ArrayList<>();
 
         // Build row mutation for all columns
         for (int i = 0; i < row.length; i++) {

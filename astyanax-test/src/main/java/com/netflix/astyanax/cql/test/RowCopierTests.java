@@ -31,9 +31,9 @@ import com.netflix.astyanax.serializers.StringSerializer;
 public class RowCopierTests extends KeyspaceTests {
 
 	private static final ColumnFamily<Integer, String> CF_ROW_COPY = 
-			new ColumnFamily<Integer, String>("testrowcopy", IntegerSerializer.get(), StringSerializer.get(), IntegerSerializer.get());
+			new ColumnFamily<>("testrowcopy", IntegerSerializer.get(), StringSerializer.get(), IntegerSerializer.get());
 	private static final ColumnFamily<Integer, String> CF_ROW_COPY2 = 
-			new ColumnFamily<Integer, String>("testrowcopy2", IntegerSerializer.get(), StringSerializer.get(), IntegerSerializer.get());
+			new ColumnFamily<>("testrowcopy2", IntegerSerializer.get(), StringSerializer.get(), IntegerSerializer.get());
 
 	@BeforeClass
 	public static void init() throws Exception {

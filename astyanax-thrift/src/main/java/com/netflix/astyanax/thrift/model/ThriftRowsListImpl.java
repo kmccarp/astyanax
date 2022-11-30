@@ -39,7 +39,7 @@ public class ThriftRowsListImpl<K, C> implements Rows<K, C> {
         this.lookup = Maps.newLinkedHashMap();
         
         for (Entry<ByteBuffer, List<ColumnOrSuperColumn>> row : rows.entrySet()) {
-            Row<K,C> thriftRow = new ThriftRowImpl<K, C>(
+            Row<K,C> thriftRow = new ThriftRowImpl<>(
                     keySer.fromByteBuffer(row.getKey().duplicate()), 
                     row.getKey(),
                     new ThriftColumnOrSuperColumnListImpl<C>(row.getValue(), colSer));

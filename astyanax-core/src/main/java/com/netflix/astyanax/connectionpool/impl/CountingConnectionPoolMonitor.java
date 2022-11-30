@@ -49,7 +49,7 @@ import com.netflix.astyanax.connectionpool.exceptions.InterruptedOperationExcept
  * @author elandau
  */
 public class CountingConnectionPoolMonitor implements ConnectionPoolMonitor {
-    private static Logger LOG = LoggerFactory.getLogger(CountingConnectionPoolMonitor.class);
+    private static Logger log = LoggerFactory.getLogger(CountingConnectionPoolMonitor.class);
     
     private AtomicLong operationFailureCount  = new AtomicLong();
     private AtomicLong operationSuccessCount  = new AtomicLong();
@@ -106,7 +106,7 @@ public class CountingConnectionPoolMonitor implements ConnectionPoolMonitor {
             this.transportErrorCount.incrementAndGet();
         }
         else {
-            LOG.error(reason.toString(), reason);
+            log.error(reason.toString(), reason);
             this.unknownErrorCount.incrementAndGet();
         }
     }
@@ -206,7 +206,7 @@ public class CountingConnectionPoolMonitor implements ConnectionPoolMonitor {
 
     @Override
     public void onHostAdded(Host host, HostConnectionPool<?> pool) {
-        LOG.info("AddHost: " + host.getHostName());
+        log.info("AddHost: " + host.getHostName());
         this.hostAddedCount.incrementAndGet();
     }
 
@@ -217,7 +217,7 @@ public class CountingConnectionPoolMonitor implements ConnectionPoolMonitor {
 
     @Override
     public void onHostRemoved(Host host) {
-        LOG.info("RemoveHost: " + host.getHostName());
+        log.info("RemoveHost: " + host.getHostName());
         this.hostRemovedCount.incrementAndGet();
     }
 
@@ -238,7 +238,7 @@ public class CountingConnectionPoolMonitor implements ConnectionPoolMonitor {
 
     @Override
     public void onHostReactivated(Host host, HostConnectionPool<?> pool) {
-        LOG.info("Reactivating " + host.getHostName());
+        log.info("Reactivating " + host.getHostName());
         this.hostReactivatedCount.incrementAndGet();
     }
 

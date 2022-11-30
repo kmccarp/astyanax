@@ -45,7 +45,9 @@ public class MapSerializer<K, V> extends AbstractSerializer<Map<K, V>> {
 
     @Override
     public Map<K, V> fromByteBuffer(ByteBuffer arg0) {
-        if (arg0 == null) return null;
+        if (arg0 == null) {
+            return null;
+        }
             ByteBuffer dup = arg0.duplicate();
             return myMap.compose(dup);
             }

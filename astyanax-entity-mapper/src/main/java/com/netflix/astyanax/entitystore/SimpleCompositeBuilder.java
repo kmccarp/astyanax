@@ -27,7 +27,7 @@ import com.netflix.astyanax.model.Equality;
  *
  */
 public class SimpleCompositeBuilder {
-    private final static int  COMPONENT_OVERHEAD = 3;
+    private static final int  COMPONENT_OVERHEAD = 3;
     
     private int bufferSize;
     private ByteBuffer bb;
@@ -87,8 +87,9 @@ public class SimpleCompositeBuilder {
     }
     
     public ByteBuffer get() {
-        if (!hasControl) 
+        if (!hasControl) {
             addControl(this.finalEquality);
+        }
         
         ByteBuffer ret = bb.duplicate();
         ret.flip();

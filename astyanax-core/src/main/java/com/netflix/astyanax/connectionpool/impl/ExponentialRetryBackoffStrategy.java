@@ -73,8 +73,9 @@ public class ExponentialRetryBackoffStrategy implements RetryBackoffStrategy {
                 }
 
                 c *= 2;
-                if (c > config.getRetryMaxDelaySlice())
+                if (c > config.getRetryMaxDelaySlice()) {
                     c = config.getRetryMaxDelaySlice();
+                }
 
                 return (new Random().nextInt(c) + 1) * config.getRetryDelaySlice();
             }

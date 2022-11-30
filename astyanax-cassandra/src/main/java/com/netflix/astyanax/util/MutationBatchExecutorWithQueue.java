@@ -55,59 +55,57 @@ public class MutationBatchExecutorWithQueue {
 
     public MutationBatchExecutorWithQueue startConsumers() {
         for (int i = 0; i < nThreads; i++) {
-            executor.submit(new Runnable() {
-                public void run() {
-                    MutationBatch m = null;
-                    while (true) {
-                        do {
-                            try {
-                                m = queue.getNextMutation(timeout, TimeUnit.MILLISECONDS);
-                                if (m != null) {
-                                    m.execute();
-                                    successCount.incrementAndGet();
-                                    queue.ackMutation(m);
-                                    m = null;
+            executor.submit(() -> {
+                MutationBatch m = null;
+                while (true) {
+                    do {
+                        try {
+                            m = queue.getNextMutation(timeout, TimeUnit.MILLISECONDS);
+                            if (m != null) {
+                                m.execute();
+                                successCount.incrementAndGet();
+                                queue.ackMutation(m);
+                                m = null;
+                            }
+                        }
+                        catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            return;
+                        }
+                        catch (Exception e) {
+                            LOG.error(e.getMessage(), e);
+                            failureCount.incrementAndGet();
+                            if (e instanceof NoAvailableHostsException) {
+                                try {
+                                    Thread.sleep(waitOnNoHosts);
                                 }
+                                catch (InterruptedException e1) {
+                                    Thread.currentThread().interrupt();
+                                    return;
+                                }
+                                continue;
                             }
-                            catch (InterruptedException e) {
-                                Thread.currentThread().interrupt();
-                                return;
-                            }
-                            catch (Exception e) {
-                                LOG.error(e.getMessage(), e);
-                                failureCount.incrementAndGet();
-                                if (e instanceof NoAvailableHostsException) {
+                            else {
+                                if (!retryablePredicate.apply(e)) {
                                     try {
-                                        Thread.sleep(waitOnNoHosts);
+                                        queue.ackMutation(m);
                                     }
-                                    catch (InterruptedException e1) {
-                                        Thread.currentThread().interrupt();
-                                        return;
+                                    catch (Exception e1) {
+                                        // TOOD:
                                     }
-                                    continue;
                                 }
                                 else {
-                                    if (!retryablePredicate.apply(e)) {
-                                        try {
-                                            queue.ackMutation(m);
-                                        }
-                                        catch (Exception e1) {
-                                            // TOOD:
-                                        }
+                                    try {
+                                        queue.repushMutation(m);
                                     }
-                                    else {
-                                        try {
-                                            queue.repushMutation(m);
-                                        }
-                                        catch (Exception e1) {
-                                            // TODO:
-                                        }
+                                    catch (Exception e1) {
+                                        // TODO:
                                     }
-                                    m = null;
                                 }
+                                m = null;
                             }
-                        } while (m != null);
-                    }
+                        }
+                    } while (m != null);
                 }
             });
         }

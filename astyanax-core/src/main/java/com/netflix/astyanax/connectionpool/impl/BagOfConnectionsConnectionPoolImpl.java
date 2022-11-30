@@ -52,7 +52,7 @@ import com.netflix.astyanax.connectionpool.exceptions.PoolTimeoutException;
  */
 public class BagOfConnectionsConnectionPoolImpl<CL> extends AbstractHostPartitionConnectionPool<CL> {
 
-    private final LinkedBlockingQueue<Connection<CL>> idleConnections = new LinkedBlockingQueue<Connection<CL>>();
+    private final LinkedBlockingQueue<Connection<CL>> idleConnections = new LinkedBlockingQueue<>();
     private final AtomicInteger activeConnectionCount = new AtomicInteger(0);
     private final Random randomIndex = new Random();
 
@@ -121,14 +121,16 @@ public class BagOfConnectionsConnectionPoolImpl<CL> extends AbstractHostPartitio
                 }
             }
             finally {
-                if (connection == null)
+                if (connection == null) {
                     activeConnectionCount.decrementAndGet();
+                }
             }
         }
         finally {
-            if (connection != null && newConnection == false)
+            if (connection != null && newConnection == false) {
                 monitor.incConnectionBorrowed(connection.getHostConnectionPool().getHost(), System.currentTimeMillis()
                         - startTime);
+            }
         }
     }
 
@@ -162,16 +164,17 @@ public class BagOfConnectionsConnectionPoolImpl<CL> extends AbstractHostPartitio
 
     class BagExecuteWithFailover<R> extends AbstractExecuteWithFailoverImpl<CL, R> {
         private int retryCountdown;
-        private HostConnectionPool<CL> pool = null;
-        private int size = 0;
+        private HostConnectionPool<CL> pool;
+        private int size;
 
         public BagExecuteWithFailover(ConnectionPoolConfiguration config) throws ConnectionException {
             super(config, monitor);
 
             size = topology.getAllPools().getPools().size();
             retryCountdown = Math.min(config.getMaxFailoverCount(), size);
-            if (retryCountdown < 0)
+            if (retryCountdown < 0) {
                 retryCountdown = size;
+            }
         }
 
         @Override

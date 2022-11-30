@@ -33,18 +33,18 @@ import com.netflix.astyanax.query.RowQuery;
 
 public class SingleRowColumnPaginationTests extends ReadTests {
 	
-	private static ColumnFamily<String, String> CF_COLUMN_RANGE_TEST = TestUtils.CF_COLUMN_RANGE_TEST;
+	private static ColumnFamily<String, String> cfColumnRangeTest = TestUtils.CF_COLUMN_RANGE_TEST;
 
 	@BeforeClass
 	public static void init() throws Exception {
 		initContext();
-		keyspace.createColumnFamily(CF_COLUMN_RANGE_TEST, null);
-		CF_COLUMN_RANGE_TEST.describe(keyspace);
+		keyspace.createColumnFamily(cfColumnRangeTest, null);
+		cfColumnRangeTest.describe(keyspace);
 	}
 	
 	@AfterClass
 	public static void tearDown() throws Exception {
-		keyspace.dropColumnFamily(CF_COLUMN_RANGE_TEST);
+		keyspace.dropColumnFamily(cfColumnRangeTest);
 	}
 
 	@Test

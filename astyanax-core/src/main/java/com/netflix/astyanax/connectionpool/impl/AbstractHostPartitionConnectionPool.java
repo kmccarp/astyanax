@@ -84,7 +84,7 @@ import com.netflix.astyanax.tracing.OperationTracer;
  */
 public abstract class AbstractHostPartitionConnectionPool<CL> implements ConnectionPool<CL>,
         SimpleHostConnectionPool.Listener<CL> {
-    private static Logger LOG = LoggerFactory.getLogger(AbstractHostPartitionConnectionPool.class);
+    private static Logger log = LoggerFactory.getLogger(AbstractHostPartitionConnectionPool.class);
 	
     protected final NonBlockingHashMap<Host, HostConnectionPool<CL>> hosts;
     protected final ConnectionPoolConfiguration                      config;
@@ -103,8 +103,8 @@ public abstract class AbstractHostPartitionConnectionPool<CL> implements Connect
         this.config     = config;
         this.factory    = factory;
         this.monitor    = monitor;
-        this.hosts      = new NonBlockingHashMap<Host, HostConnectionPool<CL>>();
-        this.topology   = new TokenPartitionedTopology<CL>(config.getPartitioner(), config.getLatencyScoreStrategy());
+        this.hosts      = new NonBlockingHashMap<>();
+        this.topology   = new TokenPartitionedTopology<>(config.getPartitioner(), config.getLatencyScoreStrategy());
         this.partitioner = config.getPartitioner();
     }
 
@@ -150,7 +150,7 @@ public abstract class AbstractHostPartitionConnectionPool<CL> implements Connect
 
     protected HostConnectionPool<CL> newHostConnectionPool(Host host, ConnectionFactory<CL> factory,
             ConnectionPoolConfiguration config) {
-        return new SimpleHostConnectionPool<CL>(host, factory, monitor, config, this);
+        return new SimpleHostConnectionPool<>(host, factory, monitor, config, this);
     }
 
     /**
@@ -311,8 +311,9 @@ public abstract class AbstractHostPartitionConnectionPool<CL> implements Connect
         // Add new hosts.
         boolean changed = false;
         for (Host host : ring) {
-            if (addHost(host, false))
+            if (addHost(host, false)) {
                 changed = true;
+            }
             hostsToRemove.remove(host);
         }
 
@@ -351,14 +352,16 @@ public abstract class AbstractHostPartitionConnectionPool<CL> implements Connect
             try {
                 OperationResult<R> result = newExecuteWithFailover(op).tryOperation(op);
                 retry.success();
-                if(context != null)  
-                	opsTracer.onSuccess(context, op);
+                if (context != null) {
+                    opsTracer.onSuccess(context, op);
+                }
                 
                 return result;
             }
             catch (OperationException e) {
-            	if(context != null)  
-            		opsTracer.onException(context, op, e);
+                if (context != null) {
+                    opsTracer.onException(context, op, e);
+                }
             	
                 retry.failure(e);
                 throw e;
@@ -368,13 +371,14 @@ public abstract class AbstractHostPartitionConnectionPool<CL> implements Connect
             } 
             
             if (retry.allowRetry()) {
-            	LOG.debug("Retry policy[" + retry.toString() + "] will allow a subsequent retry for operation [" + op.getClass() + 
+            	log.debug("Retry policy[" + retry.toString() + "] will allow a subsequent retry for operation [" + op.getClass() + 
             			  "] on keyspace [" + op.getKeyspace() + "] on pinned host[" + op.getPinnedHost() + "]");
             }
         } while (retry.allowRetry());
-        
-        if(context != null && lastException != null)  
-        	opsTracer.onException(context, op, lastException);
+
+        if (context != null && lastException != null) {
+            opsTracer.onException(context, op, lastException);
+        }
         
         retry.failure(lastException);
         throw lastException;

@@ -32,9 +32,11 @@ public class KeyModShardPolicy extends TimeModShardPolicy {
     
     @Override
     public int getMessageShard(Message message, MessageQueueMetadata settings) {
-        if (message.hasKey())
+        if (message.hasKey()) {
             return message.getKey().hashCode() % settings.getShardCount();
-        else
+        }
+        else {
             return super.getMessageShard(message, settings);
+        }
     }
 }

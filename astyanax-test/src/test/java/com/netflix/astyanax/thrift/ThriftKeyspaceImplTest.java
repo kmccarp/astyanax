@@ -43,7 +43,6 @@ import com.google.common.collect.Maps;
 import com.netflix.astyanax.AstyanaxContext;
 import com.netflix.astyanax.Cluster;
 import com.netflix.astyanax.ColumnListMutation;
-import com.netflix.astyanax.ExceptionCallback;
 import com.netflix.astyanax.Keyspace;
 import com.netflix.astyanax.MutationBatch;
 import com.netflix.astyanax.RowCallback;
@@ -75,7 +74,6 @@ import com.netflix.astyanax.model.CqlResult;
 import com.netflix.astyanax.model.Equality;
 import com.netflix.astyanax.model.Row;
 import com.netflix.astyanax.model.Rows;
-import com.netflix.astyanax.query.AllRowsQuery;
 import com.netflix.astyanax.query.ColumnQuery;
 import com.netflix.astyanax.query.IndexQuery;
 import com.netflix.astyanax.query.PreparedIndexExpression;
@@ -103,29 +101,29 @@ import com.netflix.astyanax.util.TimeUUIDUtils;
 
 public class ThriftKeyspaceImplTest {
 
-    private static Logger LOG = LoggerFactory.getLogger(ThriftKeyspaceImplTest.class);
+    private static Logger log = LoggerFactory.getLogger(ThriftKeyspaceImplTest.class);
 
     private static Keyspace                  keyspace;
     private static AstyanaxContext<Keyspace> keyspaceContext;
 
-    private static ColumnFamily<String, String> CF_USER_INFO = ColumnFamily.newColumnFamily(
+    private static ColumnFamily<String, String> cfUserInfo = ColumnFamily.newColumnFamily(
             "UserInfo", // Column Family Name
             StringSerializer.get(), // Key Serializer
             StringSerializer.get()); // Column Serializer
 
-    private static ColumnFamily<Long, Long> CF_DELETE = ColumnFamily
+    private static ColumnFamily<Long, Long> cfDelete = ColumnFamily
             .newColumnFamily(
                     "delete", 
                     LongSerializer.get(),
                     LongSerializer.get());
     
-    private static ColumnFamily<Long, String> CF_USERS = ColumnFamily
+    private static ColumnFamily<Long, String> cfUsers = ColumnFamily
             .newColumnFamily(
                     "users", 
                     LongSerializer.get(),
                     StringSerializer.get());
 
-    private static ColumnFamily<String, String> CF_TTL = ColumnFamily
+    private static ColumnFamily<String, String> cfTtl = ColumnFamily
             .newColumnFamily(
                     "ttl", 
                     StringSerializer.get(),
@@ -191,7 +189,7 @@ public class ThriftKeyspaceImplTest {
                     LongSerializer.get(),
                     LongSerializer.get());
 
-    public static AnnotatedCompositeSerializer<MockCompositeType> M_SERIALIZER = new AnnotatedCompositeSerializer<MockCompositeType>(
+    public static AnnotatedCompositeSerializer<MockCompositeType> M_SERIALIZER = new AnnotatedCompositeSerializer<>(
             MockCompositeType.class);
     
     public static ColumnFamily<String, MockCompositeType> CF_COMPOSITE = ColumnFamily
@@ -218,7 +216,7 @@ public class ThriftKeyspaceImplTest {
                     StringSerializer.get(),
                     TimeUUIDSerializer.get());
 
-    public static AnnotatedCompositeSerializer<SessionEvent> SE_SERIALIZER = new AnnotatedCompositeSerializer<SessionEvent>(
+    public static AnnotatedCompositeSerializer<SessionEvent> SE_SERIALIZER = new AnnotatedCompositeSerializer<>(
             SessionEvent.class);
 
     public static ColumnFamily<String, SessionEvent> CF_CLICK_STREAM = ColumnFamily
@@ -227,8 +225,8 @@ public class ThriftKeyspaceImplTest {
 
     private static final String SEEDS = "localhost:9160";
     private static final long   CASSANDRA_WAIT_TIME = 3000;
-    private static String TEST_CLUSTER_NAME  = "cass_sandbox";
-    private static String TEST_KEYSPACE_NAME = "AstyanaxUnitTests";
+    private static String testClusterName  = "cass_sandbox";
+    private static String testKeyspaceName = "AstyanaxUnitTests";
 
     
     @BeforeClass
@@ -245,24 +243,25 @@ public class ThriftKeyspaceImplTest {
 
     @AfterClass
     public static void teardown() throws Exception {
-        if (keyspaceContext != null)
+        if (keyspaceContext != null) {
             keyspaceContext.shutdown();
+        }
         
         Thread.sleep(CASSANDRA_WAIT_TIME);
     }
 
     public static void createKeyspace() throws Exception {
         keyspaceContext = new AstyanaxContext.Builder()
-                .forCluster(TEST_CLUSTER_NAME)
-                .forKeyspace(TEST_KEYSPACE_NAME)
+                .forCluster(testClusterName)
+                .forKeyspace(testKeyspaceName)
                 .withAstyanaxConfiguration(
                         new AstyanaxConfigurationImpl()
                                 .setDiscoveryType(NodeDiscoveryType.RING_DESCRIBE)
                                 .setConnectionPoolType(ConnectionPoolType.ROUND_ROBIN)
                                 .setDiscoveryDelayInSeconds(60000))
                 .withConnectionPoolConfiguration(
-                        new ConnectionPoolConfigurationImpl(TEST_CLUSTER_NAME
-                                + "_" + TEST_KEYSPACE_NAME)
+                        new ConnectionPoolConfigurationImpl(testClusterName
+                                + "_" + testKeyspaceName)
                                 .setSocketTimeout(30000)
                                 .setMaxTimeoutWhenExhausted(2000)
                                 .setMaxConnsPerHost(20)
@@ -280,7 +279,7 @@ public class ThriftKeyspaceImplTest {
             keyspace.dropKeyspace();
         }
         catch (Exception e) {
-            LOG.info(e.getMessage());
+            log.info(e.getMessage());
         }
         
         ImmutableMap<String, Object> ksOptions = ImmutableMap.<String, Object>builder()
@@ -290,7 +289,7 @@ public class ThriftKeyspaceImplTest {
                 .put("strategy_class",     "SimpleStrategy")
                 .build();
         
-        ImmutableMap<String, Object> NO_OPTIONS = ImmutableMap.of();
+        ImmutableMap<String, Object> noOptions = ImmutableMap.of();
         
         Map<ColumnFamily, Map<String, Object>> cfs = ImmutableMap.<ColumnFamily, Map<String, Object>>builder()
                 .put(CF_STANDARD1, 
@@ -306,14 +305,14 @@ public class ThriftKeyspaceImplTest {
                                  .build())
                              .build())
                          .build())
-                .put(CF_TTL,        NO_OPTIONS)
+                .put(cfTtl,        noOptions)
                 .build();
         keyspace.createKeyspace(ksOptions, cfs);
         
         keyspace.createColumnFamily(CF_STANDARD2,  null);
         keyspace.createColumnFamily(CF_ALLROWS,  null);
         keyspace.createColumnFamily(CF_LONGCOLUMN, null);
-        keyspace.createColumnFamily(CF_DELETE,     null);
+        keyspace.createColumnFamily(cfDelete,     null);
         keyspace.createColumnFamily(ATOMIC_UPDATES,null);
         keyspace.createColumnFamily(CF_CQL,  null);
         keyspace.createColumnFamily(CF_CALLBACK,  null);
@@ -336,8 +335,8 @@ public class ThriftKeyspaceImplTest {
                 .put("key_validation_class", "BytesType")
                 .build());
         keyspace.createColumnFamily(CF_TIME_UUID,         null);
-        keyspace.createColumnFamily(CF_USER_INFO,         null);
-        keyspace.createColumnFamily(CF_USERS, ImmutableMap.<String, Object>builder()
+        keyspace.createColumnFamily(cfUserInfo,         null);
+        keyspace.createColumnFamily(cfUsers, ImmutableMap.<String, Object>builder()
                 .put("default_validation_class", "UTF8Type")
                 .put("column_metadata", ImmutableMap.<String, Object>builder()
                         .put("firstname",  ImmutableMap.<String, Object>builder()
@@ -414,7 +413,7 @@ public class ThriftKeyspaceImplTest {
             cfmLong.putEmptyColumn(Long.MAX_VALUE, null);
             result = m.execute();
 
-            m.withRow(CF_USER_INFO, "acct1234")
+            m.withRow(cfUserInfo, "acct1234")
                 .putColumn("firstname", "john", null)
                 .putColumn("lastname", "smith", null)
                 .putColumn("address", "555 Elm St", null)
@@ -448,13 +447,13 @@ public class ThriftKeyspaceImplTest {
     @Test
     public void testMultiColumnDelete() throws Exception {
         MutationBatch mb = keyspace.prepareMutationBatch();
-        mb.withRow(CF_DELETE, 1L)
+        mb.withRow(cfDelete, 1L)
             .setTimestamp(1).putEmptyColumn(1L, null)
             .setTimestamp(10).putEmptyColumn(2L, null)
             ;
         mb.execute();
         
-        ColumnList<Long> result1 = keyspace.prepareQuery(CF_DELETE).getRow(1L).execute().getResult();
+        ColumnList<Long> result1 = keyspace.prepareQuery(cfDelete).getRow(1L).execute().getResult();
         Assert.assertEquals(2, result1.size());
         Assert.assertNotNull(result1.getColumnByName(1L));
         Assert.assertNotNull(result1.getColumnByName(2L));
@@ -462,7 +461,7 @@ public class ThriftKeyspaceImplTest {
         logColumnList("Insert", result1);
         
         mb = keyspace.prepareMutationBatch();
-        mb.withRow(CF_DELETE,  1L)
+        mb.withRow(cfDelete,  1L)
             .setTimestamp(result1.getColumnByName(1L).getTimestamp()-1)
             .deleteColumn(1L)
             .setTimestamp(result1.getColumnByName(2L).getTimestamp()-1)
@@ -471,29 +470,29 @@ public class ThriftKeyspaceImplTest {
         
         mb.execute();
         
-        result1 = keyspace.prepareQuery(CF_DELETE).getRow(1L).execute().getResult();
+        result1 = keyspace.prepareQuery(cfDelete).getRow(1L).execute().getResult();
         logColumnList("Delete with older timestamp", result1);
         Assert.assertEquals(3, result1.size());
         
-        LOG.info("Delete L2 with TS: " + (result1.getColumnByName(2L).getTimestamp()+1));
-        mb.withRow(CF_DELETE,  1L)
+        log.info("Delete L2 with TS: " + (result1.getColumnByName(2L).getTimestamp()+1));
+        mb.withRow(cfDelete,  1L)
             .setTimestamp(result1.getColumnByName(1L).getTimestamp()+1)
             .deleteColumn(1L)
             .setTimestamp(result1.getColumnByName(2L).getTimestamp()+1)
             .deleteColumn(2L);
         mb.execute();
         
-        result1 = keyspace.prepareQuery(CF_DELETE).getRow(1L).execute().getResult();
+        result1 = keyspace.prepareQuery(cfDelete).getRow(1L).execute().getResult();
         logColumnList("Delete with newer timestamp", result1);
         Assert.assertEquals(1, result1.size());
     }
     
     <T> void logColumnList(String label, ColumnList<T> cl) {
-        LOG.info(">>>>>> " + label);
+        log.info(">>>>>> " + label);
         for (Column<T> c : cl) {
-            LOG.info(c.getName() + " " + c.getTimestamp());
+            log.info(c.getName() + " " + c.getTimestamp());
         }
-        LOG.info("<<<<<<");
+        log.info("<<<<<<");
     }
     
     @Test
@@ -509,7 +508,7 @@ public class ThriftKeyspaceImplTest {
     
     @Test
     public void testHasValue() throws Exception {
-        ColumnList<String> response = keyspace.prepareQuery(CF_USER_INFO).getRow("acct1234").execute().getResult();
+        ColumnList<String> response = keyspace.prepareQuery(cfUserInfo).getRow("acct1234").execute().getResult();
         Assert.assertEquals("firstname", response.getColumnByName("firstname").getName());
         Assert.assertEquals("firstname", response.getColumnByName("firstname").getName());
         Assert.assertEquals("john", response.getColumnByName("firstname").getStringValue());
@@ -523,20 +522,20 @@ public class ThriftKeyspaceImplTest {
     public void getKeyspaceDefinition() throws Exception {
         KeyspaceDefinition def = keyspaceContext.getEntity().describeKeyspace();
         Collection<String> fieldNames = def.getFieldNames();
-        LOG.info("Getting field names");
+        log.info("Getting field names");
         for (String field : fieldNames) {
-            LOG.info(field);
+            log.info(field);
         }
-        LOG.info(fieldNames.toString());
+        log.info(fieldNames.toString());
         
         for (FieldMetadata field : def.getFieldsMetadata()) {
-            LOG.info(field.getName() + " = " + def.getFieldValue(field.getName()) + " (" + field.getType() + ")");
+            log.info(field.getName() + " = " + def.getFieldValue(field.getName()) + " (" + field.getType() + ")");
         }
         
         for (ColumnFamilyDefinition cfDef : def.getColumnFamilyList()) {
-            LOG.info("----------" );
+            log.info("----------" );
             for (FieldMetadata field : cfDef.getFieldsMetadata()) {
-                LOG.info(field.getName() + " = " + cfDef.getFieldValue(field.getName()) + " (" + field.getType() + ")");
+                log.info(field.getName() + " = " + cfDef.getFieldValue(field.getName()) + " (" + field.getType() + ")");
             }
         }
     }
@@ -547,18 +546,18 @@ public class ThriftKeyspaceImplTest {
         Properties props = def.getProperties();
         
         for (Entry<Object, Object> prop : props.entrySet()) {
-            LOG.info(prop.getKey() + " : " + prop.getValue());
+            log.info(prop.getKey() + " : " + prop.getValue());
         }
         
         KsDef def2 = ThriftUtils.getThriftObjectFromProperties(KsDef.class, props);
         Properties props2 = ThriftUtils.getPropertiesFromThrift(def2);
 
-        LOG.info("Props1:" + new TreeMap<Object, Object>(props));
-        LOG.info("Props2:" + new TreeMap<Object, Object>(props2));
+        log.info("Props1:" + new TreeMap<Object, Object>(props));
+        log.info("Props2:" + new TreeMap<Object, Object>(props2));
         MapDifference<Object, Object> diff = Maps.difference(props,  props2);
-        LOG.info("Not copied : " + diff.entriesOnlyOnLeft());
-        LOG.info("Added      : " + diff.entriesOnlyOnRight());
-        LOG.info("Differing  : " + diff.entriesDiffering());
+        log.info("Not copied : " + diff.entriesOnlyOnLeft());
+        log.info("Added      : " + diff.entriesOnlyOnRight());
+        log.info("Differing  : " + diff.entriesDiffering());
         
         
         Assert.assertTrue(diff.areEqual());
@@ -567,16 +566,16 @@ public class ThriftKeyspaceImplTest {
     @Test
     public void testNonExistentKeyspace()  {
         AstyanaxContext<Keyspace> ctx = new AstyanaxContext.Builder()
-            .forCluster(TEST_CLUSTER_NAME)
-            .forKeyspace(TEST_KEYSPACE_NAME + "_NonExistent")
+            .forCluster(testClusterName)
+            .forKeyspace(testKeyspaceName + "_NonExistent")
             .withAstyanaxConfiguration(
                     new AstyanaxConfigurationImpl()
                             .setDiscoveryType(NodeDiscoveryType.RING_DESCRIBE)
                             .setConnectionPoolType(ConnectionPoolType.ROUND_ROBIN)
                             .setDiscoveryDelayInSeconds(60000))
             .withConnectionPoolConfiguration(
-                    new ConnectionPoolConfigurationImpl(TEST_CLUSTER_NAME
-                            + "_" + TEST_KEYSPACE_NAME)
+                    new ConnectionPoolConfigurationImpl(testClusterName
+                            + "_" + testKeyspaceName)
                             .setSocketTimeout(30000)
                             .setMaxTimeoutWhenExhausted(2000)
                             .setMaxConnsPerHost(20)
@@ -591,7 +590,7 @@ public class ThriftKeyspaceImplTest {
             KeyspaceDefinition keyspaceDef = ctx.getEntity().describeKeyspace();
             Assert.fail();
         } catch (ConnectionException e) {
-            LOG.info(e.getMessage());
+            log.info(e.getMessage());
         }
         
     }
@@ -600,30 +599,30 @@ public class ThriftKeyspaceImplTest {
     public void testDescribeRing() throws Exception {
         // [TokenRangeImpl [startToken=0, endToken=0, endpoints=[127.0.0.1]]]
         List<TokenRange> ring = keyspaceContext.getEntity().describeRing();
-        LOG.info(ring.toString());
+        log.info(ring.toString());
         
         // 127.0.0.1
         RingDescribeHostSupplier ringSupplier = new RingDescribeHostSupplier(keyspaceContext.getEntity(), 9160);
         List<Host> hosts = ringSupplier.get();
         Assert.assertEquals(1, hosts.get(0).getTokenRanges().size());
-        LOG.info(hosts.toString());
+        log.info(hosts.toString());
         
         Supplier<List<Host>> sourceSupplier1 = Suppliers.ofInstance((List<Host>)Lists.newArrayList(new Host("127.0.0.1", 9160)));
         Supplier<List<Host>> sourceSupplier2 = Suppliers.ofInstance((List<Host>)Lists.newArrayList(new Host("127.0.0.2", 9160)));
         
         // 127.0.0.1
-        LOG.info(sourceSupplier1.get().toString());
+        log.info(sourceSupplier1.get().toString());
         
         // 127.0.0.2
-        LOG.info(sourceSupplier2.get().toString());
+        log.info(sourceSupplier2.get().toString());
         
         hosts = new FilteringHostSupplier(ringSupplier, sourceSupplier1).get();
-        LOG.info(hosts.toString());
+        log.info(hosts.toString());
         
         Assert.assertEquals(1, hosts.size());
         Assert.assertEquals(1, hosts.get(0).getTokenRanges().size());
         hosts = new FilteringHostSupplier(ringSupplier, sourceSupplier2).get();
-        LOG.info(hosts.toString());
+        log.info(hosts.toString());
         Assert.assertEquals(1, hosts.size());
     }
     
@@ -650,8 +649,8 @@ public class ThriftKeyspaceImplTest {
     @Test
     public void example() {
         AstyanaxContext<Keyspace> context = new AstyanaxContext.Builder()
-                .forCluster(TEST_CLUSTER_NAME)
-                .forKeyspace(TEST_KEYSPACE_NAME)
+                .forCluster(testClusterName)
+                .forKeyspace(testKeyspaceName)
                 .withAstyanaxConfiguration(
                         new AstyanaxConfigurationImpl()
                                 .setDiscoveryType(NodeDiscoveryType.NONE))
@@ -678,7 +677,7 @@ public class ThriftKeyspaceImplTest {
 
         try {
             OperationResult<ColumnList<String>> result = keyspace
-                    .prepareQuery(CF_USER_INFO).getKey("acct1234").execute();
+                    .prepareQuery(cfUserInfo).getKey("acct1234").execute();
             ColumnList<String> columns = result.getResult();
 
             // Lookup columns in response by name
@@ -711,9 +710,9 @@ public class ThriftKeyspaceImplTest {
                                     .setLimit(pageize).build());
 
             while (!(columns = query.execute().getResult()).isEmpty()) {
-                LOG.info("-----");
+                log.info("-----");
                 for (Column<Long> c : columns) {
-                    LOG.info(Long.toString(c.getName()));
+                    log.info(Long.toString(c.getName()));
                 }
                 // column = Iterables.getLast(columns).getName() + "\u0000";
             }
@@ -729,16 +728,13 @@ public class ThriftKeyspaceImplTest {
                     .prepareQuery(CF_ALLROWS).getAllRows().setConcurrencyLevel(2).setRowLimit(10)
                     .setRepeatLastToken(false)
                     .withColumnRange(new RangeBuilder().setLimit(0).build())
-                    .setExceptionCallback(new ExceptionCallback() {
-                        @Override
-                        public boolean onException(ConnectionException e) {
-                            Assert.fail(e.getMessage());
-                            return true;
-                        }
-                    }).execute();
+                    .setExceptionCallback(e -> {
+                Assert.fail(e.getMessage());
+                return true;
+            }).execute();
             for (Row<String, String> row : rows.getResult()) {
                 counter.incrementAndGet();
-                LOG.info("ROW: " + row.getKey() + " " + row.getColumns().size());
+                log.info("ROW: " + row.getKey() + " " + row.getColumns().size());
             }
             Assert.assertEquals(26, counter.get());
         } catch (ConnectionException e) {
@@ -771,7 +767,7 @@ public class ThriftKeyspaceImplTest {
                         @Override
                         public void success(Rows<String, String> rows) {
                             for (Row<String, String> row : rows) {
-                                LOG.info("ROW: " + row.getKey() + " "
+                                log.info("ROW: " + row.getKey() + " "
                                         + row.getColumns().size());
                                 counter.incrementAndGet();
                             }
@@ -779,11 +775,11 @@ public class ThriftKeyspaceImplTest {
 
                         @Override
                         public boolean failure(ConnectionException e) {
-                            LOG.error(e.getMessage(), e);
+                            log.error(e.getMessage(), e);
                             return false;
                         }
                     });
-            LOG.info("Read " + counter.get() + " keys");
+            log.info("Read " + counter.get() + " keys");
             Assert.assertEquals(26,  counter.get());
         } catch (ConnectionException e) {
             Assert.fail();
@@ -1066,8 +1062,8 @@ public class ThriftKeyspaceImplTest {
         long now = System.currentTimeMillis();
         UUID uuid1 = TimeUUIDUtils.getTimeUUID(now);
         UUID uuid2 = TimeUUIDUtils.getTimeUUID(now);
-        LOG.info(uuid1.toString());
-        LOG.info(uuid2.toString());
+        log.info(uuid1.toString());
+        log.info(uuid2.toString());
         Assert.assertTrue(uuid1.equals(uuid2));
     }
 
@@ -1135,7 +1131,7 @@ public class ThriftKeyspaceImplTest {
         m.withRow(CF_TIME_UUID, rowKey).putColumn(columnName, 42, null);
         for (int i = startTime; i < endTime; i++) {
             // UUID c = TimeUUIDUtils.getTimeUUID(i);
-            LOG.info(TimeUUIDUtils.getTimeUUID(columnTime + i).toString());
+            log.info(TimeUUIDUtils.getTimeUUID(columnTime + i).toString());
 
             m.withRow(CF_TIME_UUID, rowKey).putColumn(
                     TimeUUIDUtils.getTimeUUID(columnTime + i), i, null);
@@ -1144,7 +1140,7 @@ public class ThriftKeyspaceImplTest {
         try {
             m.execute();
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         }
 
@@ -1172,7 +1168,7 @@ public class ThriftKeyspaceImplTest {
             Assert.assertEquals(10, result2.getResult().size());
 
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         }
 
@@ -1193,7 +1189,7 @@ public class ThriftKeyspaceImplTest {
 
         ByteBuffer buffer = serializer.toByteBuffer(currentUUID);
         String value = serializer.getString(buffer);
-        LOG.info("UUID Time = " + value);
+        log.info("UUID Time = " + value);
 
         // Test timeUUID pagination
         RowQuery<String, UUID> query = keyspace
@@ -1211,19 +1207,19 @@ public class ThriftKeyspaceImplTest {
         int pageCount = 0;
         int rowCount = 0;
         try {
-            LOG.info("starting pagination");
+            log.info("starting pagination");
             while (!(result = query.execute()).getResult().isEmpty()) {
                 pageCount++;
                 rowCount += result.getResult().size();
-                LOG.info("==== Block ====");
+                log.info("==== Block ====");
                 for (Column<UUID> column : result.getResult()) {
-                    LOG.info("Column is " + column.getName());
+                    log.info("Column is " + column.getName());
                 }
             }
-            LOG.info("pagination complete");
+            log.info("pagination complete");
         } catch (ConnectionException e) {
             Assert.fail();
-            LOG.info(e.getMessage());
+            log.info(e.getMessage());
             e.printStackTrace();
         }
 
@@ -1256,7 +1252,7 @@ public class ThriftKeyspaceImplTest {
             Assert.assertFalse(iter2.hasNext());
 
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail(e.getMessage());
         }
     }
@@ -1267,12 +1263,12 @@ public class ThriftKeyspaceImplTest {
         
         Long key = 9L;
         
-        mb.withRow(CF_USERS, key).delete();
-        mb.withRow(CF_USERS, key).putEmptyColumn("test", null);
+        mb.withRow(cfUsers, key).delete();
+        mb.withRow(cfUsers, key).putEmptyColumn("test", null);
         
         mb.execute();
         
-        ColumnList<String> result = keyspace.prepareQuery(CF_USERS).getRow(key).execute().getResult();
+        ColumnList<String> result = keyspace.prepareQuery(cfUsers).getRow(key).execute().getResult();
         
         Assert.assertEquals(1, result.size());
     }
@@ -1296,7 +1292,7 @@ public class ThriftKeyspaceImplTest {
         int size = 0;
 
         for (Row<Long, Long> row : result) {
-            LOG.info("ROW: " + row.getKey() + " " + row.getColumns().size());
+            log.info("ROW: " + row.getKey() + " " + row.getColumns().size());
             size++;
             Assert.assertEquals(2, row.getColumns().size());
         }
@@ -1316,7 +1312,7 @@ public class ThriftKeyspaceImplTest {
         result = keyspace.prepareQuery(ATOMIC_UPDATES).getAllRows().execute().getResult();
 
         for (Row<Long, Long> row : result) {
-            LOG.info("ROW: " + row.getKey() + " " + row.getColumns().size());
+            log.info("ROW: " + row.getKey() + " " + row.getColumns().size());
             size++;
             Assert.assertEquals(2, row.getColumns().size());
         }
@@ -1348,7 +1344,7 @@ public class ThriftKeyspaceImplTest {
         try {
             m.execute();
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         }
 
@@ -1430,7 +1426,7 @@ public class ThriftKeyspaceImplTest {
             // column.getLongValue());
             // }
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         }
     }
@@ -1454,7 +1450,7 @@ public class ThriftKeyspaceImplTest {
         try {
             m.execute();
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         }
 
@@ -1463,7 +1459,7 @@ public class ThriftKeyspaceImplTest {
                     .getKey(key).execute().getResult();
             Assert.assertFalse(row.isEmpty());
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         }
 
@@ -1489,12 +1485,12 @@ public class ThriftKeyspaceImplTest {
                 }
             }
         }
-        LOG.info("Created " + columnCount + " columns");
+        log.info("Created " + columnCount + " columns");
         
         try {
             m.execute();
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         }
 
@@ -1504,10 +1500,10 @@ public class ThriftKeyspaceImplTest {
                     .execute();
             Assert.assertEquals(columnCount,  result.getResult().size());
             for (Column<MockCompositeType> col : result.getResult()) {
-                LOG.info("COLUMN: " + col.getName().toString());
+                log.info("COLUMN: " + col.getName().toString());
             }
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         }
 
@@ -1516,13 +1512,13 @@ public class ThriftKeyspaceImplTest {
                     .prepareQuery(CF_COMPOSITE).getKey(rowKey)
                     .getColumn(new MockCompositeType("a", 0, 10, true, "UTF"))
                     .execute().getResult();
-            LOG.info("Got single column: " + column.getName().toString());
+            log.info("Got single column: " + column.getName().toString());
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         }
 
-        LOG.info("Range builder");
+        log.info("Range builder");
         try {
             result = keyspace
                     .prepareQuery(CF_COMPOSITE)
@@ -1535,10 +1531,10 @@ public class ThriftKeyspaceImplTest {
                                     .lessThanEquals(1)
                                     .build()).execute();
             for (Column<MockCompositeType> col : result.getResult()) {
-                LOG.info("COLUMN: " + col.getName().toString());
+                log.info("COLUMN: " + col.getName().toString());
             }
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         }
 
@@ -1563,7 +1559,7 @@ public class ThriftKeyspaceImplTest {
 
     @Test
     public void testCompositeSlice() throws ConnectionException {
-        AnnotatedCompositeSerializer<MockCompositeType> ser = new AnnotatedCompositeSerializer<MockCompositeType>(
+        AnnotatedCompositeSerializer<MockCompositeType> ser = new AnnotatedCompositeSerializer<>(
                 MockCompositeType.class);
 
         keyspace.prepareQuery(CF_COMPOSITE)
@@ -1579,7 +1575,7 @@ public class ThriftKeyspaceImplTest {
     public void testIndexQueryWithPagination() {
         OperationResult<Rows<String, String>> result;
         try {
-            LOG.info("************************************************** testIndexQueryWithPagination: ");
+            log.info("************************************************** testIndexQueryWithPagination: ");
 
             int rowCount = 0;
             int pageCount = 0;
@@ -1591,23 +1587,23 @@ public class ThriftKeyspaceImplTest {
             while (!(result = query.execute()).getResult().isEmpty()) {
                 pageCount++;
                 rowCount += result.getResult().size();
-                LOG.info("==== Block ====");
+                log.info("==== Block ====");
                 for (Row<String, String> row : result.getResult()) {
-                    LOG.info("RowKey is " + row.getKey());
+                    log.info("RowKey is " + row.getKey());
                 }
             }
 
             Assert.assertEquals(pageCount, 3);
             Assert.assertEquals(rowCount, 26);
-            LOG.info("************************************************** Index query: "
+            log.info("************************************************** Index query: "
                     + result.getResult().size());
 
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             e.printStackTrace();
             Assert.fail();
         } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             e.printStackTrace();
             Assert.fail();
         }
@@ -1617,7 +1613,7 @@ public class ThriftKeyspaceImplTest {
     public void testIndexQuery() {
         OperationResult<Rows<String, String>> result;
         try {
-            LOG.info("************************************************** prepareGetMultiRowIndexQuery: ");
+            log.info("************************************************** prepareGetMultiRowIndexQuery: ");
 
             result = keyspace.prepareQuery(CF_STANDARD1).searchWithIndex()
                     .setStartKey("").addExpression().whereColumn("Index1")
@@ -1632,15 +1628,15 @@ public class ThriftKeyspaceImplTest {
              * "=" + column.getIntegerValue()); } }
              */
 
-            LOG.info("************************************************** Index query: "
+            log.info("************************************************** Index query: "
                     + result.getResult().size());
 
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             e.printStackTrace();
             Assert.fail();
         } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             e.printStackTrace();
             Assert.fail();
         }
@@ -1650,7 +1646,7 @@ public class ThriftKeyspaceImplTest {
     public void testPreparedIndexQuery() {
         OperationResult<Rows<String, String>> result;
         try {
-            LOG.info("************************************************** prepareGetMultiRowIndexQuery: ");
+            log.info("************************************************** prepareGetMultiRowIndexQuery: ");
 
             PreparedIndexExpression<String, String> clause = CF_STANDARD1
                     .newIndexClause().whereColumn("Index1").equals().value(26);
@@ -1660,10 +1656,10 @@ public class ThriftKeyspaceImplTest {
                     .addPreparedExpressions(Arrays.asList(clause)).execute();
 
             for (Row<String, String> row : result.getResult()) {
-                LOG.info("RowKey is " + row.getKey() + " columnCount="
+                log.info("RowKey is " + row.getKey() + " columnCount="
                         + row.getColumns().size());
                 for (Column<String> column : row.getColumns()) {
-                    LOG.info("  Column: " + column.getName() + "="
+                    log.info("  Column: " + column.getName() + "="
                             + column.getIntegerValue());
                 }
             }
@@ -1671,23 +1667,24 @@ public class ThriftKeyspaceImplTest {
             Assert.assertEquals("Z", result.getResult().getRowByIndex(0)
                     .getKey());
 
-            LOG.info("************************************************** Index query: "
+            log.info("************************************************** Index query: "
                     + result.getResult().size());
 
         } catch (ConnectionException e) {
             e.printStackTrace();
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         } catch (Exception e) {
             e.printStackTrace();
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         }
     }
 
     @Test
     public void testIncrementCounter() {
-        long baseAmount, incrAmount = 100;
+        long baseAmount;
+        long incrAmount = 100;
         Column<String> column;
 
         try {
@@ -1703,7 +1700,7 @@ public class ThriftKeyspaceImplTest {
         try {
             m.execute();
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         }
 
@@ -1717,7 +1714,7 @@ public class ThriftKeyspaceImplTest {
         try {
             m.execute();
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         }
 
@@ -1738,7 +1735,7 @@ public class ThriftKeyspaceImplTest {
         try {
             m.execute();
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         }
 
@@ -1758,7 +1755,7 @@ public class ThriftKeyspaceImplTest {
              * rowKey) .deleteColumn(counterName); m.execute();
              */
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         }
 
@@ -1766,7 +1763,7 @@ public class ThriftKeyspaceImplTest {
         // This should be non-existent
         column = getColumnValue(CF_COUNTER1, rowKey, counterName);
         if (column != null) {
-            LOG.error("Counter has value: " + column.getLongValue());
+            log.error("Counter has value: " + column.getLongValue());
             Assert.fail();
         }
     }
@@ -1778,7 +1775,7 @@ public class ThriftKeyspaceImplTest {
             Assert.fail();
         }
         catch (Exception e) {
-            LOG.info(e.getMessage());
+            log.info(e.getMessage());
         }
         
         try {
@@ -1786,7 +1783,7 @@ public class ThriftKeyspaceImplTest {
             Assert.fail();
         }
         catch (Exception e) {
-            LOG.info(e.getMessage());
+            log.info(e.getMessage());
         }
     }
     
@@ -1799,7 +1796,7 @@ public class ThriftKeyspaceImplTest {
             Assert.fail();
         }
         catch (Exception e) {
-            LOG.info(e.getMessage());
+            log.info(e.getMessage());
         }
         
         try {
@@ -1807,7 +1804,7 @@ public class ThriftKeyspaceImplTest {
             Assert.fail();
         }
         catch (Exception e) {
-            LOG.info(e.getMessage());
+            log.info(e.getMessage());
         }
 
         try {
@@ -1815,7 +1812,7 @@ public class ThriftKeyspaceImplTest {
             Assert.fail();
         }
         catch (Exception e) {
-            LOG.info(e.getMessage());
+            log.info(e.getMessage());
         }
         
         try {
@@ -1823,7 +1820,7 @@ public class ThriftKeyspaceImplTest {
             Assert.fail();
         }
         catch (Exception e) {
-            LOG.info(e.getMessage());
+            log.info(e.getMessage());
         }
         
 
@@ -1834,7 +1831,7 @@ public class ThriftKeyspaceImplTest {
         try {
         	
             System.out.println("testCQL");
-            LOG.info("CQL Test");
+            log.info("CQL Test");
 
             MutationBatch m = keyspace.prepareMutationBatch();
             for (char keyName = 'A'; keyName <= 'Z'; keyName++) {
@@ -1869,11 +1866,11 @@ public class ThriftKeyspaceImplTest {
             Assert.assertEquals("I", row.getKey());
             
             for (Row<String, String> row1 : result.getResult().getRows()) {
-              LOG.info("KEY***: " + row1.getKey()); 
+              log.info("KEY***: " + row1.getKey()); 
             }
             
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         }
     }
@@ -1881,16 +1878,16 @@ public class ThriftKeyspaceImplTest {
     @Test
     public void testCqlCount() {
         try {
-            LOG.info("CQL Test");
+            log.info("CQL Test");
             OperationResult<CqlResult<String, String>> result = keyspace
                     .prepareQuery(CF_STANDARD1)
                     .withCql("SELECT count(*) FROM Standard1 where KEY='A';")
                     .execute();
 
             long count = result.getResult().getRows().getRowByIndex(0).getColumns().getColumnByName("count").getLongValue();
-            LOG.info("CQL Count: " + count);
+            log.info("CQL Count: " + count);
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         }
     }
@@ -1904,7 +1901,7 @@ public class ThriftKeyspaceImplTest {
 
     @Test
     public void testColumnFamilyDoesntExist() {
-        ColumnFamily<String, String> cf = new ColumnFamily<String, String>(
+        ColumnFamily<String, String> cf = new ColumnFamily<>(
                 "DoesntExist", StringSerializer.get(), StringSerializer.get());
         OperationResult<Void> result;
         try {
@@ -1913,21 +1910,21 @@ public class ThriftKeyspaceImplTest {
             result = m.execute();
             Assert.fail();
         } catch (ConnectionException e) {
-            LOG.info(e.getMessage());
+            log.info(e.getMessage());
         }
     }
 
     @Test
     public void testKeyspaceDoesntExist() {
         AstyanaxContext<Keyspace> keyspaceContext = new AstyanaxContext.Builder()
-                .forCluster(TEST_CLUSTER_NAME)
-                .forKeyspace(TEST_KEYSPACE_NAME + "_DOESNT_EXIST")
+                .forCluster(testClusterName)
+                .forKeyspace(testKeyspaceName + "_DOESNT_EXIST")
                 .withAstyanaxConfiguration(
                         new AstyanaxConfigurationImpl()
                                 .setDiscoveryType(NodeDiscoveryType.NONE))
                 .withConnectionPoolConfiguration(
-                        new ConnectionPoolConfigurationImpl(TEST_CLUSTER_NAME
-                                + "_" + TEST_KEYSPACE_NAME + "_DOESNT_EXIST")
+                        new ConnectionPoolConfigurationImpl(testClusterName
+                                + "_" + testKeyspaceName + "_DOESNT_EXIST")
                                 .setMaxConnsPerHost(1).setSeeds(SEEDS))
                 .buildKeyspace(ThriftFamilyFactory.getInstance());
 
@@ -1944,7 +1941,7 @@ public class ThriftKeyspaceImplTest {
                 result = m.execute();
                 Assert.fail();
             } catch (ConnectionException e) {
-                LOG.info(e.getMessage());
+                log.info(e.getMessage());
             }
         } finally {
             keyspaceContext.shutdown();
@@ -1955,10 +1952,10 @@ public class ThriftKeyspaceImplTest {
     @Test
     public void testCreateKeyspaceThatAlreadyExists() {
 
-    	String keyspaceName = TEST_KEYSPACE_NAME + "_ksAlreadyExists";
+    	String keyspaceName = testKeyspaceName + "_ksAlreadyExists";
 
     	AstyanaxContext<Keyspace> keyspaceContext = new AstyanaxContext.Builder()
-    	.forCluster(TEST_CLUSTER_NAME)
+    	.forCluster(testClusterName)
     	.forKeyspace(keyspaceName)
     	.withAstyanaxConfiguration(
     			new AstyanaxConfigurationImpl()
@@ -2002,7 +1999,7 @@ public class ThriftKeyspaceImplTest {
     				ks.dropKeyspace();
     			}
     		} catch (Exception e) {
-    			LOG.info(e.getMessage());
+    			log.info(e.getMessage());
     		}
 
     		keyspaceContext.shutdown();
@@ -2025,20 +2022,21 @@ public class ThriftKeyspaceImplTest {
                     .getColumn("DoesNotExist").executeAsync();
             future.get(1000, TimeUnit.MILLISECONDS);
         } catch (ConnectionException e) {
-            LOG.info("ConnectionException: " + e.getMessage());
+            log.info("ConnectionException: " + e.getMessage());
             Assert.fail();
         } catch (InterruptedException e) {
-            LOG.info(e.getMessage());
+            log.info(e.getMessage());
             Assert.fail();
         } catch (ExecutionException e) {
-            if (e.getCause() instanceof NotFoundException)
-                LOG.info(e.getCause().getMessage());
+            if (e.getCause() instanceof NotFoundException) {
+                log.info(e.getCause().getMessage());
+            }
             else {
                 Assert.fail(e.getMessage());
             }
         } catch (TimeoutException e) {
             future.cancel(true);
-            LOG.info(e.getMessage());
+            log.info(e.getMessage());
             Assert.fail();
         }
     }
@@ -2101,10 +2099,10 @@ public class ThriftKeyspaceImplTest {
         Assert.assertEquals(5, r2.getResult().size());
         Assert.assertEquals("a", r2.getResult().getColumnByIndex(0).getName());
 
-        ByteBuffer EMPTY_BUFFER = ByteBuffer.wrap(new byte[0]);
+        ByteBuffer emptyBuffer = ByteBuffer.wrap(new byte[0]);
         OperationResult<ColumnList<String>> r3 = keyspace
                 .prepareQuery(CF_STANDARD1).getKey("A")
-                .withColumnRange(EMPTY_BUFFER, EMPTY_BUFFER, true, 5).execute();
+                .withColumnRange(emptyBuffer, emptyBuffer, true, 5).execute();
         Assert.assertEquals(5, r3.getResult().size());
         Assert.assertEquals("z", r3.getResult().getColumnByIndex(0).getName());
     }
@@ -2125,7 +2123,7 @@ public class ThriftKeyspaceImplTest {
 
     @Test
     public void testGetCounters() throws ConnectionException {
-        LOG.info("Starting testGetCounters...");
+        log.info("Starting testGetCounters...");
 
         try {
             OperationResult<Column<String>> result = keyspace
@@ -2139,7 +2137,7 @@ public class ThriftKeyspaceImplTest {
 
         }
 
-        LOG.info("... testGetCounters done");
+        log.info("... testGetCounters done");
     }
 
     @Test
@@ -2157,7 +2155,7 @@ public class ThriftKeyspaceImplTest {
                                 .getResult().size());
             }
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         }
     }
@@ -2171,19 +2169,19 @@ public class ThriftKeyspaceImplTest {
             result.get(1000, TimeUnit.MILLISECONDS);
 
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             e.printStackTrace();
             Assert.fail();
         } catch (InterruptedException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             e.printStackTrace();
             Assert.fail();
         } catch (ExecutionException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             e.printStackTrace();
             Assert.fail();
         } catch (TimeoutException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             e.printStackTrace();
             Assert.fail();
         }
@@ -2191,10 +2189,10 @@ public class ThriftKeyspaceImplTest {
 
     @Test
     public void testGetAllKeysRoot() {
-        LOG.info("Starting testGetAllKeysRoot...");
+        log.info("Starting testGetAllKeysRoot...");
 
         try {
-            List<String> keys = new ArrayList<String>();
+            List<String> keys = new ArrayList<>();
             for (char key = 'A'; key <= 'Z'; key++) {
                 String keyName = Character.toString(key);
                 keys.add(keyName);
@@ -2239,12 +2237,12 @@ public class ThriftKeyspaceImplTest {
             Assert.fail();
         }
 
-        LOG.info("... testGetAllKeysRoot");
+        log.info("... testGetAllKeysRoot");
     }
 
     @Test
     public void testGetColumnSlice() {
-        LOG.info("Starting testGetColumnSlice...");
+        log.info("Starting testGetColumnSlice...");
         try {
             OperationResult<ColumnList<String>> result = keyspace
                     .prepareQuery(CF_STANDARD1)
@@ -2262,10 +2260,10 @@ public class ThriftKeyspaceImplTest {
 
     @Test
     public void testGetAllKeysPath() {
-        LOG.info("Starting testGetAllKeysPath...");
+        log.info("Starting testGetAllKeysPath...");
 
         try {
-            List<String> keys = new ArrayList<String>();
+            List<String> keys = new ArrayList<>();
             for (char key = 'A'; key <= 'Z'; key++) {
                 String keyName = Character.toString(key);
                 keys.add(keyName);
@@ -2296,21 +2294,21 @@ public class ThriftKeyspaceImplTest {
             Assert.assertEquals(26, counts.getResult().size());
             
             for (Entry<String, Integer> count : counts.getResult().entrySet()) {
-                Assert.assertEquals(new Integer(28), count.getValue());
+                Assert.assertEquals(Integer.valueOf(28), count.getValue());
             }
             
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         }
 
-        LOG.info("Starting testGetAllKeysPath...");
+        log.info("Starting testGetAllKeysPath...");
     }
     
     @Test
     public void testDeleteMultipleKeys() {
-        LOG.info("Starting testDeleteMultipleKeys...");
-        LOG.info("... testGetAllKeysPath");
+        log.info("Starting testDeleteMultipleKeys...");
+        log.info("... testGetAllKeysPath");
 
     }
 
@@ -2332,33 +2330,33 @@ public class ThriftKeyspaceImplTest {
                 .putColumn("10", "X", null);
 
         MutationBatch merged = keyspace.prepareMutationBatch();
-        LOG.info(merged.toString());
+        log.info(merged.toString());
         Assert.assertEquals(merged.getRowCount(), 0);
 
         merged.mergeShallow(m1);
-        LOG.info(merged.toString());
+        log.info(merged.toString());
         Assert.assertEquals(merged.getRowCount(), 1);
 
         merged.mergeShallow(m2);
-        LOG.info(merged.toString());
+        log.info(merged.toString());
         Assert.assertEquals(merged.getRowCount(), 2);
 
         merged.mergeShallow(m3);
-        LOG.info(merged.toString());
+        log.info(merged.toString());
         Assert.assertEquals(merged.getRowCount(), 3);
 
         merged.mergeShallow(m4);
-        LOG.info(merged.toString());
+        log.info(merged.toString());
         Assert.assertEquals(merged.getRowCount(), 3);
 
         merged.mergeShallow(m5);
-        LOG.info(merged.toString());
+        log.info(merged.toString());
         Assert.assertEquals(merged.getRowCount(), 3);
     }
 
     @Test
     public void testDelete() {
-        LOG.info("Starting testDelete...");
+        log.info("Starting testDelete...");
 
         String rowKey = "DeleteMe_testDelete";
 
@@ -2369,7 +2367,7 @@ public class ThriftKeyspaceImplTest {
         try {
             m.execute();
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         }
 
@@ -2378,12 +2376,12 @@ public class ThriftKeyspaceImplTest {
         Assert.assertTrue(deleteColumn(CF_STANDARD1, rowKey, "Column1"));
         Assert.assertNull(getColumnValue(CF_STANDARD1, rowKey, "Column1"));
 
-        LOG.info("... testDelete");
+        log.info("... testDelete");
     }
 
     @Test
     public void testDeleteLotsOfColumns() {
-        LOG.info("Starting testDelete...");
+        log.info("Starting testDelete...");
 
         String rowKey = "DeleteMe_testDeleteLotsOfColumns";
 
@@ -2401,7 +2399,7 @@ public class ThriftKeyspaceImplTest {
         try {
             m.execute();
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         }
 
@@ -2470,16 +2468,15 @@ public class ThriftKeyspaceImplTest {
             Assert.fail(e.getMessage());
         }
 
-        LOG.info("... testDelete");
+        log.info("... testDelete");
     }
 
     private <K, C> int getRowColumnCount(ColumnFamily<K, C> cf, K rowKey)
             throws ConnectionException {
-        int count = keyspace.prepareQuery(cf)
+
+        return keyspace.prepareQuery(cf)
                 .setConsistencyLevel(ConsistencyLevel.CL_QUORUM).getKey(rowKey)
                 .getCount().execute().getResult();
-
-        return count;
     }
 
     private <K, C> int getRowColumnCountWithPagination(ColumnFamily<K, C> cf,
@@ -2510,7 +2507,7 @@ public class ThriftKeyspaceImplTest {
         RecordReader reader = new CsvRecordReader(new StringReader(
                 sb.toString()));
         RecordWriter writer = new ColumnarRecordWriter(keyspace,
-                CF_USERS.getName());
+                cfUsers.getName());
 
         try {
             reader.start();
@@ -2520,10 +2517,10 @@ public class ThriftKeyspaceImplTest {
                 writer.write(record);
             }
         } catch (IOException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         } finally {
             reader.shutdown();
@@ -2531,43 +2528,43 @@ public class ThriftKeyspaceImplTest {
         }
 
         try {
-            Rows<Long, String> rows = keyspace.prepareQuery(CF_USERS)
+            Rows<Long, String> rows = keyspace.prepareQuery(cfUsers)
                     .getAllRows().execute().getResult();
             new JsonRowsWriter(new PrintWriter(System.out, true),
-                    keyspace.getSerializerPackage(CF_USERS.getName(), false))
+                    keyspace.getSerializerPackage(cfUsers.getName(), false))
                     .setRowsAsArray(false).write(rows);
 
             new JsonRowsWriter(new PrintWriter(System.out, true),
-                    keyspace.getSerializerPackage(CF_USERS.getName(), false))
+                    keyspace.getSerializerPackage(cfUsers.getName(), false))
                     .setRowsAsArray(true).setCountName("_count_")
                     .setRowsName("_rows_").setNamesName("_names_").write(rows);
 
             new JsonRowsWriter(new PrintWriter(System.out, true),
-                    keyspace.getSerializerPackage(CF_USERS.getName(), false))
+                    keyspace.getSerializerPackage(cfUsers.getName(), false))
                     .setRowsAsArray(true).setDynamicColumnNames(true)
                     .write(rows);
 
             new JsonRowsWriter(new PrintWriter(System.out, true),
-                    keyspace.getSerializerPackage(CF_USERS.getName(), false))
+                    keyspace.getSerializerPackage(cfUsers.getName(), false))
                     .setRowsAsArray(true).setIgnoreUndefinedColumns(true)
                     .write(rows);
 
             new JsonRowsWriter(new PrintWriter(System.out, true),
-                    keyspace.getSerializerPackage(CF_USERS.getName(), false))
+                    keyspace.getSerializerPackage(cfUsers.getName(), false))
                     .setRowsAsArray(true)
                     .setFixedColumnNames("firstname", "lastname")
                     .setIgnoreUndefinedColumns(true).write(rows);
 
-            LOG.info("******* COLUMNS AS ROWS ********");
+            log.info("******* COLUMNS AS ROWS ********");
             new JsonRowsWriter(new PrintWriter(System.out, true),
-                    keyspace.getSerializerPackage(CF_USERS.getName(), false))
+                    keyspace.getSerializerPackage(cfUsers.getName(), false))
                     .setRowsAsArray(true).setColumnsAsRows(true).write(rows);
 
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         }
     }
@@ -2596,7 +2593,7 @@ public class ThriftKeyspaceImplTest {
         RecordReader reader = new CsvRecordReader(new StringReader(
                 sb.toString()));
         RecordWriter writer = new ColumnarRecordWriter(keyspace,
-                CF_USERS.getName(), pkg);
+                cfUsers.getName(), pkg);
 
         try {
             reader.start();
@@ -2606,10 +2603,10 @@ public class ThriftKeyspaceImplTest {
                 writer.write(record);
             }
         } catch (IOException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         } finally {
             reader.shutdown();
@@ -2617,16 +2614,16 @@ public class ThriftKeyspaceImplTest {
         }
 
         try {
-            Rows<Long, String> rows = keyspace.prepareQuery(CF_USERS)
+            Rows<Long, String> rows = keyspace.prepareQuery(cfUsers)
                     .getAllRows().execute().getResult();
             new JsonRowsWriter(new PrintWriter(System.out, true),
-                    keyspace.getSerializerPackage(CF_USERS.getName(), false))
+                    keyspace.getSerializerPackage(cfUsers.getName(), false))
                     .setRowsAsArray(false).write(rows);
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         }
     }
@@ -2650,10 +2647,10 @@ public class ThriftKeyspaceImplTest {
                 writer.write(record);
             }
         } catch (IOException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         } finally {
             reader.shutdown();
@@ -2684,17 +2681,17 @@ public class ThriftKeyspaceImplTest {
                             false)).setRowsAsArray(true)
                     .setIgnoreUndefinedColumns(true).write(rows);
 
-            LOG.info("******* COLUMNS AS ROWS ********");
+            log.info("******* COLUMNS AS ROWS ********");
             new JsonRowsWriter(new PrintWriter(System.out, true),
                     keyspace.getSerializerPackage(CF_COMPOSITE_CSV.getName(),
                             false)).setRowsAsArray(true).setColumnsAsRows(true)
                     .write(rows);
 
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         }
     }
@@ -2702,7 +2699,7 @@ public class ThriftKeyspaceImplTest {
     @Test
     public void testTtlValues() throws Exception {
         MutationBatch mb = keyspace.prepareMutationBatch();
-        mb.withRow(CF_TTL, "row")
+        mb.withRow(cfTtl, "row")
           .putColumn("TTL0", "TTL0", 0)
           .putColumn("TTLNULL", "TTLNULL", null)
           .putColumn("TTL1", "TTL1", 1);
@@ -2711,7 +2708,7 @@ public class ThriftKeyspaceImplTest {
         
         Thread.sleep(2000);
         
-        ColumnList<String> result = keyspace.prepareQuery(CF_TTL)
+        ColumnList<String> result = keyspace.prepareQuery(cfTtl)
             .getRow("row")
             .execute().getResult();
        
@@ -2723,10 +2720,10 @@ public class ThriftKeyspaceImplTest {
     @Test
     public void testCluster() {
         AstyanaxContext<Cluster> clusterContext = new AstyanaxContext.Builder()
-                .forCluster(TEST_CLUSTER_NAME)
+                .forCluster(testClusterName)
                 .withAstyanaxConfiguration(new AstyanaxConfigurationImpl())
                 .withConnectionPoolConfiguration(
-                        new ConnectionPoolConfigurationImpl(TEST_CLUSTER_NAME)
+                        new ConnectionPoolConfigurationImpl(testClusterName)
                                 .setSeeds(SEEDS).setSocketTimeout(30000)
                                 .setMaxTimeoutWhenExhausted(200)
                                 .setMaxConnsPerHost(1))
@@ -2739,9 +2736,9 @@ public class ThriftKeyspaceImplTest {
         try {
             cluster.describeClusterName();
             List<KeyspaceDefinition> keyspaces = cluster.describeKeyspaces();
-            LOG.info("Keyspace count:" + keyspaces.size());
+            log.info("Keyspace count:" + keyspaces.size());
             for (KeyspaceDefinition keyspace : keyspaces) {
-                LOG.info("Keyspace: " + keyspace.getName());
+                log.info("Keyspace: " + keyspace.getName());
             }
             Assert.assertNotNull(keyspaces);
             Assert.assertTrue(keyspaces.size() > 0);
@@ -2754,15 +2751,15 @@ public class ThriftKeyspaceImplTest {
 
     @Test
     public void testPrefixedSerializer() {
-        ColumnFamily<String, String> cf = new ColumnFamily<String, String>(
+        ColumnFamily<String, String> cf = new ColumnFamily<>(
                 "Standard1", StringSerializer.get(), StringSerializer.get());
 
-        ColumnFamily<String, String> cf1 = new ColumnFamily<String, String>(
+        ColumnFamily<String, String> cf1 = new ColumnFamily<>(
                 "Standard1", new PrefixedSerializer<String, String>("Prefix1_",
                         StringSerializer.get(), StringSerializer.get()),
                 StringSerializer.get());
 
-        ColumnFamily<String, String> cf2 = new ColumnFamily<String, String>(
+        ColumnFamily<String, String> cf2 = new ColumnFamily<>(
                 "Standard1", new PrefixedSerializer<String, String>("Prefix2_",
                         StringSerializer.get(), StringSerializer.get()),
                 StringSerializer.get());
@@ -2774,7 +2771,7 @@ public class ThriftKeyspaceImplTest {
         try {
             m.execute();
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         }
 
@@ -2785,7 +2782,7 @@ public class ThriftKeyspaceImplTest {
             Column<String> c = result.getResult().getColumnByName("Column1");
             Assert.assertEquals("Value1", c.getStringValue());
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         }
 
@@ -2796,7 +2793,7 @@ public class ThriftKeyspaceImplTest {
             Column<String> c = result.getResult().getColumnByName("Column1");
             Assert.assertEquals("Value2", c.getStringValue());
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
         }
 
@@ -2804,21 +2801,21 @@ public class ThriftKeyspaceImplTest {
 
     @Test
     public void testWithRetry() {
-        String clusterName = TEST_CLUSTER_NAME + "_DOESNT_EXIST";
+        String clusterName = testClusterName + "_DOESNT_EXIST";
         AstyanaxContext<Keyspace> keyspaceContext = new AstyanaxContext.Builder()
                 .forCluster(clusterName)
-                .forKeyspace(TEST_KEYSPACE_NAME)
+                .forKeyspace(testKeyspaceName)
                 .withAstyanaxConfiguration(
                         new AstyanaxConfigurationImpl()
                                 .setDiscoveryType(NodeDiscoveryType.NONE))
                 .withConnectionPoolConfiguration(
                         new ConnectionPoolConfigurationImpl(clusterName + "_"
-                                + TEST_KEYSPACE_NAME).setMaxConnsPerHost(1)
+                                + testKeyspaceName).setMaxConnsPerHost(1)
                                 .setSeeds(SEEDS))
                 .withConnectionPoolMonitor(new CountingConnectionPoolMonitor())
                 .buildKeyspace(ThriftFamilyFactory.getInstance());
 
-        ColumnFamily<String, String> cf = new ColumnFamily<String, String>(
+        ColumnFamily<String, String> cf = new ColumnFamily<>(
                 "DoesntExist", StringSerializer.get(), StringSerializer.get());
         try {
             MutationBatch m = keyspaceContext.getEntity()
@@ -2828,7 +2825,7 @@ public class ThriftKeyspaceImplTest {
             m.execute();
             Assert.fail();
         } catch (ConnectionException e) {
-            LOG.info(e.getMessage());
+            log.info(e.getMessage());
         }
     }
     
@@ -2873,7 +2870,7 @@ public class ThriftKeyspaceImplTest {
         props.put("strategy_options.replication_factor", "1");
         
         AstyanaxContext<Keyspace> kc = new AstyanaxContext.Builder()
-            .forCluster(TEST_CLUSTER_NAME)
+            .forCluster(testClusterName)
             .forKeyspace(keyspaceName)
             .withAstyanaxConfiguration(
                     new AstyanaxConfigurationImpl()
@@ -2881,7 +2878,7 @@ public class ThriftKeyspaceImplTest {
                             .setConnectionPoolType(ConnectionPoolType.ROUND_ROBIN)
                             .setDiscoveryDelayInSeconds(60000))
             .withConnectionPoolConfiguration(
-                    new ConnectionPoolConfigurationImpl(TEST_CLUSTER_NAME + "_" + keyspaceName)
+                    new ConnectionPoolConfigurationImpl(testClusterName + "_" + keyspaceName)
                             .setSocketTimeout(30000)
                             .setMaxTimeoutWhenExhausted(2000)
                             .setMaxConnsPerHost(20)
@@ -2900,7 +2897,7 @@ public class ThriftKeyspaceImplTest {
             Assert.fail("Should have gotten name mismatch error");
         }
         catch (BadRequestException e) {
-            LOG.info(e.getMessage());
+            log.info(e.getMessage());
         }
         
         props.put("name", keyspaceName);
@@ -2908,8 +2905,8 @@ public class ThriftKeyspaceImplTest {
         
         Properties props1 = ks.getKeyspaceProperties();
         
-        LOG.info(props.toString());
-        LOG.info(props1.toString());
+        log.info(props.toString());
+        log.info(props1.toString());
     }
     
     private boolean deleteColumn(ColumnFamily<String, String> cf,
@@ -2921,7 +2918,7 @@ public class ThriftKeyspaceImplTest {
             m.execute();
             return true;
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
             return false;
         }
@@ -2935,10 +2932,10 @@ public class ThriftKeyspaceImplTest {
                     .getColumn(columnName).execute();
             return result.getResult();
         } catch (NotFoundException e) {
-            LOG.info(e.getMessage());
+            log.info(e.getMessage());
             return null;
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             Assert.fail();
             return null;
         }

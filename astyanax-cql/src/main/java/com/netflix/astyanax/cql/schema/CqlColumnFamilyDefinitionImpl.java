@@ -70,21 +70,21 @@ public class CqlColumnFamilyDefinitionImpl implements ColumnFamilyDefinition {
 	private String cfName; 
 	private String keyspaceName;
 	
-	private Map<String, Object> optionsMap = new HashMap<String, Object>();
+	private Map<String, Object> optionsMap = new HashMap<>();
 	
-	private List<ColumnDefinition> partitionKeyList = new ArrayList<ColumnDefinition>();
-	private List<ColumnDefinition> clusteringKeyList = new ArrayList<ColumnDefinition>();
-	private List<ColumnDefinition> regularColumnList = new ArrayList<ColumnDefinition>();
-	private List<ColumnDefinition> allColumnsDefinitionList = new ArrayList<ColumnDefinition>();
+	private List<ColumnDefinition> partitionKeyList = new ArrayList<>();
+	private List<ColumnDefinition> clusteringKeyList = new ArrayList<>();
+	private List<ColumnDefinition> regularColumnList = new ArrayList<>();
+	private List<ColumnDefinition> allColumnsDefinitionList = new ArrayList<>();
 	
 	private String[] allPkColNames;
 	
-	private AnnotatedCompositeSerializer<?> compositeSerializer = null; 
+	private AnnotatedCompositeSerializer<?> compositeSerializer; 
 	
-	private boolean alterTable = false;
+	private boolean alterTable;
 
-	private CFMutationQueryGen mutationQueryGen = null;
-	private CFRowQueryGen rowQueryGen = null;
+	private CFMutationQueryGen mutationQueryGen;
+	private CFRowQueryGen rowQueryGen;
 	
 	public CqlColumnFamilyDefinitionImpl(Session session) {
 		this.session = session;
@@ -99,7 +99,7 @@ public class CqlColumnFamilyDefinitionImpl implements ColumnFamilyDefinition {
 		this.keyspaceName = keyspace;
 		
 		if (options == null) {
-			options = new HashMap<String, Object>();
+			options = new HashMap<>();
 		}
 		initFromMap(options);
 	}
@@ -116,7 +116,7 @@ public class CqlColumnFamilyDefinitionImpl implements ColumnFamilyDefinition {
 		Preconditions.checkArgument(columnFamily != null, "ColumnFamily cannot be null");
 
 		if (options == null) {
-			options = new HashMap<String, Object>();
+			options = new HashMap<>();
 		}
 		
 		keyspaceName = keyspace;
@@ -300,7 +300,7 @@ public class CqlColumnFamilyDefinitionImpl implements ColumnFamilyDefinition {
 		List<Row> rows = rs.all();
 		if (rows != null && rows.size() > 0) {
 			
-			List<CqlColumnDefinitionImpl> tmpList = new ArrayList<CqlColumnDefinitionImpl>();
+			List<CqlColumnDefinitionImpl> tmpList = new ArrayList<>();
 			
 			for (Row row : rows) {
 				CqlColumnDefinitionImpl colDef = new CqlColumnDefinitionImpl(row);
@@ -328,7 +328,7 @@ public class CqlColumnFamilyDefinitionImpl implements ColumnFamilyDefinition {
 			clusteringKeyList.addAll(tmpList);
 			tmpList = null;
 			
-			List<String> allPrimaryKeyColNames = new ArrayList<String>();
+			List<String> allPrimaryKeyColNames = new ArrayList<>();
 			for (ColumnDefinition colDef : partitionKeyList) {
 				allPrimaryKeyColNames.add(colDef.getName());
 			}
@@ -703,7 +703,7 @@ public class CqlColumnFamilyDefinitionImpl implements ColumnFamilyDefinition {
 
 	@Override
 	public Collection<FieldMetadata> getFieldsMetadata() {
-		List<FieldMetadata> list = new ArrayList<FieldMetadata>();
+		List<FieldMetadata> list = new ArrayList<>();
 		
 		for (String key : optionsMap.keySet()) {
 			Object value = optionsMap.get(key);
@@ -746,10 +746,10 @@ public class CqlColumnFamilyDefinitionImpl implements ColumnFamilyDefinition {
 		
 		createColumnDefinitions();
 		
-		String query = (alterTable) ? getUpdateQuery() : getCreateQuery();
+		String query = alterTable ? getUpdateQuery() : getCreateQuery();
 		ResultSet rs = session.execute(query);
 
-		return new CqlOperationResultImpl<SchemaChangeResult>(rs, null);
+		return new CqlOperationResultImpl<>(rs, null);
 	}
 	
 	private String getCreateQuery() {
@@ -803,10 +803,8 @@ public class CqlColumnFamilyDefinitionImpl implements ColumnFamilyDefinition {
 				}
 			}
 		}
-		
-		String query = sb.toString();
 
-		return query;
+		return sb.toString();
 	}
 
 	private String getUpdateQuery() {
@@ -901,15 +899,15 @@ public class CqlColumnFamilyDefinitionImpl implements ColumnFamilyDefinition {
 	
 	private static Map<String, String> fromJsonString(String jsonString) {
 		if (jsonString == null) {
-			return new HashMap<String, String>();
+			return new HashMap<>();
 		}
 		try {
 			JSONObject json = new JSONObject(jsonString);
-			Map<String, String> map = new HashMap<String, String>();
+			Map<String, String> map = new HashMap<>();
 			Iterator<String> iter = json.keys();
 			while(iter.hasNext()) {
 				String key = iter.next();
-				String value = json.getString(key).toString();
+				String value = json.getString(key);
 				map.put(key, value);
 			}
 			return map;

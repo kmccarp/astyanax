@@ -33,7 +33,7 @@ public class OperationResultImpl<R> implements OperationResult<R> {
     private final Host host;
     private final R result;
     private final long latency;
-    private int attemptCount = 0;
+    private int attemptCount;
 
     public OperationResultImpl(Host host, R result, long latency) {
         this.host = host;

@@ -38,7 +38,7 @@ import org.junit.Test;
 import com.netflix.astyanax.connectionpool.ConnectionContext;
 
 public class RoundRobinConnectionPoolImplTest extends BaseConnectionPoolTest {
-    private static Logger LOG = Logger
+    private static Logger log = Logger
             .getLogger(RoundRobinConnectionPoolImplTest.class);
 
     private static Operation<TestClient, String> dummyOperation = new TestOperation();
@@ -50,10 +50,8 @@ public class RoundRobinConnectionPoolImplTest extends BaseConnectionPoolTest {
                 TestConstants.CLUSTER_NAME + "_" + TestConstants.KEYSPACE_NAME);
         config.initialize();
 
-        ConnectionPool<TestClient> pool = new RoundRobinConnectionPoolImpl<TestClient>(
+        return new RoundRobinConnectionPoolImpl<>(
                 config, new TestConnectionFactory(config, monitor), monitor);
-
-        return pool;
     }
 
     @Test
@@ -64,7 +62,7 @@ public class RoundRobinConnectionPoolImplTest extends BaseConnectionPoolTest {
                 TestConstants.CLUSTER_NAME + "_" + TestConstants.KEYSPACE_NAME);
         config.initialize();
 
-        ConnectionPool<TestClient> pool = new RoundRobinConnectionPoolImpl<TestClient>(
+        ConnectionPool<TestClient> pool = new RoundRobinConnectionPoolImpl<>(
                 config, new TestConnectionFactory(config, monitor), monitor);
 
         pool.addHost(
@@ -81,7 +79,7 @@ public class RoundRobinConnectionPoolImplTest extends BaseConnectionPoolTest {
                     throw new RuntimeException("Unkecked Exception");
                 }
             }, RunOnce.get());
-            LOG.info(pool.toString());
+            log.info(pool.toString());
             Assert.fail();
         } catch (ConnectionException e) {
         }
@@ -98,7 +96,7 @@ public class RoundRobinConnectionPoolImplTest extends BaseConnectionPoolTest {
         config.initialize();
 
         config.setInitConnsPerHost(0);
-        ConnectionPool<TestClient> pool = new RoundRobinConnectionPoolImpl<TestClient>(
+        ConnectionPool<TestClient> pool = new RoundRobinConnectionPoolImpl<>(
                 config, new TestConnectionFactory(config, monitor), monitor);
 
         pool.addHost(new Host("127.0.0.1",
@@ -108,18 +106,18 @@ public class RoundRobinConnectionPoolImplTest extends BaseConnectionPoolTest {
 
         try {
             result = pool.executeWithFailover(dummyOperation, RunOnce.get());
-            LOG.info(pool.toString());
+            log.info(pool.toString());
             Assert.fail();
         } catch (ConnectionException e) {
-            LOG.info(e.getMessage());
+            log.info(e.getMessage());
         }
         think(1000);
         try {
             result = pool.executeWithFailover(dummyOperation, RunOnce.get());
-            LOG.info(pool.toString());
+            log.info(pool.toString());
             Assert.fail();
         } catch (ConnectionException e) {
-            LOG.info(e.getMessage());
+            log.info(e.getMessage());
         }
 
         think(1000);
@@ -137,7 +135,7 @@ public class RoundRobinConnectionPoolImplTest extends BaseConnectionPoolTest {
         config.setMaxPendingConnectionsPerHost(2);
         config.initialize();
 
-        ConnectionPool<TestClient> cp = new RoundRobinConnectionPoolImpl<TestClient>(
+        ConnectionPool<TestClient> cp = new RoundRobinConnectionPoolImpl<>(
                 config, new TestConnectionFactory(config, monitor), monitor);
 
         Host host = new Host("127.0.0.1", TestHostType.GOOD_IMMEDIATE.ordinal());
@@ -148,7 +146,7 @@ public class RoundRobinConnectionPoolImplTest extends BaseConnectionPoolTest {
         try {
             result = cp.executeWithFailover(new TestOperation(), RunOnce.get());
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage());
+            log.error(e.getMessage());
             Assert.fail();
         }
 
@@ -162,7 +160,7 @@ public class RoundRobinConnectionPoolImplTest extends BaseConnectionPoolTest {
         } catch (NoAvailableHostsException e) {
 
         } catch (ConnectionException e) {
-            LOG.info(e);
+            log.info(e);
             Assert.fail();
         }
 
@@ -171,7 +169,7 @@ public class RoundRobinConnectionPoolImplTest extends BaseConnectionPoolTest {
         try {
             result = cp.executeWithFailover(new TestOperation(), RunOnce.get());
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage());
+            log.error(e.getMessage());
             Assert.fail();
         }
     }
@@ -190,7 +188,7 @@ public class RoundRobinConnectionPoolImplTest extends BaseConnectionPoolTest {
             .setInitConnsPerHost(0);
         config.initialize();
 
-        ConnectionPool<TestClient> cp = new RoundRobinConnectionPoolImpl<TestClient>(
+        ConnectionPool<TestClient> cp = new RoundRobinConnectionPoolImpl<>(
                 config, new TestConnectionFactory(config, monitor), monitor);
 
         Host host = new Host("127.0.0.1",
@@ -204,14 +202,14 @@ public class RoundRobinConnectionPoolImplTest extends BaseConnectionPoolTest {
                 result = cp.executeWithFailover(new TestOperation(), RunOnce.get());
                 Assert.fail("Failed iteration " + i);
             } catch (ConnectionException e) {
-                LOG.info(e);
+                log.info(e);
             }
         }
 
         try {
             result = cp.executeWithFailover(new TestOperation(), RunOnce.get());
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage());
+            log.error(e.getMessage());
             Assert.fail();
         }
     }

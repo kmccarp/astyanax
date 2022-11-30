@@ -41,23 +41,23 @@ public class MockCompositeTypeTests extends KeyspaceTests {
 	public static void init() throws Exception {
 		initContext();
 		
-        keyspace.createColumnFamily(CF_COMPOSITE, ImmutableMap.<String, Object>builder()
+        keyspace.createColumnFamily(cfComposite, ImmutableMap.<String, Object>builder()
                 .put("comparator_type", "CompositeType(AsciiType, IntegerType, IntegerType, BytesType, UTF8Type)")
                 .build());
 		
-		CF_COMPOSITE.describe(keyspace);
+		cfComposite.describe(keyspace);
 	}
 	
 	@AfterClass
 	public static void tearDown() throws Exception {
-		keyspace.dropColumnFamily(CF_COMPOSITE);
+		keyspace.dropColumnFamily(cfComposite);
 	}
 
-	private static AnnotatedCompositeSerializer<MockCompositeType> M_SERIALIZER 
-    	= new AnnotatedCompositeSerializer<MockCompositeType>(MockCompositeType.class);
+	private static AnnotatedCompositeSerializer<MockCompositeType> mSerializer 
+    	= new AnnotatedCompositeSerializer<>(MockCompositeType.class);
 
-    private static ColumnFamily<String, MockCompositeType> CF_COMPOSITE 
-    	= ColumnFamily.newColumnFamily("mockcompositetype", StringSerializer.get(), M_SERIALIZER);
+    private static ColumnFamily<String, MockCompositeType> cfComposite 
+    	= ColumnFamily.newColumnFamily("mockcompositetype", StringSerializer.get(), mSerializer);
 	
     
     @Test
@@ -66,7 +66,7 @@ public class MockCompositeTypeTests extends KeyspaceTests {
 
         boolean bool = false;
         MutationBatch m = keyspace.prepareMutationBatch();
-        ColumnListMutation<MockCompositeType> mRow = m.withRow(CF_COMPOSITE, rowKey);
+        ColumnListMutation<MockCompositeType> mRow = m.withRow(cfComposite, rowKey);
         int columnCount = 0;
         for (char part1 = 'a'; part1 <= 'b'; part1++) {
             for (int part2 = 0; part2 < 10; part2++) {
@@ -84,13 +84,13 @@ public class MockCompositeTypeTests extends KeyspaceTests {
 
         OperationResult<ColumnList<MockCompositeType>> result;
         
-        result = keyspace.prepareQuery(CF_COMPOSITE).getKey(rowKey).execute();
+        result = keyspace.prepareQuery(cfComposite).getKey(rowKey).execute();
         Assert.assertEquals(columnCount,  result.getResult().size());
         for (Column<MockCompositeType> col : result.getResult()) {
         	LOG.info("COLUMN: " + col.getName().toString());
         }
 
-        Column<MockCompositeType> column = keyspace.prepareQuery(CF_COMPOSITE).getKey(rowKey)
+        Column<MockCompositeType> column = keyspace.prepareQuery(cfComposite).getKey(rowKey)
         		.getColumn(new MockCompositeType("a", 0, 10, true, "UTF"))
         		.execute().getResult();
         LOG.info("Got single column: " + column.getName().toString());
@@ -99,10 +99,10 @@ public class MockCompositeTypeTests extends KeyspaceTests {
 
         LOG.info("Range builder");
         result = keyspace
-        		.prepareQuery(CF_COMPOSITE)
+        		.prepareQuery(cfComposite)
         		.getKey(rowKey)
         		.withColumnRange(
-        				M_SERIALIZER
+        				mSerializer
         				.buildRange()
         				.withPrefix("a")
         				.greaterThanEquals(1)

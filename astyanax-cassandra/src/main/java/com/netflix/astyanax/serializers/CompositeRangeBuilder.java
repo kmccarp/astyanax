@@ -26,10 +26,10 @@ public abstract class CompositeRangeBuilder implements ByteBufferRange {
     private ByteBufferOutputStream start = new ByteBufferOutputStream();
     private ByteBufferOutputStream end = new ByteBufferOutputStream();
     private int limit = Integer.MAX_VALUE;
-    private boolean reversed = false;
-    private boolean lockComponent = false;
+    private boolean reversed;
+    private boolean lockComponent;
 
-    private List<RangeQueryRecord> records = new ArrayList<RangeQueryRecord>();
+    private List<RangeQueryRecord> records = new ArrayList<>();
     
     protected void nextComponent() {
     	getNextComponent();
@@ -37,9 +37,9 @@ public abstract class CompositeRangeBuilder implements ByteBufferRange {
     	records.add(new RangeQueryRecord());
     }
 
-    abstract protected void getNextComponent();
+    protected abstract void getNextComponent();
 
-    abstract protected void append(ByteBufferOutputStream out, Object value, Equality equality);
+    protected abstract void append(ByteBufferOutputStream out, Object value, Equality equality);
 
     public CompositeRangeBuilder withPrefix(Object object) {
         if (lockComponent) {
@@ -99,7 +99,7 @@ public abstract class CompositeRangeBuilder implements ByteBufferRange {
     
     private RangeQueryRecord getLastRecord() {
     	
-    	if (records.size() == 0) {
+    	if (records.isEmpty()) {
     		RangeQueryRecord record = new RangeQueryRecord();
     		records.add(record);
     	}
@@ -137,7 +137,7 @@ public abstract class CompositeRangeBuilder implements ByteBufferRange {
     
     public static class RangeQueryRecord {
     	
-    	private List<RangeQueryOp> ops = new ArrayList<RangeQueryOp>();
+    	private List<RangeQueryOp> ops = new ArrayList<>();
 
     	public RangeQueryRecord() {
     		

@@ -52,7 +52,7 @@ public abstract class AbstractLatencyScoreStrategyImpl implements LatencyScoreSt
     private final int                      blockedThreshold;
     private final String                   name;
     private final double                   keepRatio;
-    private boolean                  bOwnedExecutor = false;
+    private boolean                  bOwnedExecutor;
 
     public AbstractLatencyScoreStrategyImpl(String name, int updateInterval, int resetInterval, int blockedThreshold, double keepRatio, double scoreThreshold, ScheduledExecutorService executor) {
         this.updateInterval   = updateInterval;
@@ -63,7 +63,7 @@ public abstract class AbstractLatencyScoreStrategyImpl implements LatencyScoreSt
         this.keepRatio        = keepRatio;
 
         this.executor  = executor;
-        this.instances = new NonBlockingHashSet<Instance>();
+        this.instances = new NonBlockingHashSet<>();
     }
     
     /**
@@ -126,8 +126,9 @@ public abstract class AbstractLatencyScoreStrategyImpl implements LatencyScoreSt
 
     @Override
     public void shutdown() {
-        if (bOwnedExecutor)
+        if (bOwnedExecutor) {
             executor.shutdown();
+        }
     }
 
     @Override
@@ -186,7 +187,8 @@ public abstract class AbstractLatencyScoreStrategyImpl implements LatencyScoreSt
         if (pools.size() > 0) {
             // Step 3: Filter out hosts that are too slow and keep at least the best keepRatio hosts
             int first = 0;
-            for (; pools.get(0).getScore() == 0.0 && first < pools.size(); first++);
+            for (; pools.get(0).getScore() == 0.0 && first < pools.size(); first++) {
+            }
             
             if (first < pools.size()) {
                 double scoreFirst = pools.get(first).getScore();

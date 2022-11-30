@@ -59,7 +59,7 @@ import com.netflix.astyanax.query.RowSliceQuery;
  */
 public class FlatTableRowSliceQueryGen {
 
-	protected AtomicReference<Session> sessionRef = new AtomicReference<Session>(null);
+	protected AtomicReference<Session> sessionRef = new AtomicReference<>(null);
 	protected final String keyspace; 
 	protected final CqlColumnFamilyDefinitionImpl cfDef;
 
@@ -99,19 +99,15 @@ public class FlatTableRowSliceQueryGen {
 		return select.from(keyspace, cfDef.getName());
 	}
 
-	private QueryGenCache<CqlRowSliceQueryImpl<?,?>> SelectAllColumnsForRowKeys = new QueryGenCache<CqlRowSliceQueryImpl<?,?>>(sessionRef) {
+	private QueryGenCache<CqlRowSliceQueryImpl<?,?>> selectAllColumnsForRowKeys = new QueryGenCache<CqlRowSliceQueryImpl<?,?>>(sessionRef) {
 
 		@Override
 		public Callable<RegularStatement> getQueryGen(final CqlRowSliceQueryImpl<?, ?> rowSliceQuery) {
-			return new Callable<RegularStatement>() {
+			return () -> {
 
-				@Override
-				public RegularStatement call() throws Exception {
-					
-					Select select = selectAllColumnsFromKeyspaceAndCF();
-					return select.where(in(partitionKeyCol, rowSliceQuery.getRowSlice().getKeys().toArray()));
-				}
-			};
+                Select select = selectAllColumnsFromKeyspaceAndCF();
+                return select.where(in(partitionKeyCol, rowSliceQuery.getRowSlice().getKeys().toArray()));
+            };
 		}
 
 		@Override
@@ -120,32 +116,28 @@ public class FlatTableRowSliceQueryGen {
 		}
 	};
 	
-	private QueryGenCache<CqlRowSliceQueryImpl<?,?>> SelectColumnSetForRowKeys = new QueryGenCache<CqlRowSliceQueryImpl<?,?>>(sessionRef) {
+	private QueryGenCache<CqlRowSliceQueryImpl<?,?>> selectColumnSetForRowKeys = new QueryGenCache<CqlRowSliceQueryImpl<?,?>>(sessionRef) {
 
 		@Override
 		public Callable<RegularStatement> getQueryGen(final CqlRowSliceQueryImpl<?, ?> rowSliceQuery) {
-			return new Callable<RegularStatement>() {
+			return () -> {
 
-				@Override
-				public RegularStatement call() throws Exception {
+                Select.Selection select = QueryBuilder.select();
+                select.column(partitionKeyCol);
 
-					Select.Selection select = QueryBuilder.select();
-					select.column(partitionKeyCol);
+                for (Object col : rowSliceQuery.getColumnSlice().getColumns()) {
+                    String columnName = (String) col;
+                    select.column(columnName).ttl(columnName).writeTime(columnName);
+                }
 
-					for (Object col : rowSliceQuery.getColumnSlice().getColumns()) {
-						String columnName = (String)col; 
-						select.column(columnName).ttl(columnName).writeTime(columnName);
-					}
-
-					return select.from(keyspace, cfDef.getName()).where(in(partitionKeyCol, rowSliceQuery.getRowSlice().getKeys().toArray()));
-				}
-			};
+                return select.from(keyspace, cfDef.getName()).where(in(partitionKeyCol, rowSliceQuery.getRowSlice().getKeys().toArray()));
+            };
 		}
 
 		@Override
 		public BoundStatement bindValues(PreparedStatement pStatement, CqlRowSliceQueryImpl<?, ?> rowSliceQuery) {
 			
-			List<Object> values = new ArrayList<Object>();
+			List<Object> values = new ArrayList<>();
 			values.addAll(rowSliceQuery.getRowSlice().getKeys());
 			return pStatement.bind(values.toArray());		
 		}
@@ -257,56 +249,47 @@ public class FlatTableRowSliceQueryGen {
 	}
 
 
-	private QueryGenCache<CqlRowSliceQueryImpl<?,?>> SelectAllColumnsForRowRange = new QueryGenCache<CqlRowSliceQueryImpl<?,?>>(sessionRef) {
+	private QueryGenCache<CqlRowSliceQueryImpl<?,?>> selectAllColumnsForRowRange = new QueryGenCache<CqlRowSliceQueryImpl<?,?>>(sessionRef) {
 
 		@Override
 		public Callable<RegularStatement> getQueryGen(final CqlRowSliceQueryImpl<?, ?> rowSliceQuery) {
-			return new Callable<RegularStatement>() {
-
-				@Override
-				public RegularStatement call() throws Exception {
-					Select select = selectAllColumnsFromKeyspaceAndCF();
-					return addWhereClauseForRowRange(partitionKeyCol, select, rowSliceQuery.getRowSlice().getRange());
-				}
-			};
+			return () -> {
+                Select select = selectAllColumnsFromKeyspaceAndCF();
+                return addWhereClauseForRowRange(partitionKeyCol, select, rowSliceQuery.getRowSlice().getRange());
+            };
 		}
 
 		@Override
 		public BoundStatement bindValues(PreparedStatement pStatement, CqlRowSliceQueryImpl<?, ?> rowSliceQuery) {
 
-			List<Object> values = new ArrayList<Object>();
+			List<Object> values = new ArrayList<>();
 			bindWhereClauseForRowRange(values, rowSliceQuery.getRowSlice().getRange());
 			return pStatement.bind(values.toArray(new Object[values.size()])); 
 		}
 	};
 	
-	private QueryGenCache<CqlRowSliceQueryImpl<?,?>> SelectColumnSetForRowRange = new QueryGenCache<CqlRowSliceQueryImpl<?,?>>(sessionRef) {
+	private QueryGenCache<CqlRowSliceQueryImpl<?,?>> selectColumnSetForRowRange = new QueryGenCache<CqlRowSliceQueryImpl<?,?>>(sessionRef) {
 
 		@Override
 		public Callable<RegularStatement> getQueryGen(final CqlRowSliceQueryImpl<?, ?> rowSliceQuery) {
-			return new Callable<RegularStatement>() {
+			return () -> {
+                Select.Selection select = QueryBuilder.select();
+                select.column(partitionKeyCol);
 
-				@Override
-				public RegularStatement call() throws Exception {
-					Select.Selection select = QueryBuilder.select();
-					select.column(partitionKeyCol);
+                for (Object col : rowSliceQuery.getColumnSlice().getColumns()) {
+                    String columnName = (String) col;
+                    select.column(columnName).ttl(columnName).writeTime(columnName);
+                }
 
-					for (Object col : rowSliceQuery.getColumnSlice().getColumns()) {
-						String columnName = (String)col;
-						select.column(columnName).ttl(columnName).writeTime(columnName);
-					}
-
-					Select selection = select.from(keyspace, cfDef.getName());
-					Where where = addWhereClauseForRowRange(partitionKeyCol, selection, rowSliceQuery.getRowSlice().getRange());
-					return where;
-				}
-			};
+                Select selection = select.from(keyspace, cfDef.getName());
+                return addWhereClauseForRowRange(partitionKeyCol, selection, rowSliceQuery.getRowSlice().getRange());
+            };
 		}
 
 		@Override
 		public BoundStatement bindValues(PreparedStatement pStatement, CqlRowSliceQueryImpl<?, ?> rowSliceQuery) {
 			
-			List<Object> values = new ArrayList<Object>();
+			List<Object> values = new ArrayList<>();
 			bindWhereClauseForRowRange(values, rowSliceQuery.getRowSlice().getRange());
 			return pStatement.bind(values.toArray());
 		}
@@ -333,9 +316,9 @@ public class FlatTableRowSliceQueryGen {
 		switch (rowSliceQuery.getColQueryType()) {
 
 		case AllColumns:
-			return SelectAllColumnsForRowKeys.getBoundStatement(rowSliceQuery, useCaching);
+			return selectAllColumnsForRowKeys.getBoundStatement(rowSliceQuery, useCaching);
 		case ColumnSet: 
-			return SelectColumnSetForRowKeys.getBoundStatement(rowSliceQuery, useCaching);
+			return selectColumnSetForRowKeys.getBoundStatement(rowSliceQuery, useCaching);
 		case ColumnRange:
 			throw new RuntimeException("RowSliceQuery use case not supported.");
 		default :
@@ -348,9 +331,9 @@ public class FlatTableRowSliceQueryGen {
 		switch (rowSliceQuery.getColQueryType()) {
 
 		case AllColumns:
-			return SelectAllColumnsForRowRange.getBoundStatement(rowSliceQuery, useCaching);
+			return selectAllColumnsForRowRange.getBoundStatement(rowSliceQuery, useCaching);
 		case ColumnSet: 
-			return SelectColumnSetForRowRange.getBoundStatement(rowSliceQuery, useCaching);
+			return selectColumnSetForRowRange.getBoundStatement(rowSliceQuery, useCaching);
 		case ColumnRange:
 			throw new RuntimeException("RowSliceQuery use case not supported.");
 		default :

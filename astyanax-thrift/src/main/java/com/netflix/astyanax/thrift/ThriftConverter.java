@@ -150,7 +150,7 @@ public class ThriftConverter {
      * @param e
      * @return
      */
-    public static ConnectionException ToConnectionPoolException(Throwable e) {
+    public static ConnectionException toConnectionPoolException(Throwable e) {
         if (e instanceof ConnectionException) {
             return (ConnectionException) e;
         }
@@ -202,7 +202,7 @@ public class ThriftConverter {
         }
     }
 
-    public static org.apache.cassandra.thrift.ConsistencyLevel ToThriftConsistencyLevel(ConsistencyLevel cl) {
+    public static org.apache.cassandra.thrift.ConsistencyLevel toThriftConsistencyLevel(ConsistencyLevel cl) {
         switch (cl) {
         case CL_ONE:
             return org.apache.cassandra.thrift.ConsistencyLevel.ONE;

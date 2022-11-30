@@ -45,8 +45,9 @@ public abstract class AbstractRowSliceQueryImpl<K, C> implements RowSliceQuery<K
 
     @Override
     public RowSliceQuery<K, C> withColumnSlice(Collection<C> columns) {
-        if (columns != null)
+        if (columns != null) {
             predicate.setColumn_names(serializer.toBytesList(columns)).setSlice_rangeIsSet(false);
+        }
         return this;
     }
 

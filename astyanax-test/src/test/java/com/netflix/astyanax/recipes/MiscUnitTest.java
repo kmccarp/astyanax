@@ -46,7 +46,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class MiscUnitTest {
-    private static Logger LOG = LoggerFactory.getLogger(MiscUnitTest.class);
+    private static Logger log = LoggerFactory.getLogger(MiscUnitTest.class);
     
     /**
      * Constants
@@ -75,13 +75,13 @@ public class MiscUnitTest {
                     StringSerializer.get(),
                     TimeUUIDSerializer.get());
     
-    private static ColumnFamily<String, String> LOCK_CF_LONG   = 
+    private static ColumnFamily<String, String> lockCfLong   = 
             ColumnFamily.newColumnFamily("LockCfLong", StringSerializer.get(), StringSerializer.get(), LongSerializer.get());
     
-    private static ColumnFamily<String, String> LOCK_CF_STRING = 
+    private static ColumnFamily<String, String> lockCfString = 
             ColumnFamily.newColumnFamily("LockCfString", StringSerializer.get(), StringSerializer.get(), StringSerializer.get());
     
-    private static ColumnFamily<String, String> UNIQUE_CF = ColumnFamily
+    private static ColumnFamily<String, String> uniqueCf = ColumnFamily
             .newColumnFamily(
                     "UniqueCf", 
                     StringSerializer.get(), 
@@ -130,8 +130,9 @@ public class MiscUnitTest {
 
     @AfterClass
     public static void teardown() throws Exception {
-        if (keyspaceContext != null)
+        if (keyspaceContext != null) {
             keyspaceContext.shutdown();
+        }
         
         Thread.sleep(CASSANDRA_WAIT_TIME);
     }
@@ -164,7 +165,7 @@ public class MiscUnitTest {
             keyspace.dropKeyspace();
         }
         catch (Exception e) {
-            LOG.info(e.getMessage());
+            log.info(e.getMessage());
         }
         
         keyspace.createKeyspace(ImmutableMap.<String, Object>builder()
@@ -180,13 +181,13 @@ public class MiscUnitTest {
         keyspace.createColumnFamily(CF_EMAIL_UNIQUE_UUID, null);
         keyspace.createColumnFamily(CF_ALL_ROWS, null);
         
-        keyspace.createColumnFamily(LOCK_CF_LONG, ImmutableMap.<String, Object>builder()
+        keyspace.createColumnFamily(lockCfLong, ImmutableMap.<String, Object>builder()
                 .put("default_validation_class", "LongType")
                 .put("key_validation_class",     "UTF8Type")
                 .put("comparator_type",          "UTF8Type")
                 .build());
         
-        keyspace.createColumnFamily(LOCK_CF_STRING, ImmutableMap.<String, Object>builder()
+        keyspace.createColumnFamily(lockCfString, ImmutableMap.<String, Object>builder()
                 .put("default_validation_class", "UTF8Type")
                 .put("key_validation_class",     "UTF8Type")
                 .put("comparator_type",          "UTF8Type")
@@ -207,7 +208,7 @@ public class MiscUnitTest {
                          .build())
                      .build());
         
-        keyspace.createColumnFamily(UNIQUE_CF, null);
+        keyspace.createColumnFamily(uniqueCf, null);
         keyspace.createColumnFamily(CF_STANDARD1_COPY, null);
         
         KeyspaceDefinition ki = keyspaceContext.getEntity().describeKeyspace();
@@ -297,14 +298,14 @@ public class MiscUnitTest {
             Assert.fail();
         }
         catch (Exception e) {
-            LOG.info(e.getMessage());
+            log.info(e.getMessage());
         }
         
         try {
             constraint.acquire();
             
             Column<UUID> c = constraint.getUniqueColumn();
-            LOG.info("Unique column is " + c.getName());
+            log.info("Unique column is " + c.getName());
             
             try {
                 constraint2.acquire();
@@ -344,7 +345,7 @@ public class MiscUnitTest {
         try {
             constraint2.acquire();
             Column<UUID> c = constraint.getUniqueColumn();
-            LOG.info("Unique column is " + c.getName());
+            log.info("Unique column is " + c.getName());
         }
         catch (NotUniqueException e) {
             Assert.fail("Should already be unique");
@@ -389,7 +390,7 @@ public class MiscUnitTest {
     @Test
     public void testTtl() throws Exception {
         ColumnPrefixDistributedRowLock<String> lock = 
-            new ColumnPrefixDistributedRowLock<String>(keyspace, LOCK_CF_LONG, "testTtl")
+            new ColumnPrefixDistributedRowLock<String>(keyspace, lockCfLong, "testTtl")
                 .withTtl(2)
                 .withConsistencyLevel(ConsistencyLevel.CL_ONE)
                 .expireLockAfter(1,  TimeUnit.SECONDS);
@@ -412,7 +413,7 @@ public class MiscUnitTest {
     @Test
     public void testTtlString() throws Exception {
         ColumnPrefixDistributedRowLock<String> lock = 
-            new ColumnPrefixDistributedRowLock<String>(keyspace, LOCK_CF_STRING, "testTtl")
+            new ColumnPrefixDistributedRowLock<String>(keyspace, lockCfString, "testTtl")
                 .withTtl(2)
                 .withConsistencyLevel(ConsistencyLevel.CL_ONE)
                 .expireLockAfter(1,  TimeUnit.SECONDS);
@@ -435,13 +436,13 @@ public class MiscUnitTest {
     @Test
     public void testStaleLockWithFail() throws Exception {
         ColumnPrefixDistributedRowLock<String> lock1 = 
-            new ColumnPrefixDistributedRowLock<String>(keyspace, LOCK_CF_LONG, "testStaleLock")
+            new ColumnPrefixDistributedRowLock<String>(keyspace, lockCfLong, "testStaleLock")
                 .withTtl(TTL)
                 .withConsistencyLevel(ConsistencyLevel.CL_ONE)
                 .expireLockAfter(1, TimeUnit.SECONDS);
         
         ColumnPrefixDistributedRowLock<String> lock2 = 
-            new ColumnPrefixDistributedRowLock<String>(keyspace, LOCK_CF_LONG, "testStaleLock")
+            new ColumnPrefixDistributedRowLock<String>(keyspace, lockCfLong, "testStaleLock")
                 .withTtl(TTL)
                 .withConsistencyLevel(ConsistencyLevel.CL_ONE)
                 .expireLockAfter(9,  TimeUnit.SECONDS);
@@ -470,13 +471,13 @@ public class MiscUnitTest {
     @Test
     public void testStaleLockWithFail_String() throws Exception {
         ColumnPrefixDistributedRowLock<String> lock1 = 
-            new ColumnPrefixDistributedRowLock<String>(keyspace, LOCK_CF_STRING, "testStaleLock")
+            new ColumnPrefixDistributedRowLock<String>(keyspace, lockCfString, "testStaleLock")
                 .withTtl(TTL)
                 .withConsistencyLevel(ConsistencyLevel.CL_ONE)
                 .expireLockAfter(1, TimeUnit.SECONDS);
         
         ColumnPrefixDistributedRowLock<String> lock2 = 
-            new ColumnPrefixDistributedRowLock<String>(keyspace, LOCK_CF_STRING, "testStaleLock")
+            new ColumnPrefixDistributedRowLock<String>(keyspace, lockCfString, "testStaleLock")
                 .withTtl(TTL)
                 .withConsistencyLevel(ConsistencyLevel.CL_ONE)
                 .expireLockAfter(9,  TimeUnit.SECONDS);
@@ -505,13 +506,13 @@ public class MiscUnitTest {
     @Test
     public void testStaleLock() throws Exception {
         ColumnPrefixDistributedRowLock<String> lock1 = 
-            new ColumnPrefixDistributedRowLock<String>(keyspace, LOCK_CF_LONG, "testStaleLock")
+            new ColumnPrefixDistributedRowLock<String>(keyspace, lockCfLong, "testStaleLock")
                 .withTtl(TTL)
                 .withConsistencyLevel(ConsistencyLevel.CL_ONE)
                 .expireLockAfter(1, TimeUnit.SECONDS);
         
         ColumnPrefixDistributedRowLock<String> lock2 = 
-            new ColumnPrefixDistributedRowLock<String>(keyspace, LOCK_CF_LONG, "testStaleLock")
+            new ColumnPrefixDistributedRowLock<String>(keyspace, lockCfLong, "testStaleLock")
                 .failOnStaleLock(true)
                 .withTtl(TTL)
                 .withConsistencyLevel(ConsistencyLevel.CL_ONE)
@@ -545,13 +546,13 @@ public class MiscUnitTest {
     @Test
     public void testStaleLock_String() throws Exception {
         ColumnPrefixDistributedRowLock<String> lock1 = 
-            new ColumnPrefixDistributedRowLock<String>(keyspace, LOCK_CF_STRING, "testStaleLock")
+            new ColumnPrefixDistributedRowLock<String>(keyspace, lockCfString, "testStaleLock")
                 .withTtl(TTL)
                 .withConsistencyLevel(ConsistencyLevel.CL_ONE)
                 .expireLockAfter(1, TimeUnit.SECONDS);
         
         ColumnPrefixDistributedRowLock<String> lock2 = 
-            new ColumnPrefixDistributedRowLock<String>(keyspace, LOCK_CF_STRING, "testStaleLock")
+            new ColumnPrefixDistributedRowLock<String>(keyspace, lockCfString, "testStaleLock")
                 .failOnStaleLock(true)
                 .withTtl(TTL)
                 .withConsistencyLevel(ConsistencyLevel.CL_ONE)
@@ -589,18 +590,18 @@ public class MiscUnitTest {
             .withTtl(60)
             .withLockId("abc")
             .withColumnPrefix("prefix_")
-            .withRow(UNIQUE_CF, "testMultiLock_A")
-            .withRow(UNIQUE_CF, "testMultiLock_B");
+            .withRow(uniqueCf, "testMultiLock_A")
+            .withRow(uniqueCf, "testMultiLock_B");
         
         ColumnPrefixUniquenessConstraint<String> singleUnique 
-            = new ColumnPrefixUniquenessConstraint<String>(keyspace, UNIQUE_CF, "testMultiLock_A")
+            = new ColumnPrefixUniquenessConstraint<String>(keyspace, uniqueCf, "testMultiLock_A")
                 .withConsistencyLevel(ConsistencyLevel.CL_ONE)
                 .withPrefix("prefix_");
         try {
             unique.acquire();
             String uniqueColumn = singleUnique.readUniqueColumn();
             Assert.assertEquals("abc", uniqueColumn);
-            LOG.info("UniqueColumn: " + uniqueColumn);
+            log.info("UniqueColumn: " + uniqueColumn);
         }
         catch (Exception e) {
             Assert.fail(e.getMessage());
@@ -610,13 +611,13 @@ public class MiscUnitTest {
             .withTtl(60)
             .withConsistencyLevel(ConsistencyLevel.CL_ONE)
             .withColumnPrefix("prefix_")
-            .withRow(UNIQUE_CF, "testMultiLock_B");
+            .withRow(uniqueCf, "testMultiLock_B");
         try {
             unique2.acquire();
             Assert.fail();
         }
         catch (Exception e) {
-            LOG.info(e.getMessage());
+            log.info(e.getMessage());
         }
         
         try {
@@ -624,7 +625,7 @@ public class MiscUnitTest {
             unique.release();
         }
         catch (Exception e) {
-            LOG.error(e.getMessage());
+            log.error(e.getMessage());
             Assert.fail();
         }
         
@@ -632,14 +633,14 @@ public class MiscUnitTest {
             unique2.acquire();
         }
         catch (Exception e) {
-            LOG.error(e.getMessage());
+            log.error(e.getMessage());
             Assert.fail();
         }
         
         try {
             unique2.release();
         } catch (Exception e) {
-            LOG.error(e.getMessage());
+            log.error(e.getMessage());
             Assert.fail();
         }
     }
@@ -647,11 +648,11 @@ public class MiscUnitTest {
     @Test
     public void testRowUniquenessConstraint() throws Exception {
         RowUniquenessConstraint<String, String> unique = new RowUniquenessConstraint<String, String>
-                (keyspace, UNIQUE_CF, "testRowUniquenessConstraint", UUIDStringSupplier.getInstance())
+                (keyspace, uniqueCf, "testRowUniquenessConstraint", UUIDStringSupplier.getInstance())
                 .withConsistencyLevel(ConsistencyLevel.CL_ONE)
                 ;
         RowUniquenessConstraint<String, String> unique2 = new RowUniquenessConstraint<String, String>
-                (keyspace, UNIQUE_CF, "testRowUniquenessConstraint", UUIDStringSupplier.getInstance())
+                (keyspace, uniqueCf, "testRowUniquenessConstraint", UUIDStringSupplier.getInstance())
                 .withConsistencyLevel(ConsistencyLevel.CL_ONE)
                 ;
         
@@ -662,7 +663,7 @@ public class MiscUnitTest {
                 Assert.fail();
             }
             catch (Exception e) {
-                LOG.info(e.getMessage());
+                log.info(e.getMessage());
             }
             
             String data = unique.readDataAsString();
@@ -671,7 +672,7 @@ public class MiscUnitTest {
         catch (Exception e) {
             e.printStackTrace();
             Assert.fail(e.getMessage());
-            LOG.error(e.getMessage());
+            log.error(e.getMessage());
         }
         finally {
             unique.release();
@@ -682,25 +683,25 @@ public class MiscUnitTest {
             Assert.fail();
         }
         catch (Exception e) {
-            LOG.info("", e);
+            log.info("", e);
         }
     }
 
     @Test
     public void testPrefixUniquenessConstraint() throws Exception {
         ColumnPrefixUniquenessConstraint<String> unique = new ColumnPrefixUniquenessConstraint<String>(
-                keyspace, UNIQUE_CF, "testPrefixUniquenessConstraint")
+                keyspace, uniqueCf, "testPrefixUniquenessConstraint")
                 .withConsistencyLevel(ConsistencyLevel.CL_ONE)
                 ;
         ColumnPrefixUniquenessConstraint<String> unique2 = new ColumnPrefixUniquenessConstraint<String>(
-                keyspace, UNIQUE_CF, "testPrefixUniquenessConstraint")
+                keyspace, uniqueCf, "testPrefixUniquenessConstraint")
                 .withConsistencyLevel(ConsistencyLevel.CL_ONE)
                 ;
         
         try {
             unique.acquire();
             String column = unique.readUniqueColumn();
-            LOG.info("Unique Column: " + column);
+            log.info("Unique Column: " + column);
             
             try {
                 unique2.acquire();
@@ -712,7 +713,7 @@ public class MiscUnitTest {
         }
         catch (Exception e) {
             Assert.fail(e.getMessage());
-            LOG.error(e.getMessage());
+            log.error(e.getMessage());
         }
         finally {
             unique.release();
@@ -720,7 +721,7 @@ public class MiscUnitTest {
 
         try {
             String column = unique.readUniqueColumn();
-            LOG.info(column);
+            log.info(column);
             Assert.fail();
         }
         catch (Exception e) {
@@ -731,11 +732,11 @@ public class MiscUnitTest {
     @Test
     public void testPrefixUniquenessConstraintWithColumn() throws Exception {
         ColumnPrefixUniquenessConstraint<String> unique = new ColumnPrefixUniquenessConstraint<String>(
-                keyspace, UNIQUE_CF, "testPrefixUniquenessConstraintWithColumn")
+                keyspace, uniqueCf, "testPrefixUniquenessConstraintWithColumn")
                 .withConsistencyLevel(ConsistencyLevel.CL_ONE)
                 .withUniqueId("abc");
         ColumnPrefixUniquenessConstraint<String> unique2 = new ColumnPrefixUniquenessConstraint<String>(
-                keyspace, UNIQUE_CF, "testPrefixUniquenessConstraintWithColumn")
+                keyspace, uniqueCf, "testPrefixUniquenessConstraintWithColumn")
                 .withConsistencyLevel(ConsistencyLevel.CL_ONE)
                 .withUniqueId("def");
         
@@ -743,7 +744,7 @@ public class MiscUnitTest {
             unique.acquire();
             
             String column = unique.readUniqueColumn();
-            LOG.info("Unique Column: " + column);
+            log.info("Unique Column: " + column);
             Assert.assertEquals("abc", column);
             
             try {
@@ -755,13 +756,13 @@ public class MiscUnitTest {
             }
             
             column = unique.readUniqueColumn();
-            LOG.info("Unique Column: " + column);
+            log.info("Unique Column: " + column);
             Assert.assertEquals("abc", column);
             
         }
         catch (Exception e) {
             Assert.fail(e.getMessage());
-            LOG.error(e.getMessage());
+            log.error(e.getMessage());
         }
         finally {
             unique.release();
@@ -775,7 +776,7 @@ public class MiscUnitTest {
         final String value      = "test";
         
         ColumnPrefixUniquenessConstraint<String> unique = new ColumnPrefixUniquenessConstraint<String>(
-                keyspace, UNIQUE_CF, row)
+                keyspace, uniqueCf, row)
                 .withConsistencyLevel(ConsistencyLevel.CL_ONE)
                 .withUniqueId("def");
         
@@ -783,7 +784,7 @@ public class MiscUnitTest {
             unique.acquireAndApplyMutation(new Function<MutationBatch, Boolean>() {
                 @Override
                 public Boolean apply(MutationBatch m) {
-                    m.withRow(UNIQUE_CF, row)
+                    m.withRow(uniqueCf, row)
                         .putColumn(dataColumn, value, null);
                     return true;
                 }
@@ -793,19 +794,17 @@ public class MiscUnitTest {
         }
         catch (Exception e) {
             e.printStackTrace();
-            LOG.error("", e);
+            log.error("", e);
             Assert.fail();
         }
-        finally {
-        }
         
-        ColumnList<String> columns = keyspace.prepareQuery(UNIQUE_CF).getKey(row).execute().getResult();
+        ColumnList<String> columns = keyspace.prepareQuery(uniqueCf).getKey(row).execute().getResult();
         Assert.assertEquals(2, columns.size());
         Assert.assertEquals(value, columns.getStringValue(dataColumn, null));
         
         unique.release();
         
-        columns = keyspace.prepareQuery(UNIQUE_CF).getKey(row).execute().getResult();
+        columns = keyspace.prepareQuery(uniqueCf).getKey(row).execute().getResult();
         Assert.assertEquals(1, columns.size());
         Assert.assertEquals(value, columns.getStringValue(dataColumn, null));
     }
@@ -842,7 +841,7 @@ public class MiscUnitTest {
                     @Override
                     public Boolean apply(Row<String, String> row) {
                         counter.incrementAndGet();
-                        LOG.info("Got a row: " + row.getKey().toString());
+                        log.info("Got a row: " + row.getKey());
                         return true;
                     }
                 })
@@ -854,7 +853,7 @@ public class MiscUnitTest {
             Assert.assertTrue(result);
         }
         catch (Exception e) {
-            LOG.info(e.getMessage(), e);
+            log.info(e.getMessage(), e);
             Assert.fail(e.getMessage());
         }
         
@@ -872,7 +871,7 @@ public class MiscUnitTest {
                 .build()
                 .call();
         
-        LOG.info("Column count = " + columnCounter.getCount());
+        log.info("Column count = " + columnCounter.getCount());
         
         new AllRowsReader.Builder<String, String>(keyspace, CF_STANDARD1)
                 .withPageSize(3)
@@ -881,7 +880,7 @@ public class MiscUnitTest {
                 .build()
                 .call();
         
-        LOG.info("Row count = " + rowCounter.getCount());
+        log.info("Row count = " + rowCounter.getCount());
         
         new AllRowsReader.Builder<String, String>(keyspace, CF_STANDARD1)
                 .withPageSize(3)
@@ -898,9 +897,9 @@ public class MiscUnitTest {
             .build()
             .call();
 
-        LOG.info("Copied row count = " + rowCounter.getCount());
+        log.info("Copied row count = " + rowCounter.getCount());
         
-        LOG.info("CF_STANDARD1");
+        log.info("CF_STANDARD1");
         new AllRowsReader.Builder<String, String>(keyspace, CF_STANDARD1)
             .withPageSize(3)
             .withConcurrencyLevel(2)
@@ -908,7 +907,7 @@ public class MiscUnitTest {
             .build()
             .call();
 
-        LOG.info("CF_STANDARD1_COPY");
+        log.info("CF_STANDARD1_COPY");
         new AllRowsReader.Builder<String, String>(keyspace, CF_STANDARD1_COPY)
             .withPageSize(3)
             .withConcurrencyLevel(2)
@@ -948,14 +947,14 @@ public class MiscUnitTest {
             boolean result = reader.call();
             long runtimeMillis = sw.stop().elapsed(TimeUnit.MILLISECONDS);
 
-            LOG.info("Count = " + counter.get() + " runtime=" + runtimeMillis);
-            LOG.info("ThreadIds (" + threadIds.size() + ") " + threadIds);
+            log.info("Count = " + counter.get() + " runtime=" + runtimeMillis);
+            log.info("ThreadIds (" + threadIds.size() + ") " + threadIds);
             Assert.assertEquals(threadIds.size(), 12);
             Assert.assertEquals(counter.get(), ALL_ROWS_COUNT);
             Assert.assertTrue(result);
         }
         catch (Exception e) {
-            LOG.info(e.getMessage(), e);
+            log.info(e.getMessage(), e);
             Assert.fail(e.getMessage());
         }
         
@@ -979,7 +978,7 @@ public class MiscUnitTest {
                             throw new RuntimeException(e);
                         }
                         counter.incrementAndGet();
-                        LOG.info("Got a row: " + row.getKey().toString());
+                        log.info("Got a row: " + row.getKey());
                         return true;
                     }
                 })
@@ -997,12 +996,12 @@ public class MiscUnitTest {
             Assert.assertEquals(false, result);
         }
         catch (Exception e) {
-            LOG.info("Failed to execute", e);
+            log.info("Failed to execute", e);
         }
-        LOG.info("Before: " + counter.get());
+        log.info("Before: " + counter.get());
         Assert.assertNotSame(28, counter.get());
         Thread.sleep(2000);
-        LOG.info("After: " + counter.get());
+        log.info("After: " + counter.get());
         Assert.assertNotSame(28, counter.get());
     }
 
@@ -1029,7 +1028,7 @@ public class MiscUnitTest {
         }
         catch (Exception e) {
             Assert.assertTrue(e.getMessage().contains("Very bad"));
-            LOG.info("Failed to execute", e);
+            log.info("Failed to execute", e);
         }
     }
 }

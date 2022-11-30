@@ -25,8 +25,8 @@ public class ThriftClusterImplTest {
     
     private static final String SEEDS = "localhost:9160";
     private static final long   CASSANDRA_WAIT_TIME = 3000;
-    private static String TEST_CLUSTER_NAME  = "cass_sandbox";
-    private static String TEST_KEYSPACE_NAME = "AstyanaxUnitTests";
+    private static String testClusterName  = "cass_sandbox";
+    private static String testKeyspaceName = "AstyanaxUnitTests";
     
     private static AstyanaxContext<Cluster> context;
     private static Cluster cluster;
@@ -40,16 +40,16 @@ public class ThriftClusterImplTest {
         Thread.sleep(CASSANDRA_WAIT_TIME);
         
         context = new AstyanaxContext.Builder()
-                .forCluster(TEST_CLUSTER_NAME)
-                .forKeyspace(TEST_KEYSPACE_NAME)
+                .forCluster(testClusterName)
+                .forKeyspace(testKeyspaceName)
                 .withAstyanaxConfiguration(
                         new AstyanaxConfigurationImpl()
                                 .setDiscoveryType(NodeDiscoveryType.RING_DESCRIBE)
                                 .setConnectionPoolType(ConnectionPoolType.ROUND_ROBIN)
                                 .setDiscoveryDelayInSeconds(60000))
                 .withConnectionPoolConfiguration(
-                        new ConnectionPoolConfigurationImpl(TEST_CLUSTER_NAME
-                                + "_" + TEST_KEYSPACE_NAME)
+                        new ConnectionPoolConfigurationImpl(testClusterName
+                                + "_" + testKeyspaceName)
                                 .setSocketTimeout(30000)
                                 .setMaxTimeoutWhenExhausted(2000)
                                 .setMaxConnsPerHost(20)
@@ -67,8 +67,9 @@ public class ThriftClusterImplTest {
 
     @AfterClass
     public static void teardown() throws Exception {
-        if (context != null)
+        if (context != null) {
             context.shutdown();
+        }
         
         Thread.sleep(CASSANDRA_WAIT_TIME);
     }

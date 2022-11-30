@@ -25,7 +25,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class EmptyConnectionPoolMonitor implements ConnectionPoolMonitor {
+public final class EmptyConnectionPoolMonitor implements ConnectionPoolMonitor {
     private static final Logger LOGGER = LoggerFactory.getLogger(EmptyConnectionPoolMonitor.class);
 
     private static EmptyConnectionPoolMonitor instance = new EmptyConnectionPoolMonitor();

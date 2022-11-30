@@ -46,8 +46,8 @@ import com.netflix.astyanax.connectionpool.LatencyScoreStrategy;
  */
 public class HostConnectionPoolPartition<CL> {
     protected final AtomicBoolean                                 prioritize  = new AtomicBoolean(false);
-    protected final NonBlockingHashSet<HostConnectionPool<CL>>    pools       = new NonBlockingHashSet<HostConnectionPool<CL>>();
-    protected final AtomicReference<List<HostConnectionPool<CL>>> activePools = new AtomicReference<List<HostConnectionPool<CL>>>();
+    protected final NonBlockingHashSet<HostConnectionPool<CL>>    pools       = new NonBlockingHashSet<>();
+    protected final AtomicReference<List<HostConnectionPool<CL>>> activePools = new AtomicReference<>();
     protected final LatencyScoreStrategy                          strategy;
     
     public HostConnectionPoolPartition(LatencyScoreStrategy strategy) {
@@ -67,19 +67,22 @@ public class HostConnectionPoolPartition<CL> {
         // Add new pools not previously seen
         boolean didChange = false;
         for (HostConnectionPool<CL> pool : newPools) {
-            if (this.pools.add(pool))   
+            if (this.pools.add(pool)) {
                 didChange = true;
+            }
             toRemove.remove(pool);
         }
     
         // Remove pools for hosts that no longer exist
         for (HostConnectionPool<CL> pool : toRemove) {
-            if (this.pools.remove(pool))
+            if (this.pools.remove(pool)) {
                 didChange = true;
+            }
         }
-    
-        if (didChange)
+
+        if (didChange) {
             refresh();
+        }
         return didChange;
     }
     

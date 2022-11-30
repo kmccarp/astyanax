@@ -29,18 +29,18 @@ import com.netflix.astyanax.model.ColumnList;
 
 public class SingleRowColumnRangeQueryTests extends ReadTests {
 
-	private static ColumnFamily<String, String> CF_COLUMN_RANGE_TEST = TestUtils.CF_COLUMN_RANGE_TEST;
+	private static ColumnFamily<String, String> cfColumnRangeTest = TestUtils.CF_COLUMN_RANGE_TEST;
 	
 	@BeforeClass
 	public static void init() throws Exception {
 		initContext();
-		keyspace.createColumnFamily(CF_COLUMN_RANGE_TEST, null);
-		CF_COLUMN_RANGE_TEST.describe(keyspace);
+		keyspace.createColumnFamily(cfColumnRangeTest, null);
+		cfColumnRangeTest.describe(keyspace);
 	}
 	
 	@AfterClass
 	public static void tearDown() throws Exception {
-		keyspace.dropColumnFamily(CF_COLUMN_RANGE_TEST);
+		keyspace.dropColumnFamily(cfColumnRangeTest);
 	}
 	
 	@Test
@@ -76,7 +76,7 @@ public class SingleRowColumnRangeQueryTests extends ReadTests {
 	private void readColumnRangeForRowKey(String rowKey, boolean rowDeleted) throws Exception {
 		
 		ColumnList<String> columns = keyspace
-				.prepareQuery(CF_COLUMN_RANGE_TEST)
+				.prepareQuery(cfColumnRangeTest)
 				.getKey(rowKey)
 				.withColumnRange("a", "z", false, -1)
 				.execute().getResult();
@@ -108,7 +108,7 @@ public class SingleRowColumnRangeQueryTests extends ReadTests {
 	private void getColumnCountForRowKey(String rowKey, boolean rowDeleted) throws Exception {
 		
 		Integer count = keyspace
-				.prepareQuery(CF_COLUMN_RANGE_TEST)
+				.prepareQuery(cfColumnRangeTest)
 				.getKey(rowKey)
 				.withColumnRange("a", "z", false, -1)
 				.getCount()

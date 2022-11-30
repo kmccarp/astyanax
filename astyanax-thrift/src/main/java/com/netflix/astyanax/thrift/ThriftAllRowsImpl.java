@@ -100,7 +100,7 @@ public class ThriftAllRowsImpl<K, C> implements Rows<K, C> {
                     
                     // Since we may trim tombstones set a flag indicating whether a complete
                     // block was returned so we can know to try to fetch the next one
-                    bContinueSearch = (list.size() == query.getBlockSize());
+                    bContinueSearch = list.size() == query.getBlockSize();
 
                     // Trim the list from tombstoned rows, i.e. rows with no columns
                     iter = list.iterator();
@@ -135,7 +135,7 @@ public class ThriftAllRowsImpl<K, C> implements Rows<K, C> {
             @Override
             public Row<K, C> next() {
                 org.apache.cassandra.thrift.KeySlice row = iter.next();
-                return new ThriftRowImpl<K, C>(columnFamily.getKeySerializer().fromBytes(row.getKey()),
+                return new ThriftRowImpl<>(columnFamily.getKeySerializer().fromBytes(row.getKey()),
                         ByteBuffer.wrap(row.getKey()), new ThriftColumnOrSuperColumnListImpl<C>(row.getColumns(),
                                 columnFamily.getColumnSerializer()));
             }

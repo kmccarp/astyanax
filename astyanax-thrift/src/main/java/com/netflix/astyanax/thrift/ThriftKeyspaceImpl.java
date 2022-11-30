@@ -91,7 +91,7 @@ import com.netflix.astyanax.thrift.ddl.ThriftKeyspaceDefinitionImpl;
  *
  */
 public final class ThriftKeyspaceImpl implements Keyspace {
-    private final static Logger LOG = LoggerFactory.getLogger(ThriftKeyspaceImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ThriftKeyspaceImpl.class);
     
     final ConnectionPool<Cassandra.Client> connectionPool;
     final AstyanaxConfiguration config;
@@ -100,7 +100,7 @@ public final class ThriftKeyspaceImpl implements Keyspace {
     final KeyspaceTracerFactory tracerFactory;
     final Cache<String, Object> cache;
     final ThriftCqlFactory      cqlStatementFactory;
-    private Host                  ddlHost = null;
+    private Host                  ddlHost;
     private volatile Partitioner  partitioner;
     
     public ThriftKeyspaceImpl(
@@ -145,10 +145,10 @@ public final class ThriftKeyspaceImpl implements Keyspace {
                                     // see http://www.datastax.com/dev/blog/atomic-batches-in-cassandra-1-2 for details on atomic batches
                                     if (useAtomicBatch()) {
                                         client.atomic_batch_mutate(getMutationMap(),
-                                                ThriftConverter.ToThriftConsistencyLevel(getConsistencyLevel()));
+                                                ThriftConverter.toThriftConsistencyLevel(getConsistencyLevel()));
                                     } else {
                                         client.batch_mutate(getMutationMap(),
-                                                ThriftConverter.ToThriftConsistencyLevel(getConsistencyLevel()));
+                                                ThriftConverter.toThriftConsistencyLevel(getConsistencyLevel()));
                                     }
                                     discardMutations();
                                     return null;
@@ -156,10 +156,12 @@ public final class ThriftKeyspaceImpl implements Keyspace {
 
                                 @Override
                                 public ByteBuffer getRowKey() {
-                                    if (getMutationMap().size() == 1)
+                                    if (getMutationMap().size() == 1) {
                                         return getMutationMap().keySet().iterator().next();
-                                    else
+                                    }
+                                    else {
                                         return null;
+                                    }
                                 }
                             }, getRetryPolicy());
 
@@ -172,18 +174,13 @@ public final class ThriftKeyspaceImpl implements Keyspace {
                     throw exception;
                 }
                 catch (Exception exception) {
-                    throw ThriftConverter.ToConnectionPoolException(exception);
+                    throw ThriftConverter.toConnectionPoolException(exception);
                 }
             }
 
             @Override
             public ListenableFuture<OperationResult<Void>> executeAsync() throws ConnectionException {
-                return executor.submit(new Callable<OperationResult<Void>>() {
-                    @Override
-                    public OperationResult<Void> call() throws Exception {
-                        return execute();
-                    }
-                });
+                return executor.submit(this::execute);
             }
 
 			@Override
@@ -243,15 +240,10 @@ public final class ThriftKeyspaceImpl implements Keyspace {
         if (cached) {
           try {
             return (List<TokenRange>) this.cache.get(CassandraOperationType.DESCRIBE_RING.name(),
-                  new Callable<Object>() {
-                      @Override
-                      public Object call() throws Exception {
-                          return describeRing();
-                      }
-                  });
+                    this::describeRing);
             }
             catch (ExecutionException e) {
-                throw ThriftConverter.ToConnectionPoolException(e);
+                throw ThriftConverter.toConnectionPoolException(e);
             }
         }
         else {
@@ -288,7 +280,7 @@ public final class ThriftKeyspaceImpl implements Keyspace {
     }
 
     public <K, C> ColumnFamilyQuery<K, C> prepareQuery(ColumnFamily<K, C> cf) {
-        return new ThriftColumnFamilyQueryImpl<K, C>(
+        return new ThriftColumnFamilyQueryImpl<>(
                 executor,
                 tracerFactory,
                 this,
@@ -318,7 +310,7 @@ public final class ThriftKeyspaceImpl implements Keyspace {
                                     public Void internalExecute(Client client, ConnectionContext context) throws Exception {
                                         client.add(key, ThriftConverter.getColumnParent(columnFamily, null),
                                                 new CounterColumn().setValue(amount).setName(column),
-                                                ThriftConverter.ToThriftConsistencyLevel(writeConsistencyLevel));
+                                                ThriftConverter.toThriftConsistencyLevel(writeConsistencyLevel));
                                         return null;
                                     }
 
@@ -332,12 +324,7 @@ public final class ThriftKeyspaceImpl implements Keyspace {
 
                     @Override
                     public ListenableFuture<OperationResult<Void>> executeAsync() throws ConnectionException {
-                        return executor.submit(new Callable<OperationResult<Void>>() {
-                            @Override
-                            public OperationResult<Void> call() throws Exception {
-                                return execute();
-                            }
-                        });
+                        return executor.submit(this::execute);
                     }
                 };
             }
@@ -356,7 +343,7 @@ public final class ThriftKeyspaceImpl implements Keyspace {
                                         client.remove(key, new org.apache.cassandra.thrift.ColumnPath()
                                                 .setColumn_family(columnFamily.getName()).setColumn(column), config
                                                 .getClock().getCurrentTime(), ThriftConverter
-                                                .ToThriftConsistencyLevel(writeConsistencyLevel));
+                                                .toThriftConsistencyLevel(writeConsistencyLevel));
                                         return null;
                                     }
 
@@ -369,12 +356,7 @@ public final class ThriftKeyspaceImpl implements Keyspace {
 
                     @Override
                     public ListenableFuture<OperationResult<Void>> executeAsync() throws ConnectionException {
-                        return executor.submit(new Callable<OperationResult<Void>>() {
-                            @Override
-                            public OperationResult<Void> call() throws Exception {
-                                return execute();
-                            }
-                        });
+                        return executor.submit(this::execute);
                     }
                 };
             }
@@ -397,7 +379,7 @@ public final class ThriftKeyspaceImpl implements Keyspace {
                                         }
 
                                         client.insert(key, ThriftConverter.getColumnParent(columnFamily, null), c,
-                                                ThriftConverter.ToThriftConsistencyLevel(writeConsistencyLevel));
+                                                ThriftConverter.toThriftConsistencyLevel(writeConsistencyLevel));
                                         return null;
                                     }
 
@@ -410,12 +392,7 @@ public final class ThriftKeyspaceImpl implements Keyspace {
 
                     @Override
                     public ListenableFuture<OperationResult<Void>> executeAsync() throws ConnectionException {
-                        return executor.submit(new Callable<OperationResult<Void>>() {
-                            @Override
-                            public OperationResult<Void> call() throws Exception {
-                                return execute();
-                            }
-                        });
+                        return executor.submit(this::execute);
                     }
                 };
             }
@@ -433,7 +410,7 @@ public final class ThriftKeyspaceImpl implements Keyspace {
                                     public Void internalExecute(Client client, ConnectionContext context) throws Exception {
                                         client.remove_counter(key, new org.apache.cassandra.thrift.ColumnPath()
                                                 .setColumn_family(columnFamily.getName()).setColumn(column),
-                                                ThriftConverter.ToThriftConsistencyLevel(writeConsistencyLevel));
+                                                ThriftConverter.toThriftConsistencyLevel(writeConsistencyLevel));
                                         return null;
                                     }
 
@@ -446,12 +423,7 @@ public final class ThriftKeyspaceImpl implements Keyspace {
 
                     @Override
                     public ListenableFuture<OperationResult<Void>> executeAsync() throws ConnectionException {
-                        return executor.submit(new Callable<OperationResult<Void>>() {
-                            @Override
-                            public OperationResult<Void> call() throws Exception {
-                                return execute();
-                            }
-                        });
+                        return executor.submit(this::execute);
                     }
                 };
             }
@@ -567,12 +539,7 @@ public final class ThriftKeyspaceImpl implements Keyspace {
     @Override
     public OperationResult<SchemaChangeResult> createKeyspaceIfNotExists(final Map<String, Object> options) throws ConnectionException {
 
-    	return createKeyspaceIfNotExists(new Callable<OperationResult<SchemaChangeResult>>() {
-			@Override
-			public OperationResult<SchemaChangeResult> call() throws Exception {
-				return createKeyspace(options);
-			}
-    	});
+    	return createKeyspaceIfNotExists(() -> createKeyspace(options));
     }
     
     @Override
@@ -595,12 +562,7 @@ public final class ThriftKeyspaceImpl implements Keyspace {
     		final Map<String, Object> options,
             final Map<ColumnFamily, Map<String, Object>> cfs) throws ConnectionException {
 
-    	return createKeyspaceIfNotExists(new Callable<OperationResult<SchemaChangeResult>>() {
-			@Override
-			public OperationResult<SchemaChangeResult> call() throws Exception {
-				return createKeyspace(options, cfs);
-			}
-    	});
+    	return createKeyspaceIfNotExists(() -> createKeyspace(options, cfs));
     }
     
     @Override
@@ -625,12 +587,7 @@ public final class ThriftKeyspaceImpl implements Keyspace {
     @Override
     public OperationResult<SchemaChangeResult> createKeyspaceIfNotExists(final Properties props) throws ConnectionException {
 
-    	return createKeyspaceIfNotExists(new Callable<OperationResult<SchemaChangeResult>>() {
-			@Override
-			public OperationResult<SchemaChangeResult> call() throws Exception {
-				return createKeyspace(props);
-			}
-    	});
+    	return createKeyspaceIfNotExists(() -> createKeyspace(props));
     }
     
     private OperationResult<SchemaChangeResult> createKeyspaceIfNotExists(Callable<OperationResult<SchemaChangeResult>> createKeyspace) throws ConnectionException {
@@ -642,7 +599,7 @@ public final class ThriftKeyspaceImpl implements Keyspace {
     		OperationResult<KeyspaceDefinition> opResult = this.internalDescribeKeyspace();
         	
     		if (opResult != null && opResult.getResult() != null) {
-        		return new OperationResultImpl<SchemaChangeResult>(opResult.getHost(), 
+        		return new OperationResultImpl<>(opResult.getHost(), 
                         new SchemaChangeResponseImpl().setSchemaId("no-op"), 
                         opResult.getLatency());
 
@@ -774,19 +731,23 @@ public final class ThriftKeyspaceImpl implements Keyspace {
         ThriftColumnFamilyDefinitionImpl def = new ThriftColumnFamilyDefinitionImpl();
 
         Map<String, Object> internalOptions = Maps.newHashMap();
-        if (options != null)
+        if (options != null) {
             internalOptions.putAll(options);
+        }
 
         internalOptions.put("keyspace", getKeyspaceName());
         
         if (columnFamily != null) {
             internalOptions.put("name", columnFamily.getName());
-            if (!internalOptions.containsKey("comparator_type"))
+            if (!internalOptions.containsKey("comparator_type")) {
                 internalOptions.put("comparator_type", columnFamily.getColumnSerializer().getComparatorType().getTypeName());
-            if (!internalOptions.containsKey("key_validation_class"))
+            }
+            if (!internalOptions.containsKey("key_validation_class")) {
                 internalOptions.put("key_validation_class", columnFamily.getKeySerializer().getComparatorType().getTypeName());
-            if (columnFamily.getDefaultValueSerializer() != null && !internalOptions.containsKey("default_validation_class"))
+            }
+            if (columnFamily.getDefaultValueSerializer() != null && !internalOptions.containsKey("default_validation_class")) {
                 internalOptions.put("default_validation_class", columnFamily.getDefaultValueSerializer().getComparatorType().getTypeName());
+            }
         }
 
         def.setFields(internalOptions);
@@ -801,8 +762,9 @@ public final class ThriftKeyspaceImpl implements Keyspace {
         ThriftKeyspaceDefinitionImpl def = new ThriftKeyspaceDefinitionImpl();
         
         Map<String, Object> internalOptions = Maps.newHashMap();
-        if (options != null)
+        if (options != null) {
             internalOptions.putAll(options);
+        }
         
         if (internalOptions.containsKey("name") && !internalOptions.get("name").equals(getKeyspaceName())) {
             throw new RuntimeException(
@@ -851,8 +813,9 @@ public final class ThriftKeyspaceImpl implements Keyspace {
     }
 
     public OperationResult<SchemaChangeResult> internalCreateKeyspace(final KsDef ksDef) throws ConnectionException {
-        if (ksDef.getCf_defs() == null)
+        if (ksDef.getCf_defs() == null) {
             ksDef.setCf_defs(Lists.<CfDef>newArrayList());
+        }
         
         return executeDdlOperation(
                         new AbstractOperationImpl<SchemaChangeResult>(
@@ -955,8 +918,9 @@ public final class ThriftKeyspaceImpl implements Keyspace {
     @Override
     public Properties getKeyspaceProperties() throws ConnectionException {
         KeyspaceDefinition ksDef = this.describeKeyspace();
-        if (ksDef == null)
+        if (ksDef == null) {
             throw new NotFoundException(String.format("Keyspace '%s' not found", getKeyspaceName()));
+        }
         
         Properties props = new Properties();
         ThriftKeyspaceDefinitionImpl thriftKsDef = (ThriftKeyspaceDefinitionImpl)ksDef;
@@ -974,8 +938,9 @@ public final class ThriftKeyspaceImpl implements Keyspace {
     public Properties getColumnFamilyProperties(String columnFamily) throws ConnectionException {
         KeyspaceDefinition ksDef = this.describeKeyspace();
         ColumnFamilyDefinition cfDef = ksDef.getColumnFamily(columnFamily);
-        if (cfDef == null)
+        if (cfDef == null) {
             throw new NotFoundException(String.format("Column family '%s' in keyspace '%s' not found", columnFamily, getKeyspaceName()));
+        }
         
         Properties props = new Properties();
         ThriftColumnFamilyDefinitionImpl thriftCfDef = (ThriftColumnFamilyDefinitionImpl)cfDef;

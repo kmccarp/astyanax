@@ -31,7 +31,7 @@ public class SpecificCompositeSerializer extends CompositeSerializer {
 	public SpecificCompositeSerializer(CompositeType type) {
 		Preconditions.checkNotNull(type);
 		this.type = type;
-		comparators = new ArrayList<String>( type.types.size() );
+		comparators = new ArrayList<>( type.types.size() );
 		for ( AbstractType<?> compType : type.types ) {
 			String typeName = compType.toString();
 			comparators.add( ComparatorType.getShadedTypeName(typeName) );

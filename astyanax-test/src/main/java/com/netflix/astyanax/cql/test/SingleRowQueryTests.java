@@ -37,7 +37,7 @@ import com.netflix.astyanax.serializers.BytesArraySerializer;
 
 public class SingleRowQueryTests extends ReadTests {
 
-	private int TestRowCount = 10;
+	private int testRowCount = 10;
 
 	@BeforeClass
 	public static void init() throws Exception {
@@ -56,7 +56,7 @@ public class SingleRowQueryTests extends ReadTests {
 
 		/** POPULATE ROWS FOR READ TESTS */
 
-		populateRows(TestRowCount);  // NOTE THAT WE ARE UING USER_INFO CF
+		populateRows(testRowCount);  // NOTE THAT WE ARE UING USER_INFO CF
 		Thread.sleep(1000);
 		boolean rowDeleted = false; 
 
@@ -72,7 +72,7 @@ public class SingleRowQueryTests extends ReadTests {
 
 		/** NOW DELETE THE ROWS */ 
 
-		deleteRows(TestRowCount);
+		deleteRows(testRowCount);
 		Thread.sleep(1000);
 		rowDeleted = true;
 
@@ -90,7 +90,7 @@ public class SingleRowQueryTests extends ReadTests {
     private void testSingleRowAllColumnsQuery(boolean rowDeleted) throws Exception {
     	
     	String[] arr = {"firstname", "lastname", "address","age","ageShort", "ageLong","percentile", "married","single", "birthdate", "bytes", "uuid", "empty"};
-    	List<String> columnNames = new ArrayList<String>(Arrays.asList(arr));
+    	List<String> columnNames = new ArrayList<>(Arrays.asList(arr));
     	Collections.sort(columnNames);
     	
         /** NOW READ 1000 ROWS BACK */
@@ -98,7 +98,7 @@ public class SingleRowQueryTests extends ReadTests {
     	/**
     	 * READ BY COLUMN NAME
     	 */
-        for (int i=0; i<TestRowCount; i++) {
+        for (int i=0; i<testRowCount; i++) {
 
         	ColumnList<String> response = keyspace.prepareQuery(CF_USER_INFO).getRow("acct_" + i).execute().getResult();
 
@@ -109,7 +109,7 @@ public class SingleRowQueryTests extends ReadTests {
         	
         	Assert.assertFalse(response.isEmpty());
         	
-        	List<String> columnNameList = new ArrayList<String>(response.getColumnNames());
+        	List<String> columnNameList = new ArrayList<>(response.getColumnNames());
         	Collections.sort(columnNameList);
         	
         	Assert.assertEquals(columnNames, columnNameList);
@@ -119,8 +119,8 @@ public class SingleRowQueryTests extends ReadTests {
         	testColumnValue(response, "lastname", columnNames, "smith_" + i);
         	testColumnValue(response, "address", columnNames, "john smith address " + i);
         	testColumnValue(response, "age", columnNames, 30 + i);
-        	testColumnValue(response, "ageShort", columnNames, new Integer(30+i).shortValue());
-        	testColumnValue(response, "ageLong", columnNames, new Integer(30+i).longValue());
+        	testColumnValue(response, "ageShort", columnNames, Integer.valueOf(30 + i).shortValue());
+        	testColumnValue(response, "ageLong", columnNames, Integer.valueOf(30 + i).longValue());
         	testColumnValue(response, "percentile", columnNames, 30.1);
         	testColumnValue(response, "married", columnNames, true);
         	testColumnValue(response, "single", columnNames, false);
@@ -147,7 +147,7 @@ public class SingleRowQueryTests extends ReadTests {
     	/**
     	 * READ BY COLUMN NAME
     	 */
-        for (int i=0; i<TestRowCount; i++) {
+        for (int i=0; i<testRowCount; i++) {
 
         	Date date = OriginalDate.plusMinutes(i).toDate();
 
@@ -168,9 +168,9 @@ public class SingleRowQueryTests extends ReadTests {
         	column = keyspace.prepareQuery(CF_USER_INFO).getRow("acct_" + i) .getColumn("age").execute().getResult();
         	testColumnValue(column, 30 + i);
         	column = keyspace.prepareQuery(CF_USER_INFO).getRow("acct_" + i) .getColumn("ageShort").execute().getResult();
-        	testColumnValue(column, new Integer(30+i).shortValue());
+        	testColumnValue(column, Integer.valueOf(30 + i).shortValue());
         	column = keyspace.prepareQuery(CF_USER_INFO).getRow("acct_" + i) .getColumn("ageLong").execute().getResult();
-        	testColumnValue(column, new Integer(30+i).longValue());
+        	testColumnValue(column, Integer.valueOf(30 + i).longValue());
         	column = keyspace.prepareQuery(CF_USER_INFO).getRow("acct_" + i) .getColumn("percentile").execute().getResult();
         	testColumnValue(column, 30.1);
         	column = keyspace.prepareQuery(CF_USER_INFO).getRow("acct_" + i) .getColumn("married").execute().getResult();
@@ -196,7 +196,7 @@ public class SingleRowQueryTests extends ReadTests {
     	/**
     	 * READ BY COLUMN SLICE COLLECTION
     	 */
-        for (int i=0; i<TestRowCount; i++) {
+        for (int i=0; i<testRowCount; i++) {
 
         	Date date = OriginalDate.plusMinutes(i).toDate();
 
@@ -213,8 +213,8 @@ public class SingleRowQueryTests extends ReadTests {
         	testColumnValue(response, "lastname", columnNames, "smith_" + i);
         	testColumnValue(response, "address", columnNames, "john smith address " + i);
         	testColumnValue(response, "age", columnNames, 30 + i);
-        	testColumnValue(response, "ageShort", columnNames, new Integer(30+i).shortValue());
-        	testColumnValue(response, "ageLong", columnNames, new Integer(30+i).longValue());
+        	testColumnValue(response, "ageShort", columnNames, Integer.valueOf(30 + i).shortValue());
+        	testColumnValue(response, "ageLong", columnNames, Integer.valueOf(30 + i).longValue());
         	testColumnValue(response, "percentile", columnNames, 30.1);
         	testColumnValue(response, "married", columnNames, true);
         	testColumnValue(response, "single", columnNames, false);
@@ -230,7 +230,7 @@ public class SingleRowQueryTests extends ReadTests {
     	/**
     	 * READ BY COLUMN SLICE COLLECTION
     	 */
-        for (int i=0; i<TestRowCount; i++) {
+        for (int i=0; i<testRowCount; i++) {
 
         	Date date = OriginalDate.plusMinutes(i).toDate();
 
@@ -248,8 +248,8 @@ public class SingleRowQueryTests extends ReadTests {
         	testColumnValue(response, "lastname", columnNames, "smith_" + i);
         	testColumnValue(response, "address", columnNames, "john smith address " + i);
         	testColumnValue(response, "age", columnNames, 30 + i);
-        	testColumnValue(response, "ageShort", columnNames, new Integer(30+i).shortValue());
-        	testColumnValue(response, "ageLong", columnNames, new Integer(30+i).longValue());
+        	testColumnValue(response, "ageShort", columnNames, Integer.valueOf(30 + i).shortValue());
+        	testColumnValue(response, "ageLong", columnNames, Integer.valueOf(30 + i).longValue());
         	testColumnValue(response, "percentile", columnNames, 30.1);
         	testColumnValue(response, "married", columnNames, true);
         	testColumnValue(response, "single", columnNames, false);
@@ -262,7 +262,7 @@ public class SingleRowQueryTests extends ReadTests {
 
 	private void testSingleRowAllColumnsColumnCountQuery(boolean rowDeleted) throws Exception {
 		int expected = rowDeleted ? 0 : columnNames.size();
-        for (int i=0; i<TestRowCount; i++) {
+        for (int i=0; i<testRowCount; i++) {
         	int count = keyspace.prepareQuery(CF_USER_INFO).getRow("acct_" + i).getCount().execute().getResult().intValue();
         	Assert.assertEquals(expected, count);
         }
@@ -270,7 +270,7 @@ public class SingleRowQueryTests extends ReadTests {
 	
 	private void testSingleRowColumnSliceCollectionColumnCountQuery(boolean rowDeleted) throws Exception {
 		int expected = rowDeleted ? 0 : columnNames.size();
-        for (int i=0; i<TestRowCount; i++) {
+        for (int i=0; i<testRowCount; i++) {
         	int count = keyspace.prepareQuery(CF_USER_INFO).getRow("acct_" + i).withColumnSlice(columnNames).getCount().execute().getResult();
         	Assert.assertEquals(expected, count);
         }
@@ -278,7 +278,7 @@ public class SingleRowQueryTests extends ReadTests {
 
 	private void testSingleRowColumnSliceVarArgsColumnCountQuery(boolean rowDeleted) throws Exception {
 		int expected = rowDeleted ? 0 : columnNames.size();
-        for (int i=0; i<TestRowCount; i++) {
+        for (int i=0; i<testRowCount; i++) {
         	int count = keyspace.prepareQuery(CF_USER_INFO).getRow("acct_" + i)
         			.withColumnSlice("firstname", "lastname", "address","age","ageShort", "ageLong","percentile", "married","single", "birthdate", "bytes", "uuid", "empty")
         			.getCount().execute().getResult();

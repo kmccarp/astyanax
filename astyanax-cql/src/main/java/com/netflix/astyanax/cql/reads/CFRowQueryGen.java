@@ -44,7 +44,7 @@ import com.netflix.astyanax.serializers.CompositeRangeBuilder.RangeQueryRecord;
 
 public class CFRowQueryGen {
 
-	private final AtomicReference<Session> sessionRef = new AtomicReference<Session>(null);
+	private final AtomicReference<Session> sessionRef = new AtomicReference<>(null);
 	private final String keyspace; 
 	private final CqlColumnFamilyDefinitionImpl cfDef;
 
@@ -75,8 +75,8 @@ public class CFRowQueryGen {
 		clusteringKeyCols = cfDef.getClusteringKeyColumnDefinitionList();
 		regularCols = cfDef.getRegularColumnDefinitionList();
 
-		isCompositeColumn = (clusteringKeyCols.size() > 1);
-		isFlatTable = (clusteringKeyCols.size() == 0);
+		isCompositeColumn = clusteringKeyCols.size() > 1;
+		isFlatTable = clusteringKeyCols.isEmpty();
 		
 		rowKeysQueryGen = new CFRowKeysQueryGen(session, keyspaceName, cfDefinition);
 		rowRangeQueryGen = new CFRowRangeQueryGen(session, keyspaceName, cfDefinition);
@@ -85,30 +85,24 @@ public class CFRowQueryGen {
 		columnQueryGen = new CFColumnQueryGen(session, keyspaceName, cfDefinition);
 	}
 
-	private QueryGenCache<CqlRowQueryImpl<?,?>> SelectEntireRow = new QueryGenCache<CqlRowQueryImpl<?,?>>(sessionRef) {
+	private QueryGenCache<CqlRowQueryImpl<?,?>> selectEntireRow = new QueryGenCache<CqlRowQueryImpl<?,?>>(sessionRef) {
 
 		@Override
 		public Callable<RegularStatement> getQueryGen(CqlRowQueryImpl<?, ?> rowQuery) {
 
-			return new Callable<RegularStatement>() {
+			return () -> {
+                Selection select = QueryBuilder.select();
 
-				@Override
-				public RegularStatement call() throws Exception {
-					Selection select = QueryBuilder.select();
+                for (int i = 0; i < allPrimayKeyCols.length; i++) {
+                    select.column(allPrimayKeyCols[i]);
+                }
 
-					for (int i=0; i<allPrimayKeyCols.length; i++) {
-						select.column(allPrimayKeyCols[i]);
-					}
-
-					for (ColumnDefinition colDef : regularCols) {
-						String colName = colDef.getName();
-						select.column(colName).ttl(colName).writeTime(colName);
-					}
-
-					RegularStatement stmt = select.from(keyspace, cfDef.getName()).where(eq(partitionKeyCol, BIND_MARKER));
-					return stmt; 
-				}
-			};
+                for (ColumnDefinition colDef : regularCols) {
+                    String colName = colDef.getName();
+                    select.column(colName).ttl(colName).writeTime(colName);
+                }
+                return select.from(keyspace, cfDef.getName()).where(eq(partitionKeyCol, BIND_MARKER));
+            };
 		}
 
 
@@ -118,52 +112,48 @@ public class CFRowQueryGen {
 		}
 	};
 
-	private QueryGenCache<CqlRowQueryImpl<?,?>> SelectColumnSliceWithClusteringKey = new QueryGenCache<CqlRowQueryImpl<?,?>>(sessionRef) {
+	private QueryGenCache<CqlRowQueryImpl<?,?>> selectColumnSliceWithClusteringKey = new QueryGenCache<CqlRowQueryImpl<?,?>>(sessionRef) {
 
 		@Override
 		public Callable<RegularStatement> getQueryGen(final CqlRowQueryImpl<?, ?> rowQuery) {
 
-			return new Callable<RegularStatement>() {
+			return () -> {
 
-				@Override
-				public RegularStatement call() throws Exception {
+                if (clusteringKeyCols.size() != 1) {
+                    throw new RuntimeException("Cannot perform column slice query with clusteringKeyCols.size: " + clusteringKeyCols.size());
+                }
 
-					if (clusteringKeyCols.size() != 1) {
-						throw new RuntimeException("Cannot perform column slice query with clusteringKeyCols.size: " + clusteringKeyCols.size());
-					}
+                // THIS IS A QUERY WHERE THE COLUMN NAME IS DYNAMIC  E.G TIME SERIES
 
-					// THIS IS A QUERY WHERE THE COLUMN NAME IS DYNAMIC  E.G TIME SERIES
+                Selection select = QueryBuilder.select();
 
-					Selection select = QueryBuilder.select();
+                for (int i = 0; i < allPrimayKeyCols.length; i++) {
+                    select.column(allPrimayKeyCols[i]);
+                }
 
-					for (int i=0; i<allPrimayKeyCols.length; i++) {
-						select.column(allPrimayKeyCols[i]);
-					}
+                for (ColumnDefinition colDef : regularCols) {
+                    String colName = colDef.getName();
+                    select.column(colName).ttl(colName).writeTime(colName);
+                }
 
-					for (ColumnDefinition colDef : regularCols) {
-						String colName = colDef.getName();
-						select.column(colName).ttl(colName).writeTime(colName);
-					}
+                int numCols = rowQuery.getColumnSlice().getColumns().size();
 
-					int numCols = rowQuery.getColumnSlice().getColumns().size(); 
-					
-					List<Object> colSelection = new ArrayList<Object>();
-					for (int i=0; i<numCols; i++) {
-						colSelection.add(BIND_MARKER);
-					}
-					
-					return select
-							.from(keyspace, cfDef.getName())
-							.where(eq(partitionKeyCol, BIND_MARKER))
-							.and(in(clusteringKeyCols.get(0).getName(), colSelection.toArray(new Object[colSelection.size()])));
-				}
-			};
+                List<Object> colSelection = new ArrayList<>();
+                for (int i = 0; i < numCols; i++) {
+                    colSelection.add(BIND_MARKER);
+                }
+
+                return select
+                        .from(keyspace, cfDef.getName())
+                        .where(eq(partitionKeyCol, BIND_MARKER))
+                        .and(in(clusteringKeyCols.get(0).getName(), colSelection.toArray(new Object[colSelection.size()])));
+            };
 		}
 
 		@Override
 		public BoundStatement bindValues(PreparedStatement pStatement, CqlRowQueryImpl<?, ?> rowQuery) {
 
-			List<Object> objects = new ArrayList<Object>();
+			List<Object> objects = new ArrayList<>();
 			objects.add(rowQuery.getRowKey());
 			for (Object col : rowQuery.getColumnSlice().getColumns()) {
 				objects.add(col);
@@ -172,58 +162,54 @@ public class CFRowQueryGen {
 		}
 	};
 
-	private QueryGenCache<CqlRowQueryImpl<?,?>> SelectColumnRangeWithClusteringKey = new QueryGenCache<CqlRowQueryImpl<?,?>>(sessionRef) {
+	private QueryGenCache<CqlRowQueryImpl<?,?>> selectColumnRangeWithClusteringKey = new QueryGenCache<CqlRowQueryImpl<?,?>>(sessionRef) {
 
 		@Override
 		public Callable<RegularStatement> getQueryGen(final CqlRowQueryImpl<?, ?> rowQuery) {
-			return new Callable<RegularStatement>() {
+			return () -> {
 
-				@Override
-				public RegularStatement call() throws Exception {
+                if (clusteringKeyCols.size() != 1) {
+                    throw new RuntimeException("Cannot perform col range query with current schema, missing pk cols");
+                }
 
-					if (clusteringKeyCols.size() != 1) {
-						throw new RuntimeException("Cannot perform col range query with current schema, missing pk cols");
-					}
+                Selection select = QueryBuilder.select();
 
-					Selection select = QueryBuilder.select();
+                for (int i = 0; i < allPrimayKeyCols.length; i++) {
+                    select.column(allPrimayKeyCols[i]);
+                }
 
-					for (int i=0; i<allPrimayKeyCols.length; i++) {
-						select.column(allPrimayKeyCols[i]);
-					}
+                for (ColumnDefinition colDef : regularCols) {
+                    String colName = colDef.getName();
+                    select.column(colName).ttl(colName).writeTime(colName);
+                }
 
-					for (ColumnDefinition colDef : regularCols) {
-						String colName = colDef.getName();
-						select.column(colName).ttl(colName).writeTime(colName);
-					}
+                Where where = select.from(keyspace, cfDef.getName())
+                        .where(eq(partitionKeyCol, BIND_MARKER));
 
-					Where where = select.from(keyspace, cfDef.getName())
-							.where(eq(partitionKeyCol, BIND_MARKER));
+                String clusterKeyCol = clusteringKeyCols.get(0).getName();
 
-					String clusterKeyCol = clusteringKeyCols.get(0).getName();
+                CqlColumnSlice<?> columnSlice = rowQuery.getColumnSlice();
+                if (columnSlice.getStartColumn() != null) {
+                    where.and(gte(clusterKeyCol, BIND_MARKER));
+                }
 
-					CqlColumnSlice<?> columnSlice = rowQuery.getColumnSlice();
-					if (columnSlice.getStartColumn() != null) {
-						where.and(gte(clusterKeyCol, BIND_MARKER));
-					}
+                if (columnSlice.getEndColumn() != null) {
+                    where.and(lte(clusterKeyCol, BIND_MARKER));
+                }
 
-					if (columnSlice.getEndColumn() != null) {
-						where.and(lte(clusterKeyCol, BIND_MARKER));
-					}
+                if (columnSlice.getReversed()) {
+                    where.orderBy(desc(clusterKeyCol));
+                }
 
-					if (columnSlice.getReversed()) {
-						where.orderBy(desc(clusterKeyCol));
-					}
-					
-					if (!rowQuery.isPaginating()) {
-						// Column limits are applicable only when we are not paginating
-						if (columnSlice.getLimit() != -1) {
-							where.limit(columnSlice.getLimit());
-						}
-					}
+                if (!rowQuery.isPaginating()) {
+                    // Column limits are applicable only when we are not paginating
+                    if (columnSlice.getLimit() != -1) {
+                        where.limit(columnSlice.getLimit());
+                    }
+                }
 
-					return where;
-				}				
-			};
+                return where;
+            };
 		}
 
 		@Override
@@ -232,7 +218,7 @@ public class CFRowQueryGen {
 				throw new RuntimeException("Cannot perform col range query with current schema, missing pk cols");
 			}
 
-			List<Object> values = new ArrayList<Object>();
+			List<Object> values = new ArrayList<>();
 			values.add(rowQuery.getRowKey());
 
 			CqlColumnSlice<?> columnSlice = rowQuery.getColumnSlice();
@@ -249,65 +235,61 @@ public class CFRowQueryGen {
 		}
 	};
 
-	private QueryGenCache<CqlRowQueryImpl<?,?>> SelectWithCompositeColumn = new QueryGenCache<CqlRowQueryImpl<?,?>>(sessionRef) {
+	private QueryGenCache<CqlRowQueryImpl<?,?>> selectWithCompositeColumn = new QueryGenCache<CqlRowQueryImpl<?,?>>(sessionRef) {
 
 		@Override
 		public Callable<RegularStatement> getQueryGen(final CqlRowQueryImpl<?, ?> rowQuery) {
-			return new Callable<RegularStatement>() {
+			return () -> {
 
-				@Override
-				public RegularStatement call() throws Exception {
+                Selection select = QueryBuilder.select();
 
-					Selection select = QueryBuilder.select();
+                for (int i = 0; i < allPrimayKeyCols.length; i++) {
+                    select.column(allPrimayKeyCols[i]);
+                }
 
-					for (int i=0; i<allPrimayKeyCols.length; i++) {
-						select.column(allPrimayKeyCols[i]);
-					}
+                for (ColumnDefinition colDef : regularCols) {
+                    String colName = colDef.getName();
+                    select.column(colName).ttl(colName).writeTime(colName);
+                }
 
-					for (ColumnDefinition colDef : regularCols) {
-						String colName = colDef.getName();
-						select.column(colName).ttl(colName).writeTime(colName);
-					}
+                Where stmt = select.from(keyspace, cfDef.getName())
+                        .where(eq(partitionKeyCol, BIND_MARKER));
 
-					Where stmt = select.from(keyspace, cfDef.getName())
-							.where(eq(partitionKeyCol, BIND_MARKER));
+                List<RangeQueryRecord> records = rowQuery.getCompositeRange().getRecords();
 
-					List<RangeQueryRecord> records = rowQuery.getCompositeRange().getRecords();
+                int componentIndex = 0;
 
-					int componentIndex = 0; 
-
-					for (RangeQueryRecord record : records) {
+                for (RangeQueryRecord record : records) {
 
 
-						for (RangeQueryOp op : record.getOps()) {
+                    for (RangeQueryOp op : record.getOps()) {
 
-							String columnName = clusteringKeyCols.get(componentIndex).getName();
-							switch (op.getOperator()) {
+                        String columnName = clusteringKeyCols.get(componentIndex).getName();
+                        switch (op.getOperator()) {
 
-							case EQUAL:
-								stmt.and(eq(columnName, BIND_MARKER));
-								componentIndex++;
-								break;
-							case LESS_THAN :
-								stmt.and(lt(columnName, BIND_MARKER));
-								break;
-							case LESS_THAN_EQUALS:
-								stmt.and(lte(columnName, BIND_MARKER));
-								break;
-							case GREATER_THAN:
-								stmt.and(gt(columnName, BIND_MARKER));
-								break;
-							case GREATER_THAN_EQUALS:
-								stmt.and(gte(columnName, BIND_MARKER));
-								break;
-							default:
-								throw new RuntimeException("Cannot recognize operator: " + op.getOperator().name());
-							}; // end of switch stmt
-						} // end of inner for for ops for each range query record
-					}
-					return stmt;
-				}
-			};
+                            case EQUAL:
+                                stmt.and(eq(columnName, BIND_MARKER));
+                                componentIndex++;
+                                break;
+                            case LESS_THAN :
+                                stmt.and(lt(columnName, BIND_MARKER));
+                                break;
+                            case LESS_THAN_EQUALS:
+                                stmt.and(lte(columnName, BIND_MARKER));
+                                break;
+                            case GREATER_THAN:
+                                stmt.and(gt(columnName, BIND_MARKER));
+                                break;
+                            case GREATER_THAN_EQUALS:
+                                stmt.and(gte(columnName, BIND_MARKER));
+                                break;
+                            default:
+                                throw new RuntimeException("Cannot recognize operator: " + op.getOperator().name());
+                        } // end of switch stmt
+                    } // end of inner for for ops for each range query record
+                }
+                return stmt;
+            };
 		}
 
 		@Override
@@ -315,7 +297,7 @@ public class CFRowQueryGen {
 
 			List<RangeQueryRecord> records = rowQuery.getCompositeRange().getRecords();
 
-			List<Object> values = new ArrayList<Object>();
+			List<Object> values = new ArrayList<>();
 			values.add(rowQuery.getRowKey());
 
 			for (RangeQueryRecord record : records) {
@@ -341,7 +323,7 @@ public class CFRowQueryGen {
 						break;
 					default:
 						throw new RuntimeException("Cannot recognize operator: " + op.getOperator().name());
-					}; // end of switch stmt
+					} // end of switch stmt
 				} // end of inner for for ops for each range query record
 			}
 			return pStatement.bind(values.toArray(new Object[values.size()]));
@@ -358,14 +340,14 @@ public class CFRowQueryGen {
 		switch (rowQuery.getQueryType()) {
 		
 		case AllColumns:
-			return SelectEntireRow.getBoundStatement(rowQuery, useCaching);
+			return selectEntireRow.getBoundStatement(rowQuery, useCaching);
 		case ColumnSlice:
-			return SelectColumnSliceWithClusteringKey.getBoundStatement(rowQuery, useCaching);
+			return selectColumnSliceWithClusteringKey.getBoundStatement(rowQuery, useCaching);
 		case ColumnRange:
 			if (isCompositeColumn) {
-				return SelectWithCompositeColumn.getBoundStatement(rowQuery, useCaching);
+				return selectWithCompositeColumn.getBoundStatement(rowQuery, useCaching);
 			} else {
-				return SelectColumnRangeWithClusteringKey.getBoundStatement(rowQuery, useCaching);
+				return selectColumnRangeWithClusteringKey.getBoundStatement(rowQuery, useCaching);
 			}
 		default :
 			throw new RuntimeException("RowQuery use case not supported. Fix this!!");

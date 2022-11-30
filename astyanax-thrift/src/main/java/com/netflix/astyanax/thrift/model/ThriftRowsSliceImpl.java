@@ -49,7 +49,7 @@ public class ThriftRowsSliceImpl<K, C> implements Rows<K, C> {
         this.rows   = Lists.newArrayListWithCapacity(rows.size());
         
         for (KeySlice row : rows) {
-            Row<K,C> thriftRow = new ThriftRowImpl<K, C>(
+            Row<K,C> thriftRow = new ThriftRowImpl<>(
                     keySer.fromBytes(row.getKey()), 
                     ByteBuffer.wrap(row.getKey()),
                     new ThriftColumnOrSuperColumnListImpl<C>(row.getColumns(), colSer));

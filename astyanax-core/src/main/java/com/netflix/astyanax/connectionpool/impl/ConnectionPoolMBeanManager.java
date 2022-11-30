@@ -37,8 +37,8 @@ import com.netflix.astyanax.connectionpool.JmxConnectionPoolMonitorMBean;
  * @author elandau
  *
  */
-public class ConnectionPoolMBeanManager {
-    private static Logger LOG = LoggerFactory.getLogger(ConnectionPoolMBeanManager.class);
+public final class ConnectionPoolMBeanManager {
+    private static Logger log = LoggerFactory.getLogger(ConnectionPoolMBeanManager.class);
 
     private MBeanServer mbs;
 
@@ -65,7 +65,7 @@ public class ConnectionPoolMBeanManager {
         if (!monitors.containsKey(monitorName)) {
             JmxConnectionPoolMonitorMBean mbean;
             try {
-                LOG.info("Registering mbean: " + monitorName);
+                log.info("Registering mbean: " + monitorName);
                 ObjectName oName = new ObjectName(monitorName);
                 mbean = new JmxConnectionPoolMonitor(pool);
                 monitors.put(monitorName, mbean);
@@ -73,7 +73,7 @@ public class ConnectionPoolMBeanManager {
 
             }
             catch (Exception e) {
-                LOG.error(e.getMessage());
+                log.error(e.getMessage());
                 monitors.remove(monitorName);
             }
         }
@@ -86,7 +86,7 @@ public class ConnectionPoolMBeanManager {
             mbs.unregisterMBean(new ObjectName(monitorName));
         }
         catch (Exception e) {
-            LOG.error(e.getMessage());
+            log.error(e.getMessage());
         }
     }
 

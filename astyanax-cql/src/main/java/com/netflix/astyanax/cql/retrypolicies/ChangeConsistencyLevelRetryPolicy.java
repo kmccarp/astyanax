@@ -35,16 +35,16 @@ public class ChangeConsistencyLevelRetryPolicy extends JavaDriverBasedRetryPolic
 
 	// Policies for specific conditions
 	private boolean retryOnAllConditions = true;
-	private boolean retryOnReads = false;
-	private boolean retryOnWrites = false;
-	private boolean retryOnUnavailable = false;
+	private boolean retryOnReads;
+	private boolean retryOnWrites;
+	private boolean retryOnUnavailable;
 	
 	// The retry count
-	private int retryCount = 0;
+	private int retryCount;
 	// the next consistency level to use.
 	private ConsistencyLevel nextConsistencyLevel;
 	// throw when giving up or ignore failures
-	private boolean suppressFinalFailure = false;
+	private boolean suppressFinalFailure;
 
 	public ChangeConsistencyLevelRetryPolicy() { 
 	}

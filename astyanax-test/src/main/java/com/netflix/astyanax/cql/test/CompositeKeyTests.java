@@ -39,29 +39,29 @@ public class CompositeKeyTests extends KeyspaceTests {
 	public static void init() throws Exception {
 		initContext();
 		
-		keyspace.createColumnFamily(CF_COMPOSITE_KEY, ImmutableMap.<String, Object>builder()
+		keyspace.createColumnFamily(cfCompositeKey, ImmutableMap.<String, Object>builder()
 				.put("key_validation_class", "BytesType")
 				.build());
 		 
-        CF_COMPOSITE_KEY.describe(keyspace);
+        cfCompositeKey.describe(keyspace);
 	}
 	
 	@AfterClass
 	public static void tearDown() throws Exception {
-		keyspace.dropColumnFamily(CF_COMPOSITE_KEY);
+		keyspace.dropColumnFamily(cfCompositeKey);
 	}
 
-	private static AnnotatedCompositeSerializer<MockCompositeType> M_SERIALIZER 
-    	= new AnnotatedCompositeSerializer<MockCompositeType>(MockCompositeType.class);
+	private static AnnotatedCompositeSerializer<MockCompositeType> mSerializer 
+    	= new AnnotatedCompositeSerializer<>(MockCompositeType.class);
 
-    private static ColumnFamily<MockCompositeType, String> CF_COMPOSITE_KEY 
-    	= ColumnFamily.newColumnFamily("compositekey", M_SERIALIZER, StringSerializer.get());
+    private static ColumnFamily<MockCompositeType, String> cfCompositeKey 
+    	= ColumnFamily.newColumnFamily("compositekey", mSerializer, StringSerializer.get());
 	
     @Test
     public void testCompositeKey() {
         MockCompositeType key = new MockCompositeType("A", 1, 2, true, "B");
         MutationBatch m = keyspace.prepareMutationBatch();
-        m.withRow(CF_COMPOSITE_KEY, key).putColumn("Test", "Value", null);
+        m.withRow(cfCompositeKey, key).putColumn("Test", "Value", null);
         try {
             m.execute();
         } catch (ConnectionException e) {
@@ -70,7 +70,7 @@ public class CompositeKeyTests extends KeyspaceTests {
         }
 
         try {
-            ColumnList<String> row = keyspace.prepareQuery(CF_COMPOSITE_KEY)
+            ColumnList<String> row = keyspace.prepareQuery(cfCompositeKey)
                     .getKey(key).execute().getResult();
             Assert.assertFalse(row.isEmpty());
         } catch (ConnectionException e) {

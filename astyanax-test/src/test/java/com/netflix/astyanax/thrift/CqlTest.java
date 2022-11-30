@@ -40,13 +40,13 @@ import com.netflix.astyanax.util.SingletonEmbeddedCassandra;
 
 public class CqlTest {
 
-    private static Logger Log = LoggerFactory.getLogger(CqlTest.class);
+    private static Logger log = LoggerFactory.getLogger(CqlTest.class);
 
     private static Keyspace keyspace;
     private static AstyanaxContext<Keyspace> keyspaceContext;
 
-    private static String TEST_CLUSTER_NAME = "cass_sandbox";
-    private static String TEST_KEYSPACE_NAME = "CqlTest";
+    private static String testClusterName = "cass_sandbox";
+    private static String testKeyspaceName = "CqlTest";
 
     private static final String SEEDS = "localhost:9160";
 
@@ -71,16 +71,17 @@ public class CqlTest {
 
     @AfterClass
     public static void teardown() throws Exception {
-        if (keyspaceContext != null)
+        if (keyspaceContext != null) {
             keyspaceContext.shutdown();
+        }
 
         Thread.sleep(CASSANDRA_WAIT_TIME);
     }
 
     public static void createKeyspace() throws Exception {
         keyspaceContext = new AstyanaxContext.Builder()
-                .forCluster(TEST_CLUSTER_NAME)
-                .forKeyspace(TEST_KEYSPACE_NAME)
+                .forCluster(testClusterName)
+                .forKeyspace(testKeyspaceName)
                 .withAstyanaxConfiguration(
                         new AstyanaxConfigurationImpl()
                                 .setDiscoveryType(
@@ -91,8 +92,8 @@ public class CqlTest {
                                 .setTargetCassandraVersion("1.2")
                                 .setCqlVersion("3.0.0"))
                 .withConnectionPoolConfiguration(
-                        new ConnectionPoolConfigurationImpl(TEST_CLUSTER_NAME
-                                + "_" + TEST_KEYSPACE_NAME)
+                        new ConnectionPoolConfigurationImpl(testClusterName
+                                + "_" + testKeyspaceName)
                                 .setSocketTimeout(30000)
                                 .setMaxTimeoutWhenExhausted(2000)
                                 .setMaxConnsPerHost(10).setInitConnsPerHost(10)
@@ -108,7 +109,7 @@ public class CqlTest {
             keyspace.dropKeyspace();
             Thread.sleep(CASSANDRA_WAIT_TIME);
         } catch (Exception e) {
-            Log.info("Error dropping keyspace " + e.getMessage());
+            log.info("Error dropping keyspace " + e.getMessage());
         }
 
         keyspace.createKeyspace(ImmutableMap
@@ -137,7 +138,7 @@ public class CqlTest {
         Thread.sleep(CASSANDRA_WAIT_TIME);
 
         KeyspaceDefinition ki = keyspaceContext.getEntity().describeKeyspace();
-        Log.info("Describe Keyspace: " + ki.getName());
+        log.info("Describe Keyspace: " + ki.getName());
 
     }
 
@@ -162,17 +163,17 @@ public class CqlTest {
 
         Assert.assertTrue(!result.getResult().getRows(CQL3_CF).isEmpty());
         for (Row<Integer, String> row : result.getResult().getRows(CQL3_CF)) {
-            Log.info("CQL Key: " + row.getKey());
+            log.info("CQL Key: " + row.getKey());
 
             ColumnList<String> columns = row.getColumns();
 
-            Log.info("   empid      : "
+            log.info("   empid      : "
                     + columns.getIntegerValue("empid", null));
-            Log.info("   deptid     : "
+            log.info("   deptid     : "
                     + columns.getIntegerValue("deptid", null));
-            Log.info("   first_name : "
+            log.info("   first_name : "
                     + columns.getStringValue("first_name", null));
-            Log.info("   last_name  : "
+            log.info("   last_name  : "
                     + columns.getStringValue("last_name", null));
         }
     }
@@ -181,10 +182,10 @@ public class CqlTest {
     public void testPreparedCql() throws Exception {
         OperationResult<CqlResult<Integer, String>> result;
 
-        final String INSERT_STATEMENT = "INSERT INTO employees (empID, deptID, first_name, last_name) VALUES (?, ?, ?, ?);";
+        final String insertStatement = "INSERT INTO employees (empID, deptID, first_name, last_name) VALUES (?, ?, ?, ?);";
 
         result = keyspace.prepareQuery(CQL3_CF)
-                .withCql(INSERT_STATEMENT)
+                .withCql(insertStatement)
                 .asPreparedStatement()
                 .withIntegerValue(222)
                 .withIntegerValue(333)
@@ -197,17 +198,17 @@ public class CqlTest {
                 .execute();
         Assert.assertTrue(!result.getResult().getRows().isEmpty());
         for (Row<Integer, String> row : result.getResult().getRows()) {
-            Log.info("CQL Key: " + row.getKey());
+            log.info("CQL Key: " + row.getKey());
 
             ColumnList<String> columns = row.getColumns();
 
-            Log.info("   empid      : "
+            log.info("   empid      : "
                     + columns.getIntegerValue("empid", null));
-            Log.info("   deptid     : "
+            log.info("   deptid     : "
                     + columns.getIntegerValue("deptid", null));
-            Log.info("   first_name : "
+            log.info("   first_name : "
                     + columns.getStringValue("first_name", null));
-            Log.info("   last_name  : "
+            log.info("   last_name  : "
                     + columns.getStringValue("last_name", null));
         }
     }
@@ -244,18 +245,18 @@ public class CqlTest {
                 .withCql("SELECT * FROM users;").execute().getResult()
                 .getRows(User_CF);
 
-        MapSerializer<String, String> mapSerializer = new MapSerializer<String, String>(
+        MapSerializer<String, String> mapSerializer = new MapSerializer<>(
                 UTF8Type.instance, UTF8Type.instance);
 
         for (Row<String, String> row : rows) {
-            Log.info(row.getKey());
+            log.info(row.getKey());
             for (Column<String> column : row.getColumns()) {
-                Log.info("  " + column.getName());
+                log.info("  " + column.getName());
             }
             Column<String> favs = row.getColumns().getColumnByName("favs");
             Map<String, String> map = favs.getValue(mapSerializer);
             for (Entry<String, String> entry : map.entrySet()) {
-                Log.info(" fav: " + entry.getKey() + " = " + entry.getValue());
+                log.info(" fav: " + entry.getKey() + " = " + entry.getValue());
             }
         }
     }
@@ -284,19 +285,19 @@ public class CqlTest {
             while (colIter.hasNext()) {
                 Column<String> col = colIter.next();
                 String name = col.getName();
-                Log.info("*************************************");
-                if (name.equals("given")) {
+                log.info("*************************************");
+                if ("given".equals(name)) {
                     String val = col.getValue(StringSerializer.get());
-                    Log.info("columnname=  " + name + "  columnvalue= " + val);
+                    log.info("columnname=  " + name + "  columnvalue= " + val);
                     Assert.assertEquals("x", val);
                 }
-                if (name.equals("surname")) {
+                if ("surname".equals(name)) {
                     String val = col.getValue(StringSerializer.get());
-                    Log.info("columnname=  " + name + "  columnvalue= " + val);
+                    log.info("columnname=  " + name + "  columnvalue= " + val);
                     Assert.assertEquals("arielle", val);
                 }
             }
-            Log.info("*************************************");
+            log.info("*************************************");
         }
         Assert.assertEquals(1, rows.size());
     }
@@ -323,26 +324,26 @@ public class CqlTest {
             while (colIter.hasNext()) {
                 Column<String> col = colIter.next();
                 String name = col.getName();
-                Log.info("*************************************");
-                if (name.equals("id")) {
+                log.info("*************************************");
+                if ("id".equals(name)) {
                     UUID val = col.getValue(UUIDSerializer.get());
-                    Log.info("columnname=  " + name + "  columnvalue= " + val);
+                    log.info("columnname=  " + name + "  columnvalue= " + val);
                     Assert.assertEquals("00000000-0000-0000-0000-000000000000",
                             val.toString());
                 }
-                if (name.equals("given")) {
+                if ("given".equals(name)) {
                     String val = col.getValue(StringSerializer.get());
-                    Log.info("columnname=  " + name + "  columnvalue= "
-                            + val.toString());
+                    log.info("columnname=  " + name + "  columnvalue= "
+                            + val);
                     Assert.assertEquals("x", val);
                 }
-                if (name.equals("surname")) {
+                if ("surname".equals(name)) {
                     String val = col.getValue(StringSerializer.get());
-                    Log.info("columnname=  " + name + "  columnvalue= " + val);
+                    log.info("columnname=  " + name + "  columnvalue= " + val);
                     Assert.assertEquals("arielle", val);
                 }
             }
-            Log.info("*************************************");
+            log.info("*************************************");
         }
         Assert.assertEquals(1, rows.size());
     }

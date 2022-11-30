@@ -37,7 +37,7 @@ import com.netflix.astyanax.serializers.StringSerializer;
 
 public class EntityMapperTests extends KeyspaceTests {
 	
-    private static ColumnFamily<String, String> CF_SAMPLE_TEST_ENTITY = ColumnFamily
+    private static ColumnFamily<String, String> cfSampleTestEntity = ColumnFamily
             .newColumnFamily(
                     "sampletestentity", 
                     StringSerializer.get(),
@@ -49,28 +49,28 @@ public class EntityMapperTests extends KeyspaceTests {
     @BeforeClass
 	public static void init() throws Exception {
 		initContext();
-		keyspace.createColumnFamily(CF_SAMPLE_TEST_ENTITY, null);
+		keyspace.createColumnFamily(cfSampleTestEntity, null);
 		
-    	CF_SAMPLE_TEST_ENTITY.describe(keyspace);
+    	cfSampleTestEntity.describe(keyspace);
     	
     	entityManager = 
         		new DefaultEntityManager.Builder<SampleTestEntity, String>()
         		.withEntityType(SampleTestEntity.class)
         		.withKeyspace(keyspace)
-        		.withColumnFamily(CF_SAMPLE_TEST_ENTITY)
+        		.withColumnFamily(cfSampleTestEntity)
         		.build();
 
     	compositeEntityManager = 
         		new DefaultEntityManager.Builder<SampleTestCompositeEntity, String>()
         		.withEntityType(SampleTestCompositeEntity.class)
         		.withKeyspace(keyspace)
-        		.withColumnFamily(CF_SAMPLE_TEST_ENTITY)
+        		.withColumnFamily(cfSampleTestEntity)
         		.build();
     }
 
     @AfterClass
 	public static void tearDown() throws Exception {
-    	keyspace.dropColumnFamily(CF_SAMPLE_TEST_ENTITY);
+    	keyspace.dropColumnFamily(cfSampleTestEntity);
 	}
     
     
@@ -106,8 +106,8 @@ public class EntityMapperTests extends KeyspaceTests {
     @Test
     public void testSimpleEntityList() throws Exception {
     	
-    	List<SampleTestEntity> entities = new ArrayList<SampleTestEntity>();
-    	List<String> ids = new ArrayList<String>();
+    	List<SampleTestEntity> entities = new ArrayList<>();
+    	List<String> ids = new ArrayList<>();
     	
     	int entityCount = 11;
     	
@@ -147,14 +147,14 @@ public class EntityMapperTests extends KeyspaceTests {
     	
     	// GET AFTER DELETE
     	getEntities = entityManager.get(ids);
-    	Assert.assertTrue(0 == getEntities.size());
+    	Assert.assertTrue(getEntities.isEmpty());
     }
 
     @Test
     public void testGetAll() throws Exception {
     	
-    	List<SampleTestEntity> entities = new ArrayList<SampleTestEntity>();
-    	List<String> ids = new ArrayList<String>();
+    	List<SampleTestEntity> entities = new ArrayList<>();
+    	List<String> ids = new ArrayList<>();
     	
     	int entityCount = 11;
     	
@@ -191,7 +191,7 @@ public class EntityMapperTests extends KeyspaceTests {
     	entityManager.delete(ids);
     	// GET AFTER DELETE
     	getEntities = entityManager.getAll();
-    	Assert.assertTrue(0 == getEntities.size());
+    	Assert.assertTrue(getEntities.isEmpty());
     }
 
     @Test
@@ -278,10 +278,16 @@ public class EntityMapperTests extends KeyspaceTests {
 
 		@Override
 		public boolean equals(Object obj) {
-			
-			if (this == obj) return true;
-			if (obj == null) return false;
-			if (getClass() != obj.getClass()) return false;
+
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
 			
 			SampleTestEntity other = (SampleTestEntity) obj;
 			boolean equal = true;
@@ -291,8 +297,8 @@ public class EntityMapperTests extends KeyspaceTests {
 			equal &=  testLong == other.testLong;
 			equal &=  testBoolean == other.testBoolean;
 			equal &=  (testString != null) ? testString.equals(other.testString) : other.testString == null;
-			equal &= (Double.doubleToLongBits(testDouble) == Double.doubleToLongBits(other.testDouble));
-			equal &= (Float.floatToIntBits(testFloat) == Float.floatToIntBits(other.testFloat));
+			equal &= Double.doubleToLongBits(testDouble) == Double.doubleToLongBits(other.testDouble);
+			equal &= Float.floatToIntBits(testFloat) == Float.floatToIntBits(other.testFloat);
 			
 			return equal;
 		}
@@ -345,10 +351,16 @@ public class EntityMapperTests extends KeyspaceTests {
 
     		@Override
     		public boolean equals(Object obj) {
-    			
-    			if (this == obj) return true;
-    			if (obj == null) return false;
-    			if (getClass() != obj.getClass()) return false;
+
+                if (this == obj) {
+                    return true;
+                }
+                if (obj == null) {
+                    return false;
+                }
+                if (getClass() != obj.getClass()) {
+                    return false;
+                }
     			
     			InnerEntity other = (InnerEntity) obj;
     			boolean equal = true;
@@ -395,10 +407,16 @@ public class EntityMapperTests extends KeyspaceTests {
 
 		@Override
 		public boolean equals(Object obj) {
-			
-			if (this == obj) return true;
-			if (obj == null) return false;
-			if (getClass() != obj.getClass()) return false;
+
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
 			
 			SampleTestCompositeEntity other = (SampleTestCompositeEntity) obj;
 			boolean equal = true;
@@ -408,8 +426,8 @@ public class EntityMapperTests extends KeyspaceTests {
 			equal &=  testLong == other.testLong;
 			equal &=  testBoolean == other.testBoolean;
 			equal &=  (testString != null) ? testString.equals(other.testString) : other.testString == null;
-			equal &= (Double.doubleToLongBits(testDouble) == Double.doubleToLongBits(other.testDouble));
-			equal &= (Float.floatToIntBits(testFloat) == Float.floatToIntBits(other.testFloat));
+			equal &= Double.doubleToLongBits(testDouble) == Double.doubleToLongBits(other.testDouble);
+			equal &= Float.floatToIntBits(testFloat) == Float.floatToIntBits(other.testFloat);
 			equal &=  (inner != null) ? inner.equals(other.inner) : other.inner == null;
 			
 			return equal;

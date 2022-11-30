@@ -50,7 +50,7 @@ public class CqlColumnQueryImpl<C> implements ColumnQuery<C> {
 	private final Object rowKey;
 	private final C columnName;
 
-	private boolean useCaching = false; 
+	private boolean useCaching; 
 	
 	private final CqlColumnFamilyDefinitionImpl cfDef;
 
@@ -101,9 +101,7 @@ public class CqlColumnQueryImpl<C> implements ColumnQuery<C> {
 			if (row == null) {
 				return null;
 			}
-
-			CqlColumnImpl<C> cqlCol = new CqlColumnImpl<C>((C) columnName, row, 0);
-			return cqlCol;
+			return new CqlColumnImpl<>((C) columnName, row, 0);
 		}
 	}
 

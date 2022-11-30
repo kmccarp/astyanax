@@ -28,14 +28,14 @@ import com.netflix.astyanax.serializers.StringSerializer;
 
 public class ColumnTimestampAndTTLTests extends KeyspaceTests {
 
-    private static ColumnFamily<Long, Long> CF_COL_TIMESTAMP = ColumnFamily
+    private static ColumnFamily<Long, Long> cfColTimestamp = ColumnFamily
             .newColumnFamily(
                     "columntimestamps", 
                     LongSerializer.get(),
                     LongSerializer.get(),
                     LongSerializer.get());
 	
-    private static ColumnFamily<String, String> CF_TTL = ColumnFamily
+    private static ColumnFamily<String, String> cfTtl = ColumnFamily
             .newColumnFamily(
                     "columnttls", 
                     StringSerializer.get(),
@@ -44,38 +44,38 @@ public class ColumnTimestampAndTTLTests extends KeyspaceTests {
 	@BeforeClass
 	public static void init() throws Exception {
 		initContext();
-		keyspace.createColumnFamily(CF_COL_TIMESTAMP,     null);
-		keyspace.createColumnFamily(CF_TTL,     null);
+		keyspace.createColumnFamily(cfColTimestamp,     null);
+		keyspace.createColumnFamily(cfTtl,     null);
 		
-		CF_COL_TIMESTAMP.describe(keyspace);
-		CF_TTL.describe(keyspace);
+		cfColTimestamp.describe(keyspace);
+		cfTtl.describe(keyspace);
 	}
 	
 	@AfterClass
 	public static void teardown() throws Exception {
-		keyspace.dropColumnFamily(CF_COL_TIMESTAMP);
-		keyspace.dropColumnFamily(CF_TTL);
+		keyspace.dropColumnFamily(cfColTimestamp);
+		keyspace.dropColumnFamily(cfTtl);
 	}
 
 	@Test
 	public void testColumnTimestamps() throws Exception {
 		
-		CF_COL_TIMESTAMP.describe(keyspace);
+		cfColTimestamp.describe(keyspace);
 
         MutationBatch mb = keyspace.prepareMutationBatch();
-        mb.withRow(CF_COL_TIMESTAMP, 1L)
+        mb.withRow(cfColTimestamp, 1L)
             .setTimestamp(1).putColumn(1L, 1L)
             .setTimestamp(10).putColumn(2L, 2L)
             ;
         mb.execute();
         
-        ColumnList<Long> result1 = keyspace.prepareQuery(CF_COL_TIMESTAMP).getRow(1L).execute().getResult();
+        ColumnList<Long> result1 = keyspace.prepareQuery(cfColTimestamp).getRow(1L).execute().getResult();
         Assert.assertEquals(2, result1.size());
         Assert.assertNotNull(result1.getColumnByName(1L));
         Assert.assertNotNull(result1.getColumnByName(2L));
         
         mb = keyspace.prepareMutationBatch();
-        mb.withRow(CF_COL_TIMESTAMP,  1L)
+        mb.withRow(cfColTimestamp,  1L)
             .setTimestamp(result1.getColumnByName(1L).getTimestamp()-1)
             .deleteColumn(1L)
             .setTimestamp(result1.getColumnByName(2L).getTimestamp()-1)
@@ -84,18 +84,18 @@ public class ColumnTimestampAndTTLTests extends KeyspaceTests {
         
         mb.execute();
         
-        result1 = keyspace.prepareQuery(CF_COL_TIMESTAMP).getRow(1L).execute().getResult();
+        result1 = keyspace.prepareQuery(cfColTimestamp).getRow(1L).execute().getResult();
         Assert.assertEquals(3, result1.size());
         
         mb = keyspace.prepareMutationBatch();
-        mb.withRow(CF_COL_TIMESTAMP,  1L)
+        mb.withRow(cfColTimestamp,  1L)
             .setTimestamp(result1.getColumnByName(1L).getTimestamp()+1)
             .deleteColumn(1L)
             .setTimestamp(result1.getColumnByName(2L).getTimestamp()+1)
             .deleteColumn(2L);
         mb.execute();
         
-        result1 = keyspace.prepareQuery(CF_COL_TIMESTAMP).getRow(1L).execute().getResult();
+        result1 = keyspace.prepareQuery(cfColTimestamp).getRow(1L).execute().getResult();
         Assert.assertEquals(1, result1.size());
     }
 	
@@ -103,7 +103,7 @@ public class ColumnTimestampAndTTLTests extends KeyspaceTests {
     @Test
     public void testTtlValues() throws Exception {
         MutationBatch mb = keyspace.prepareMutationBatch();
-        mb.withRow(CF_TTL, "row")
+        mb.withRow(cfTtl, "row")
           .putColumn("TTL0", "TTL0", 0)
           .putColumn("TTLNULL", "TTLNULL", null)
           .putColumn("TTL1", "TTL1", 1);
@@ -112,7 +112,7 @@ public class ColumnTimestampAndTTLTests extends KeyspaceTests {
         
         Thread.sleep(2000);
         
-        ColumnList<String> result = keyspace.prepareQuery(CF_TTL)
+        ColumnList<String> result = keyspace.prepareQuery(cfTtl)
             .getRow("row")
             .execute().getResult();
        

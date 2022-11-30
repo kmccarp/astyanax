@@ -117,8 +117,9 @@ public class CompositeEntityMapper<T, K> {
         
         // clazz should be annotated with @Entity
         Entity entityAnnotation = clazz.getAnnotation(Entity.class);
-        if(entityAnnotation == null)
+        if (entityAnnotation == null) {
             throw new IllegalArgumentException("class is NOT annotated with @javax.persistence.Entity: " + clazz.getName());
+        }
         
         entityName = MappingUtils.getEntityName(entityAnnotation, clazz);
         
@@ -338,8 +339,8 @@ public class CompositeEntityMapper<T, K> {
                 if (data.remaining() > 0) {
                     component.setField(entity, data);
                 }
-                byte end_of_component = columnName.get();
-                if (end_of_component != Equality.EQUAL.toByte()) {
+                byte endOfComponent = columnName.get();
+                if (endOfComponent != Equality.EQUAL.toByte()) {
                     throw new RuntimeException("Invalid composite column.  Expected END_OF_COMPONENT.");
                 }
             }
@@ -425,17 +426,21 @@ public class CompositeEntityMapper<T, K> {
             break;
         case GREATER_THAN:
         case GREATER_THAN_EQUALS:
-            if (mapper.isAscending())
+            if (mapper.isAscending()) {
                 start.add(bb, predicate.getOp());
-            else 
+            }
+            else {
                 end.add(bb, predicate.getOp());
+            }
             break;
         case LESS_THAN:
         case LESS_THAN_EQUALS:
-            if (mapper.isAscending())
+            if (mapper.isAscending()) {
                 end.add(bb, predicate.getOp());
-            else 
+            }
+            else {
                 start.add(bb, predicate.getOp());
+            }
             break;
         }
     }

@@ -35,20 +35,20 @@ import com.netflix.astyanax.serializers.StringSerializer;
 
 public class StaticColumnFamilyTests extends KeyspaceTests {
 
-	private static ColumnFamily<String, String> CF_ACCOUNTS = new ColumnFamily<String, String>("accounts", StringSerializer.get(), StringSerializer.get());
+	private static ColumnFamily<String, String> cfAccounts = new ColumnFamily<>("accounts", StringSerializer.get(), StringSerializer.get());
 
 	@BeforeClass
 	public static void init() throws Exception {
 		initContext();
-		keyspace.prepareQuery(CF_ACCOUNTS)
+		keyspace.prepareQuery(cfAccounts)
 				.withCql("CREATE TABLE astyanaxunittests.accounts (userid text PRIMARY KEY, user text, pswd text)")
 				.execute();
-		CF_ACCOUNTS.describe(keyspace);
+		cfAccounts.describe(keyspace);
 	}
 
 	@AfterClass
 	public static void tearDown() throws Exception {
-		keyspace.dropColumnFamily(CF_ACCOUNTS);
+		keyspace.dropColumnFamily(cfAccounts);
 	}
 
 	@Test
@@ -85,7 +85,7 @@ public class StaticColumnFamilyTests extends KeyspaceTests {
 
 	private void performSimpleRowQueryForRow(String rowKey, boolean rowDeleted, String expectedChar) throws Exception {
 
-		ColumnList<String> result =  keyspace.prepareQuery(CF_ACCOUNTS).getRow(rowKey).execute().getResult();
+		ColumnList<String> result =  keyspace.prepareQuery(cfAccounts).getRow(rowKey).execute().getResult();
 
 		if (rowDeleted) {
 			Assert.assertTrue(result.isEmpty());
@@ -107,7 +107,7 @@ public class StaticColumnFamilyTests extends KeyspaceTests {
 
 	private void performSimpleRowQueryWithColumnCollectionForRow(String rowKey, boolean rowDeleted, String expectedChar) throws Exception {
 
-		ColumnList<String> result =  keyspace.prepareQuery(CF_ACCOUNTS).getRow(rowKey).withColumnSlice("user", "pswd").execute().getResult();
+		ColumnList<String> result =  keyspace.prepareQuery(cfAccounts).getRow(rowKey).withColumnSlice("user", "pswd").execute().getResult();
 
 		if (rowDeleted) {
 			Assert.assertTrue(result.isEmpty());
@@ -119,7 +119,7 @@ public class StaticColumnFamilyTests extends KeyspaceTests {
 			Assert.assertEquals("pswd" + expectedChar, col.getStringValue());
 		}
 
-		result =  keyspace.prepareQuery(CF_ACCOUNTS).getRow(rowKey).withColumnSlice("user").execute().getResult();
+		result =  keyspace.prepareQuery(cfAccounts).getRow(rowKey).withColumnSlice("user").execute().getResult();
 
 		if (rowDeleted) {
 			Assert.assertTrue(result.isEmpty());
@@ -129,7 +129,7 @@ public class StaticColumnFamilyTests extends KeyspaceTests {
 			Assert.assertEquals("user" + expectedChar, col.getStringValue());
 		}
 
-		result =  keyspace.prepareQuery(CF_ACCOUNTS).getRow(rowKey).withColumnSlice("pswd").execute().getResult();
+		result =  keyspace.prepareQuery(cfAccounts).getRow(rowKey).withColumnSlice("pswd").execute().getResult();
 
 		if (rowDeleted) {
 			Assert.assertTrue(result.isEmpty());
@@ -139,10 +139,10 @@ public class StaticColumnFamilyTests extends KeyspaceTests {
 			Assert.assertEquals("pswd" + expectedChar, col.getStringValue());
 		}
 
-		List<String> cols = new ArrayList<String>();
+		List<String> cols = new ArrayList<>();
 		cols.add("user"); cols.add("pswd");
 
-		result =  keyspace.prepareQuery(CF_ACCOUNTS).getRow(rowKey).withColumnSlice(cols).execute().getResult();
+		result =  keyspace.prepareQuery(cfAccounts).getRow(rowKey).withColumnSlice(cols).execute().getResult();
 
 		if (rowDeleted) {
 			Assert.assertTrue(result.isEmpty());
@@ -156,7 +156,7 @@ public class StaticColumnFamilyTests extends KeyspaceTests {
 
 		cols.remove("user");
 
-		result =  keyspace.prepareQuery(CF_ACCOUNTS).getRow(rowKey).withColumnSlice(cols).execute().getResult();
+		result =  keyspace.prepareQuery(cfAccounts).getRow(rowKey).withColumnSlice(cols).execute().getResult();
 
 		if (rowDeleted) {
 			Assert.assertTrue(result.isEmpty());
@@ -176,7 +176,7 @@ public class StaticColumnFamilyTests extends KeyspaceTests {
 
 	private void performSimpleRowSingleColumnQueryForRow(String rowKey, boolean rowDeleted, String expectedChar) throws Exception {
 
-		Column<String> col =  keyspace.prepareQuery(CF_ACCOUNTS).getRow(rowKey).getColumn("user").execute().getResult();
+		Column<String> col =  keyspace.prepareQuery(cfAccounts).getRow(rowKey).getColumn("user").execute().getResult();
 		if (rowDeleted) {
 			Assert.assertNull(col);
 		} else {
@@ -184,7 +184,7 @@ public class StaticColumnFamilyTests extends KeyspaceTests {
 			Assert.assertEquals("user" + expectedChar, col.getStringValue());
 		}
 
-		col =  keyspace.prepareQuery(CF_ACCOUNTS).getRow(rowKey).getColumn("pswd").execute().getResult();
+		col =  keyspace.prepareQuery(cfAccounts).getRow(rowKey).getColumn("pswd").execute().getResult();
 		if (rowDeleted) {
 			Assert.assertNull(col);
 		} else {
@@ -195,13 +195,13 @@ public class StaticColumnFamilyTests extends KeyspaceTests {
 
 	private void performRowSliceQueryWithAllColumns(boolean rowDeleted) throws Exception {
 
-		List<String> keys = new ArrayList<String>();
+		List<String> keys = new ArrayList<>();
 		for (char keyName = 'A'; keyName <= 'Z'; keyName++) {
 			keys.add(Character.toString(keyName));
 		}
 
 		int index = 0;
-		Rows<String, String> rows =  keyspace.prepareQuery(CF_ACCOUNTS).getRowSlice(keys).execute().getResult();
+		Rows<String, String> rows =  keyspace.prepareQuery(cfAccounts).getRowSlice(keys).execute().getResult();
 		if (rowDeleted) {
 			Assert.assertTrue(rows.isEmpty());
 		} else {
@@ -224,13 +224,13 @@ public class StaticColumnFamilyTests extends KeyspaceTests {
 
 	private void performRowSliceQueryWithColumnSlice(boolean rowDeleted) throws Exception {
 
-		List<String> keys = new ArrayList<String>();
+		List<String> keys = new ArrayList<>();
 		for (char keyName = 'A'; keyName <= 'Z'; keyName++) {
 			keys.add(Character.toString(keyName));
 		}
 
 		int index = 0;
-		Rows<String, String> rows =  keyspace.prepareQuery(CF_ACCOUNTS).getRowSlice(keys).withColumnSlice("user", "pswd").execute().getResult();
+		Rows<String, String> rows =  keyspace.prepareQuery(cfAccounts).getRowSlice(keys).withColumnSlice("user", "pswd").execute().getResult();
 		if (rowDeleted) {
 			Assert.assertTrue(rows.isEmpty());
 		} else {
@@ -251,7 +251,7 @@ public class StaticColumnFamilyTests extends KeyspaceTests {
 		}
 
 		index=0;
-		rows =  keyspace.prepareQuery(CF_ACCOUNTS).getRowSlice(keys).withColumnSlice("user").execute().getResult();
+		rows =  keyspace.prepareQuery(cfAccounts).getRowSlice(keys).withColumnSlice("user").execute().getResult();
 		if (rowDeleted) {
 			Assert.assertTrue(rows.isEmpty());
 		} else {
@@ -270,7 +270,7 @@ public class StaticColumnFamilyTests extends KeyspaceTests {
 		}
 
 		index=0;
-		rows =  keyspace.prepareQuery(CF_ACCOUNTS).getRowSlice(keys).withColumnSlice("pswd").execute().getResult();
+		rows =  keyspace.prepareQuery(cfAccounts).getRowSlice(keys).withColumnSlice("pswd").execute().getResult();
 		if (rowDeleted) {
 			Assert.assertTrue(rows.isEmpty());
 		} else {
@@ -296,7 +296,7 @@ public class StaticColumnFamilyTests extends KeyspaceTests {
 
 		for (char keyName = 'A'; keyName <= 'Z'; keyName++) {
 			String character = Character.toString(keyName);
-			ColumnListMutation<String> colMutation = m.withRow(CF_ACCOUNTS, character);
+			ColumnListMutation<String> colMutation = m.withRow(cfAccounts, character);
 			colMutation.putColumn("user", "user" + character).putColumn("pswd", "pswd" + character);
 			m.execute();
 			m.discardMutations();
@@ -308,7 +308,7 @@ public class StaticColumnFamilyTests extends KeyspaceTests {
 		for (char keyName = 'A'; keyName <= 'Z'; keyName++) {
 			MutationBatch m = keyspace.prepareMutationBatch();
 			String rowKey = Character.toString(keyName);
-			m.withRow(CF_ACCOUNTS, rowKey).delete();
+			m.withRow(cfAccounts, rowKey).delete();
 			m.execute();
 			m.discardMutations();
 		}

@@ -21,7 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class BagConnectionPoolImplTest extends BaseConnectionPoolTest {
-    private static Logger LOG = LoggerFactory
+    private static Logger log = LoggerFactory
             .getLogger(BagConnectionPoolImplTest.class);
 
     private static Operation<TestClient, String> dummyOperation = new TestOperation();
@@ -32,10 +32,9 @@ public class BagConnectionPoolImplTest extends BaseConnectionPoolTest {
         config.initialize();
 
         CountingConnectionPoolMonitor monitor = new CountingConnectionPoolMonitor();
-        ConnectionPool<TestClient> pool = new BagOfConnectionsConnectionPoolImpl<TestClient>(
-                config, new TestConnectionFactory(config, monitor), monitor);
 
-        return pool;
+        return new BagOfConnectionsConnectionPoolImpl<>(
+                config, new TestConnectionFactory(config, monitor), monitor);
     }
 
     public void testAll() {
@@ -50,7 +49,7 @@ public class BagConnectionPoolImplTest extends BaseConnectionPoolTest {
                 TestConstants.CLUSTER_NAME + "_" + TestConstants.KEYSPACE_NAME);
         config.initialize();
 
-        ConnectionPool<TestClient> pool = new BagOfConnectionsConnectionPoolImpl<TestClient>(
+        ConnectionPool<TestClient> pool = new BagOfConnectionsConnectionPoolImpl<>(
                 config, new TestConnectionFactory(config, monitor), monitor);
 
         pool.addHost(
@@ -68,10 +67,10 @@ public class BagConnectionPoolImplTest extends BaseConnectionPoolTest {
                     throw new RuntimeException("Unkecked Exception");
                 }
             }, RunOnce.get());
-            LOG.info(pool.toString());
+            log.info(pool.toString());
             Assert.fail();
         } catch (ConnectionException e) {
-            LOG.info(e.getMessage());
+            log.info(e.getMessage());
         }
 
         Assert.assertEquals(monitor.getConnectionClosedCount(), 1);
@@ -87,7 +86,7 @@ public class BagConnectionPoolImplTest extends BaseConnectionPoolTest {
         config.initialize();
 
         
-        ConnectionPool<TestClient> pool = new BagOfConnectionsConnectionPoolImpl<TestClient>(
+        ConnectionPool<TestClient> pool = new BagOfConnectionsConnectionPoolImpl<>(
                 config, new TestConnectionFactory(config, monitor), monitor);
 
         pool.addHost(new Host("127.0.0.1",
@@ -97,18 +96,18 @@ public class BagConnectionPoolImplTest extends BaseConnectionPoolTest {
 
         try {
             result = pool.executeWithFailover(dummyOperation, RunOnce.get());
-            LOG.info(pool.toString());
+            log.info(pool.toString());
             Assert.fail();
         } catch (ConnectionException e) {
-            LOG.info(e.getMessage());
+            log.info(e.getMessage());
         }
         think(1000);
         try {
             result = pool.executeWithFailover(dummyOperation, RunOnce.get());
-            LOG.info(pool.toString());
+            log.info(pool.toString());
             Assert.fail();
         } catch (ConnectionException e) {
-            LOG.info(e.getMessage());
+            log.info(e.getMessage());
         }
 
         think(1000);
@@ -124,7 +123,7 @@ public class BagConnectionPoolImplTest extends BaseConnectionPoolTest {
         config.setInitConnsPerHost(0);
         config.initialize();
 
-        ConnectionPool<TestClient> pool = new BagOfConnectionsConnectionPoolImpl<TestClient>(
+        ConnectionPool<TestClient> pool = new BagOfConnectionsConnectionPoolImpl<>(
                 config, new TestConnectionFactory(config, monitor), monitor);
 
         pool.addHost(
@@ -140,10 +139,10 @@ public class BagConnectionPoolImplTest extends BaseConnectionPoolTest {
             try {
                 result = pool
                         .executeWithFailover(dummyOperation, RunOnce.get());
-                LOG.info(pool.toString());
+                log.info(pool.toString());
                 Assert.fail();
             } catch (ConnectionException e) {
-                LOG.info(e.getMessage());
+                log.info(e.getMessage());
             }
         }
         Assert.assertEquals(15, monitor.getConnectionCreatedCount());

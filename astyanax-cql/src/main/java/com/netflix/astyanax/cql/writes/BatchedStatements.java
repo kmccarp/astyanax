@@ -29,8 +29,8 @@ public class BatchedStatements {
 
 	private static final Logger LOG = LoggerFactory.getLogger(BatchedStatements.class);
 	
-	private List<String> batchQueries = new ArrayList<String>(); 
-	private List<Object> batchValues = new ArrayList<Object>();
+	private List<String> batchQueries = new ArrayList<>(); 
+	private List<Object> batchValues = new ArrayList<>();
 	
 	public BatchedStatements() {
 	}

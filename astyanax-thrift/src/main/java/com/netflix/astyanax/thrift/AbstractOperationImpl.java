@@ -62,7 +62,7 @@ public abstract class AbstractOperationImpl<R> implements Operation<Cassandra.Cl
             return result;
         }
         catch (Exception e) {
-            ConnectionException ce = ThriftConverter.ToConnectionPoolException(e);
+            ConnectionException ce = ThriftConverter.toConnectionPoolException(e);
             tracer.failure(ce);
             throw ce;
         }

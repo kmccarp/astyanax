@@ -59,7 +59,7 @@ public class MappingCache {
                                                             // the map
         if (mapping == null) {
             // multiple threads can get here but that's OK
-            mapping = new Mapping<T>(clazz, annotationSet, includeParentFields);
+            mapping = new Mapping<>(clazz, annotationSet, includeParentFields);
             cache.put(clazz, mapping);
         }
 

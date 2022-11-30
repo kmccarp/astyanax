@@ -2,7 +2,6 @@ package com.netflix.astyanax.thrift;
 
 import com.google.common.collect.ImmutableMap;
 import com.netflix.astyanax.AstyanaxContext;
-import com.netflix.astyanax.ExceptionCallback;
 import com.netflix.astyanax.Keyspace;
 import com.netflix.astyanax.MutationBatch;
 import com.netflix.astyanax.RowCallback;
@@ -37,13 +36,13 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class ThriftKeyspaceAllRowsTest {
     
-    private static Logger LOG = LoggerFactory.getLogger(ThriftKeyspaceAllRowsTest.class);
+    private static Logger log = LoggerFactory.getLogger(ThriftKeyspaceAllRowsTest.class);
 
     private static Keyspace                  keyspace;
     private static AstyanaxContext<Keyspace> keyspaceContext;
 
-    private static String TEST_CLUSTER_NAME  = "cass_sandbox";
-    private static String TEST_KEYSPACE_NAME = "AstyanaxUnitTests";
+    private static String testClusterName  = "cass_sandbox";
+    private static String testKeyspaceName = "AstyanaxUnitTests";
     private static final String SEEDS = "localhost:9160";
     private static final long   CASSANDRA_WAIT_TIME = 3000;
     private static final long   LOTS_OF_ROWS_COUNT = 1000;
@@ -55,10 +54,10 @@ public class ThriftKeyspaceAllRowsTest {
             ColumnFamily.newColumnFamily("AllRowsTombstone1",       LongSerializer.get(), StringSerializer.get());
 
     public static ColumnFamily<Long, String> CF_LOTS_OF_ROWS = 
-            new ColumnFamily<Long, String>("LotsOfRows1",       LongSerializer.get(), StringSerializer.get());
+            new ColumnFamily<>("LotsOfRows1",       LongSerializer.get(), StringSerializer.get());
 
     public static ColumnFamily<Long, String> CF_CHECKPOINTS = 
-            new ColumnFamily<Long, String>("Checkpoints",       LongSerializer.get(), StringSerializer.get());
+            new ColumnFamily<>("Checkpoints",       LongSerializer.get(), StringSerializer.get());
 
     @BeforeClass
     public static void setup() throws Exception {
@@ -73,24 +72,25 @@ public class ThriftKeyspaceAllRowsTest {
 
     @AfterClass
     public static void teardown() throws Exception {
-        if (keyspaceContext != null)
+        if (keyspaceContext != null) {
             keyspaceContext.shutdown();
+        }
         
         Thread.sleep(CASSANDRA_WAIT_TIME);
     }
 
     public static void createKeyspace() throws Exception {
         keyspaceContext = new AstyanaxContext.Builder()
-                .forCluster(TEST_CLUSTER_NAME)
-                .forKeyspace(TEST_KEYSPACE_NAME)
+                .forCluster(testClusterName)
+                .forKeyspace(testKeyspaceName)
                 .withAstyanaxConfiguration(
                         new AstyanaxConfigurationImpl()
                                 .setDiscoveryType(NodeDiscoveryType.RING_DESCRIBE)
                                 .setConnectionPoolType(ConnectionPoolType.TOKEN_AWARE)
                                 .setDiscoveryDelayInSeconds(60000))
                 .withConnectionPoolConfiguration(
-                        new ConnectionPoolConfigurationImpl(TEST_CLUSTER_NAME
-                                + "_" + TEST_KEYSPACE_NAME)
+                        new ConnectionPoolConfigurationImpl(testClusterName
+                                + "_" + testKeyspaceName)
                                 .setSocketTimeout(30000)
                                 .setMaxTimeoutWhenExhausted(2000)
                                 .setMaxConnsPerHost(20)
@@ -108,7 +108,7 @@ public class ThriftKeyspaceAllRowsTest {
             keyspace.dropKeyspace();
         }
         catch (Exception e) {
-            LOG.info(e.getMessage());
+            log.info(e.getMessage());
         }
         
         keyspace.createKeyspace(ImmutableMap.<String, Object>builder()
@@ -190,11 +190,12 @@ public class ThriftKeyspaceAllRowsTest {
     }
     
     public static <K, C> Set<K> getKeySet(Rows<K, C> rows) {
-        Set<K> set = new TreeSet<K>();
+        Set<K> set = new TreeSet<>();
         for (Row<K, C> row : rows) {
-            if (set.contains(row.getKey())) 
+            if (set.contains(row.getKey())) {
                 Assert.fail("Duplicate key found : " + row.getKey());
-            LOG.info("Row: " + row.getKey());
+            }
+            log.info("Row: " + row.getKey());
             set.add(row.getKey());
         }
         return set;
@@ -206,20 +207,17 @@ public class ThriftKeyspaceAllRowsTest {
             OperationResult<Rows<Long, String>> rows = keyspace.prepareQuery(CF_ALL_ROWS)
                 .getAllRows()
                 .setRowLimit(5)
-                .setExceptionCallback(new ExceptionCallback() {
-                    @Override
-                    public boolean onException(ConnectionException e) {
-                        Assert.fail(e.getMessage());
-                        return true;
-                    }
+                .setExceptionCallback(e -> {
+                    Assert.fail(e.getMessage());
+                    return true;
                 })
                 .execute();
             
             for (Row<Long, String> row : rows.getResult()) {
-                LOG.info("Row: " + row.getKey() + " count=" + row.getColumns().size());
+                log.info("Row: " + row.getKey() + " count=" + row.getColumns().size());
             }
             Set<Long> set = getKeySet(rows.getResult());
-            LOG.info(set.toString());
+            log.info(set.toString());
             Assert.assertEquals(13,  set.size());
         } catch (ConnectionException e) {
             Assert.fail();
@@ -232,17 +230,14 @@ public class ThriftKeyspaceAllRowsTest {
             OperationResult<Rows<Long, String>> rows = keyspace.prepareQuery(CF_ALL_ROWS)
                 .getAllRows()
 //                  .setRowLimit(5)
-                .setExceptionCallback(new ExceptionCallback() {
-                    @Override
-                    public boolean onException(ConnectionException e) {
-                        Assert.fail(e.getMessage());
-                        return true;
-                    }
+                .setExceptionCallback(e -> {
+                    Assert.fail(e.getMessage());
+                    return true;
                 })
                 .execute();
             
             Set<Long> set = getKeySet(rows.getResult());
-            LOG.info(set.toString());
+            log.info(set.toString());
             Assert.assertEquals(13,  set.size());
         } catch (ConnectionException e) {
             Assert.fail();
@@ -259,7 +254,7 @@ public class ThriftKeyspaceAllRowsTest {
                 .execute();
             
             Set<Long> set = getKeySet(rows.getResult());
-            LOG.info("All columns row count: " + set.size() + " " + set.toString());
+            log.info("All columns row count: " + set.size() + " " + set.toString());
             Assert.assertEquals(0, set.size());
         } catch (ConnectionException e) {
             Assert.fail();
@@ -274,7 +269,7 @@ public class ThriftKeyspaceAllRowsTest {
                 .execute();
             
             Set<Long> set = getKeySet(rows.getResult());
-            LOG.info("All columns row count: " + set.size() + " " + set.toString());
+            log.info("All columns row count: " + set.size() + " " + set.toString());
             Assert.assertEquals(100, set.size());
         } catch (ConnectionException e) {
             Assert.fail();
@@ -288,7 +283,7 @@ public class ThriftKeyspaceAllRowsTest {
                 .execute();
             
             Set<Long> set = getKeySet(rows.getResult());
-            LOG.info("All columns row count: " + set.size() + " " + set.toString());
+            log.info("All columns row count: " + set.size() + " " + set.toString());
             Assert.assertEquals(13, set.size());
         } catch (ConnectionException e) {
             Assert.fail();
@@ -303,7 +298,7 @@ public class ThriftKeyspaceAllRowsTest {
                 .execute();
             
             Set<Long> set = getKeySet(rows.getResult());
-            LOG.info("Column='A' Row count: " + set.size() + " " + set.toString());
+            log.info("Column='A' Row count: " + set.size() + " " + set.toString());
             Assert.assertEquals(6, set.size());
         } catch (ConnectionException e) {
             Assert.fail();
@@ -318,7 +313,7 @@ public class ThriftKeyspaceAllRowsTest {
                 .execute();
             
             Set<Long> set = getKeySet(rows.getResult());
-            LOG.info("Column='B' Row count: " + set.size() + " " + set.toString());
+            log.info("Column='B' Row count: " + set.size() + " " + set.toString());
             Assert.assertEquals(13, set.size());
         } catch (ConnectionException e) {
             Assert.fail();
@@ -333,7 +328,7 @@ public class ThriftKeyspaceAllRowsTest {
                 .execute();
             
             Set<Long> set = getKeySet(rows.getResult());
-            LOG.info("Limit 1 row count: " + set.size() + " " + set.toString());
+            log.info("Limit 1 row count: " + set.size() + " " + set.toString());
             Assert.assertEquals(13, set.size());
         } catch (ConnectionException e) {
             Assert.fail();
@@ -348,7 +343,7 @@ public class ThriftKeyspaceAllRowsTest {
                 .execute();
             
             Set<Long> set = getKeySet(rows.getResult());
-            LOG.info("Limit 0 row count: " + set.size() + " " + set.toString());
+            log.info("Limit 0 row count: " + set.size() + " " + set.toString());
             Assert.assertEquals(30, set.size());
         } catch (ConnectionException e) {
             Assert.fail();
@@ -362,7 +357,7 @@ public class ThriftKeyspaceAllRowsTest {
                 .execute();
             
             Set<Long> set = getKeySet(rows.getResult());
-            LOG.info("All columns row count: " + set.size() + " " + set.toString());
+            log.info("All columns row count: " + set.size() + " " + set.toString());
             Assert.assertEquals(13, set.size());
         } catch (ConnectionException e) {
             Assert.fail();
@@ -377,7 +372,7 @@ public class ThriftKeyspaceAllRowsTest {
                 .execute();
             
             Set<Long> set = getKeySet(rows.getResult());
-            LOG.info("IncludeEmpty Row count: " + set.size() + " " + set.toString());
+            log.info("IncludeEmpty Row count: " + set.size() + " " + set.toString());
             Assert.assertEquals(30, set.size());
         } catch (ConnectionException e) {
             Assert.fail();
@@ -385,7 +380,7 @@ public class ThriftKeyspaceAllRowsTest {
     }
     
     public static class ToKeySetCallback<K,C> implements RowCallback<K, C> {
-        private Set<K> set = new TreeSet<K>();
+        private Set<K> set = new TreeSet<>();
         
         @Override
         public synchronized void success(Rows<K, C> rows) {
@@ -456,7 +451,7 @@ public class ThriftKeyspaceAllRowsTest {
                 .executeWithCallback(callback);
             
             Set<Long> set = callback.get();
-            LOG.info("All columns row count: " + set.size() + " " + set.toString());
+            log.info("All columns row count: " + set.size() + " " + set.toString());
             Assert.assertEquals(0, set.size());
         } catch (ConnectionException e) {
             Assert.fail();
@@ -472,7 +467,7 @@ public class ThriftKeyspaceAllRowsTest {
                 .executeWithCallback(callback);
             
             Set<Long> set = callback.get();
-            LOG.info("All columns row count: " + set.size() + " " + set.toString());
+            log.info("All columns row count: " + set.size() + " " + set.toString());
             Assert.assertEquals(100, set.size());
         } catch (ConnectionException e) {
             Assert.fail();
@@ -487,7 +482,7 @@ public class ThriftKeyspaceAllRowsTest {
                 .executeWithCallback(callback);
             
             Set<Long> set = callback.get();
-            LOG.info("All columns row count: " + set.size() + " " + set.toString());
+            log.info("All columns row count: " + set.size() + " " + set.toString());
             Assert.assertEquals(13, set.size());
         } catch (ConnectionException e) {
             Assert.fail();
@@ -503,7 +498,7 @@ public class ThriftKeyspaceAllRowsTest {
                 .executeWithCallback(callback);
             
             Set<Long> set = callback.get();
-            LOG.info("Column='A' Row count: " + set.size() + " " + set.toString());
+            log.info("Column='A' Row count: " + set.size() + " " + set.toString());
             Assert.assertEquals(6, set.size());
         } catch (ConnectionException e) {
             Assert.fail();
@@ -519,7 +514,7 @@ public class ThriftKeyspaceAllRowsTest {
                 .executeWithCallback(callback);
             
             Set<Long> set = callback.get();
-            LOG.info("Column='B' Row count: " + set.size() + " " + set.toString());
+            log.info("Column='B' Row count: " + set.size() + " " + set.toString());
             Assert.assertEquals(13, set.size());
         } catch (ConnectionException e) {
             Assert.fail();
@@ -535,7 +530,7 @@ public class ThriftKeyspaceAllRowsTest {
                 .executeWithCallback(callback);
             
             Set<Long> set = callback.get();
-            LOG.info("Limit 1 row count: " + set.size() + " " + set.toString());
+            log.info("Limit 1 row count: " + set.size() + " " + set.toString());
             Assert.assertEquals(13, set.size());
         } catch (ConnectionException e) {
             Assert.fail();
@@ -551,7 +546,7 @@ public class ThriftKeyspaceAllRowsTest {
                 .executeWithCallback(callback);
             
             Set<Long> set = callback.get();
-            LOG.info("Limit 0 row count: " + set.size() + " " + set.toString());
+            log.info("Limit 0 row count: " + set.size() + " " + set.toString());
             Assert.assertEquals(30, set.size());
         } catch (ConnectionException e) {
             Assert.fail();
@@ -566,7 +561,7 @@ public class ThriftKeyspaceAllRowsTest {
                 .executeWithCallback(callback);
             
             Set<Long> set = callback.get();
-            LOG.info("All columns row count: " + set.size() + " " + set.toString());
+            log.info("All columns row count: " + set.size() + " " + set.toString());
             Assert.assertEquals(13, set.size());
         } catch (ConnectionException e) {
             Assert.fail();
@@ -582,7 +577,7 @@ public class ThriftKeyspaceAllRowsTest {
                 .executeWithCallback(callback);
             
             Set<Long> set = callback.get();
-            LOG.info("IncludeEmpty Row count: " + set.size() + " " + set.toString());
+            log.info("IncludeEmpty Row count: " + set.size() + " " + set.toString());
             Assert.assertEquals(30, set.size());
         } catch (ConnectionException e) {
             Assert.fail();
@@ -604,18 +599,18 @@ public class ThriftKeyspaceAllRowsTest {
                     @Override
                     public void success(Rows<Long, String> rows) {
                         for (Row<Long, String> row : rows) {
-                            LOG.info("ROW: " + row.getKey() + " " + row.getColumns().size());
+                            log.info("ROW: " + row.getKey() + " " + row.getColumns().size());
                             counter.incrementAndGet();
                         }
                     }
 
                     @Override
                     public boolean failure(ConnectionException e) {
-                        LOG.error(e.getMessage(), e);
+                        log.error(e.getMessage(), e);
                         return false;
                     }
                 });
-            LOG.info("Read " + counter.get() + " keys");
+            log.info("Read " + counter.get() + " keys");
         } catch (ConnectionException e) {
             Assert.fail();
         }
@@ -634,7 +629,7 @@ public class ThriftKeyspaceAllRowsTest {
                 .executeWithCallback(new RowCallback<Long, String>() {
                     @Override
                     public void success(Rows<Long, String> rows) {
-                        LOG.info(Thread.currentThread().getName());
+                        log.info(Thread.currentThread().getName());
                         for (Row<Long, String> row : rows) {
                             counter.incrementAndGet();
                         }
@@ -642,13 +637,13 @@ public class ThriftKeyspaceAllRowsTest {
 
                     @Override
                     public boolean failure(ConnectionException e) {
-                        LOG.error(e.getMessage(), e);
+                        log.error(e.getMessage(), e);
                         return false;
                     }
                 });
-            LOG.info("Read " + counter.get() + " keys");
+            log.info("Read " + counter.get() + " keys");
         } catch (ConnectionException e) {
-            LOG.info("Error getting all rows with callback", e);
+            log.info("Error getting all rows with callback", e);
             Assert.fail();
         }
     }
@@ -671,27 +666,27 @@ public class ThriftKeyspaceAllRowsTest {
                     @Override
                     public void success(Rows<Long, String> rows) {
                         try {
-                            LOG.info("Checkpoint: " + manager.getCheckpoints());
+                            log.info("Checkpoint: " + manager.getCheckpoints());
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
-                        LOG.info(Thread.currentThread().getName());
+                        log.info(Thread.currentThread().getName());
                         for (Row<Long, String> row : rows) {
-                            LOG.info(Thread.currentThread().getName() + " " + row.getKey());
+                            log.info(Thread.currentThread().getName() + " " + row.getKey());
                             counter.incrementAndGet();
                         }
                     }
             
                     @Override
                     public boolean failure(ConnectionException e) {
-                        LOG.error(e.getMessage(), e);
+                        log.error(e.getMessage(), e);
                         return false;
                     }
                 });
                
             Assert.assertEquals(LOTS_OF_ROWS_COUNT,  counter.get());
-            LOG.info("Read " + counter.get() + " keys");
-            LOG.info(manager.getCheckpoints().toString());
+            log.info("Read " + counter.get() + " keys");
+            log.info(manager.getCheckpoints().toString());
             
             keyspace.prepareQuery(CF_LOTS_OF_ROWS)
                 .getAllRows()
@@ -707,12 +702,12 @@ public class ThriftKeyspaceAllRowsTest {
     
                     @Override
                     public boolean failure(ConnectionException e) {
-                        LOG.error(e.getMessage(), e);
+                        log.error(e.getMessage(), e);
                         return false;
                     }
                 });
         } catch (ConnectionException e) {
-            LOG.error("Failed to run test", e);
+            log.error("Failed to run test", e);
             Assert.fail();
         }
     }
@@ -723,13 +718,10 @@ public class ThriftKeyspaceAllRowsTest {
 			OperationResult<Rows<Long, String>> rows = keyspace.prepareQuery(CF_ALL_ROWS)
 					.getAllRows()
 					.setRowLimit(5)
-					.setExceptionCallback(new ExceptionCallback() {
-						@Override
-						public boolean onException(ConnectionException e) {
-							Assert.fail(e.getMessage());
-							return true;
-						}
-					})
+					.setExceptionCallback(e -> {
+                        Assert.fail(e.getMessage());
+                        return true;
+                    })
 					.forTokenRange("9452287970026068429538183539771339207", "37809151880104273718152734159085356828")
 					.execute();
 
@@ -737,11 +729,11 @@ public class ThriftKeyspaceAllRowsTest {
 
 			while (itr.hasNext()) {
 				Row<Long, String> row = itr.next();
-				LOG.info("Row: " + row.getKey() + " count=" + row.getColumns().size());
+				log.info("Row: " + row.getKey() + " count=" + row.getColumns().size());
 			}
 
 			Set<Long> set = getKeySet(rows.getResult());
-			LOG.info(set.toString());
+			log.info(set.toString());
 			// only a subset of the rows should have been returned
 			Assert.assertEquals(4,  set.size());
 		} catch (ConnectionException e) {

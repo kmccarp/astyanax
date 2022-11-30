@@ -45,7 +45,7 @@ public class MultiRowUniquenessConstraint implements UniquenessConstraint {
     private final Keyspace keyspace;
 
     private final List<ColumnPrefixDistributedRowLock<String>> locks = Lists.newArrayList();
-    private Integer ttl = null;
+    private Integer ttl;
     private ConsistencyLevel consistencyLevel = ConsistencyLevel.CL_LOCAL_QUORUM;
     private String lockColumn;
     private String prefix = ColumnPrefixDistributedRowLock.DEFAULT_LOCK_PREFIX;
@@ -101,7 +101,7 @@ public class MultiRowUniquenessConstraint implements UniquenessConstraint {
      * @param rowKey
      */
     public MultiRowUniquenessConstraint withRow(ColumnFamily<String, String> columnFamily, String rowKey) {
-        locks.add(new ColumnPrefixDistributedRowLock<String>(keyspace, columnFamily, rowKey));
+        locks.add(new ColumnPrefixDistributedRowLock<>(keyspace, columnFamily, rowKey));
         return this;
     }
 
@@ -142,9 +142,10 @@ public class MultiRowUniquenessConstraint implements UniquenessConstraint {
             for (ColumnPrefixDistributedRowLock<String> lock : locks) {
                 lock.fillLockMutation(m, null, null);
             }
-            
-            if (callback != null)
+
+            if (callback != null) {
                 callback.apply(m);
+            }
             
             m.execute();
         }
@@ -167,8 +168,9 @@ public class MultiRowUniquenessConstraint implements UniquenessConstraint {
         acquireAndApplyMutation(new Function<MutationBatch, Boolean>() {
             @Override
             public Boolean apply( MutationBatch input) {
-                if (mutation != null)
+                if (mutation != null) {
                     input.mergeShallow(mutation);
+                }
                 return true;
             }
         });

@@ -58,12 +58,12 @@ import com.netflix.astyanax.connectionpool.impl.CountingConnectionPoolMonitor;
  */
 public class CqlFamilyFactory implements AstyanaxTypeFactory<Cluster> {
 
-	private static CqlFamilyFactory Instance = new CqlFamilyFactory(); 
+	private static CqlFamilyFactory instance = new CqlFamilyFactory(); 
 	
-	private static AtomicBoolean BatchColumnUpdates = new AtomicBoolean(false);
+	private static AtomicBoolean batchColumnUpdates = new AtomicBoolean(false);
 	
 	public static CqlFamilyFactory getInstance() {
-		return Instance;
+		return instance;
 	}
 	
 	@Override
@@ -77,8 +77,9 @@ public class CqlFamilyFactory implements AstyanaxTypeFactory<Cluster> {
 		
 		ConnectionPoolConfiguration jdConfig = getOrCreateJDConfiguration(asConfig, cpProxy.getConnectionPoolConfiguration());
 		ConnectionPoolMonitor monitor = cpProxy.getConnectionPoolMonitor();
-		if (monitor == null || !(monitor instanceof JavaDriverConnectionPoolMonitorImpl))
+        if (monitor == null || !(monitor instanceof JavaDriverConnectionPoolMonitorImpl)) {
             monitor = new JavaDriverConnectionPoolMonitorImpl();
+        }
 		CqlKeyspaceImpl keyspace = new CqlKeyspaceImpl(ksName, asConfig, tracerFactory, jdConfig, monitor);
 		cpProxy.addListener(keyspace);
 		
@@ -95,8 +96,9 @@ public class CqlFamilyFactory implements AstyanaxTypeFactory<Cluster> {
 		ConnectionPoolProxy<?> cpProxy = (ConnectionPoolProxy<?>)cp; 
 		ConnectionPoolConfiguration jdConfig = getOrCreateJDConfiguration(asConfig, cpProxy.getConnectionPoolConfiguration());
 		ConnectionPoolMonitor monitor = cpProxy.getConnectionPoolMonitor();
-		if (monitor == null || !(monitor instanceof JavaDriverConnectionPoolMonitorImpl))
-			monitor = new JavaDriverConnectionPoolMonitorImpl();
+        if (monitor == null || !(monitor instanceof JavaDriverConnectionPoolMonitorImpl)) {
+            monitor = new JavaDriverConnectionPoolMonitorImpl();
+        }
 		CqlClusterImpl cluster = new CqlClusterImpl(asConfig, tracerFactory, jdConfig, monitor);
 		((ConnectionPoolProxy<Cluster>)cp).addListener(cluster);
 		
@@ -110,7 +112,7 @@ public class CqlFamilyFactory implements AstyanaxTypeFactory<Cluster> {
 			KeyspaceTracerFactory tracerFactory, 
 			ConnectionPoolMonitor monitor) {
 		
-		CqlBasedConnectionFactory<Cluster> factory = new CqlBasedConnectionFactory<Cluster>();
+		CqlBasedConnectionFactory<Cluster> factory = new CqlBasedConnectionFactory<>();
 		factory.asConfig = asConfig;
 		factory.cfConfig = cfConfig;
 		factory.tracerFactory = tracerFactory;
@@ -134,12 +136,12 @@ public class CqlFamilyFactory implements AstyanaxTypeFactory<Cluster> {
 	}	
 	
 	public CqlFamilyFactory enableColumnBatchUpdates(boolean condition) {
-		BatchColumnUpdates.set(condition);
+		batchColumnUpdates.set(condition);
 		return this;
 	}
 	
 	public static boolean batchColumnUpdates() {
-		return BatchColumnUpdates.get();
+		return batchColumnUpdates.get();
 	}
 	
 	

@@ -22,7 +22,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
 import org.apache.cassandra.thrift.Cassandra;
@@ -88,7 +87,7 @@ import com.netflix.astyanax.thrift.model.ThriftSuperColumnImpl;
  * @param <C>
  */
 public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C> {
-    private final static Logger LOG = LoggerFactory.getLogger(ThriftColumnFamilyQueryImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ThriftColumnFamilyQueryImpl.class);
 
     final ConnectionPool<Cassandra.Client> connectionPool;
     final ColumnFamily<K, C>               columnFamily;
@@ -132,29 +131,29 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
                                         new org.apache.cassandra.thrift.ColumnPath().setColumn_family(
                                                 columnFamily.getName()).setColumn(
                                                 columnFamily.getColumnSerializer().toByteBuffer(column)),
-                                        ThriftConverter.ToThriftConsistencyLevel(consistencyLevel));
+                                        ThriftConverter.toThriftConsistencyLevel(consistencyLevel));
                                 if (cosc.isSetColumn()) {
                                     org.apache.cassandra.thrift.Column c = cosc.getColumn();
-                                    return new ThriftColumnImpl<C>(columnFamily.getColumnSerializer().fromBytes(
+                                    return new ThriftColumnImpl<>(columnFamily.getColumnSerializer().fromBytes(
                                             c.getName()), c);
                                 }
                                 else if (cosc.isSetSuper_column()) {
                                     // TODO: Super columns
                                     // should be deprecated
                                     SuperColumn sc = cosc.getSuper_column();
-                                    return new ThriftSuperColumnImpl<C>(columnFamily.getColumnSerializer().fromBytes(
+                                    return new ThriftSuperColumnImpl<>(columnFamily.getColumnSerializer().fromBytes(
                                             sc.getName()), sc);
                                 }
                                 else if (cosc.isSetCounter_column()) {
                                     org.apache.cassandra.thrift.CounterColumn c = cosc.getCounter_column();
-                                    return new ThriftCounterColumnImpl<C>(columnFamily.getColumnSerializer().fromBytes(
+                                    return new ThriftCounterColumnImpl<>(columnFamily.getColumnSerializer().fromBytes(
                                             c.getName()), c);
                                 }
                                 else if (cosc.isSetCounter_super_column()) {
                                     // TODO: Super columns
                                     // should be deprecated
                                     CounterSuperColumn sc = cosc.getCounter_super_column();
-                                    return new ThriftCounterSuperColumnImpl<C>(columnFamily.getColumnSerializer()
+                                    return new ThriftCounterSuperColumnImpl<>(columnFamily.getColumnSerializer()
                                             .fromBytes(sc.getName()), sc);
                                 }
                                 else {
@@ -171,12 +170,7 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
 
                     @Override
                     public ListenableFuture<OperationResult<Column<C>>> executeAsync() throws ConnectionException {
-                        return executor.submit(new Callable<OperationResult<Column<C>>>() {
-                            @Override
-                            public OperationResult<Column<C>> call() throws Exception {
-                                return execute();
-                            }
-                        });
+                        return executor.submit(this::execute);
                     }
                 };
             }
@@ -190,7 +184,7 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
                             @Override
                             public ColumnList<C> execute(Client client, ConnectionContext context) throws ConnectionException {
                                 if (isPaginating && paginateNoMore) {
-                                    return new EmptyColumnList<C>();
+                                    return new EmptyColumnList<>();
                                 }
 
                                 return super.execute(client, context);
@@ -201,7 +195,7 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
                                 List<ColumnOrSuperColumn> columnList = client.get_slice(columnFamily.getKeySerializer()
                                         .toByteBuffer(rowKey), new ColumnParent().setColumn_family(columnFamily
                                         .getName()), predicate, ThriftConverter
-                                        .ToThriftConsistencyLevel(consistencyLevel));
+                                        .toThriftConsistencyLevel(consistencyLevel));
 
                                 // Special handling for pagination
                                 if (isPaginating && predicate.isSetSlice_range()) {
@@ -215,12 +209,14 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
                                     // that will later be dropped
                                     if (firstPage) {
                                         firstPage = false;
-                                        if (predicate.getSlice_range().getCount() != Integer.MAX_VALUE)
+                                        if (predicate.getSlice_range().getCount() != Integer.MAX_VALUE) {
                                             predicate.getSlice_range().setCount(predicate.getSlice_range().getCount() + 1);
+                                        }
                                     }
                                     else {
-                                        if (!columnList.isEmpty())
+                                        if (!columnList.isEmpty()) {
                                             columnList.remove(0);
+                                        }
                                     }
 
                                     // Set the start column for the next page to
@@ -243,9 +239,8 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
                                         }
                                     }
                                 }
-                                ColumnList<C> result = new ThriftColumnOrSuperColumnListImpl<C>(columnList,
+                                return new ThriftColumnOrSuperColumnListImpl<>(columnList,
                                         columnFamily.getColumnSerializer());
-                                return result;
                             }
 
                             @Override
@@ -267,7 +262,7 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
                             public Integer internalExecute(Client client, ConnectionContext context) throws Exception {
                                 return client.get_count(columnFamily.getKeySerializer().toByteBuffer(rowKey),
                                         new ColumnParent().setColumn_family(columnFamily.getName()), predicate,
-                                        ThriftConverter.ToThriftConsistencyLevel(consistencyLevel));
+                                        ThriftConverter.toThriftConsistencyLevel(consistencyLevel));
                             }
 
                             @Override
@@ -279,24 +274,14 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
 
                     @Override
                     public ListenableFuture<OperationResult<Integer>> executeAsync() throws ConnectionException {
-                        return executor.submit(new Callable<OperationResult<Integer>>() {
-                            @Override
-                            public OperationResult<Integer> call() throws Exception {
-                                return execute();
-                            }
-                        });
+                        return executor.submit(this::execute);
                     }
                 };
             }
 
             @Override
             public ListenableFuture<OperationResult<ColumnList<C>>> executeAsync() throws ConnectionException {
-                return executor.submit(new Callable<OperationResult<ColumnList<C>>>() {
-                    @Override
-                    public OperationResult<ColumnList<C>> call() throws Exception {
-                        return execute();
-                    }
-                });
+                return executor.submit(this::execute);
             }
 
             @Override
@@ -318,18 +303,19 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
                                         List<ColumnOrSuperColumn> columnList = client.get_slice(columnFamily
                                                 .getKeySerializer().toByteBuffer(rowKey), new ColumnParent()
                                                 .setColumn_family(columnFamily.getName()), predicate, ThriftConverter
-                                                .ToThriftConsistencyLevel(consistencyLevel));
+                                                .toThriftConsistencyLevel(consistencyLevel));
 
                                         // Create mutation list from columns in
                                         // the response
-                                        List<Mutation> mutationList = new ArrayList<Mutation>();
+                                        List<Mutation> mutationList = new ArrayList<>();
                                         for (ColumnOrSuperColumn sosc : columnList) {
                                             ColumnOrSuperColumn cosc;
 
                                             if (sosc.isSetColumn()) {
                                                 cosc = new ColumnOrSuperColumn().setColumn(sosc.getColumn());
-                                                if (!useOriginalTimestamp)
+                                                if (!useOriginalTimestamp) {
                                                     cosc.getColumn().setTimestamp(currentTime);
+                                                }
                                             }
                                             else if (sosc.isSetSuper_column()) {
                                                 cosc = new ColumnOrSuperColumn().setSuper_column(sosc.getSuper_column());
@@ -354,15 +340,15 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
                                         }
 
                                         // Create mutation map
-                                        Map<ByteBuffer, Map<String, List<Mutation>>> mutationMap = new HashMap<ByteBuffer, Map<String, List<Mutation>>>();
-                                        HashMap<String, List<Mutation>> cfmap = new HashMap<String, List<Mutation>>();
+                                        Map<ByteBuffer, Map<String, List<Mutation>>> mutationMap = new HashMap<>();
+                                        HashMap<String, List<Mutation>> cfmap = new HashMap<>();
                                         cfmap.put(otherColumnFamily.getName(), mutationList);
                                         mutationMap.put(columnFamily.getKeySerializer().toByteBuffer(otherRowKey),
                                                 cfmap);
 
                                         // Execute the mutation
                                         client.batch_mutate(mutationMap,
-                                                ThriftConverter.ToThriftConsistencyLevel(consistencyLevel));
+                                                ThriftConverter.toThriftConsistencyLevel(consistencyLevel));
                                         return null;
                                     }
                                 }, retry);
@@ -370,12 +356,7 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
 
                     @Override
                     public ListenableFuture<OperationResult<Void>> executeAsync() throws ConnectionException {
-                        return executor.submit(new Callable<OperationResult<Void>>() {
-                            @Override
-                            public OperationResult<Void> call() throws Exception {
-                                return execute();
-                            }
-                        });
+                        return executor.submit(this::execute);
                     }
 
                     @Override
@@ -404,29 +385,32 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
                                 // Same call for standard and super columns via
                                 // the ColumnParent
                                 KeyRange range = new KeyRange();
-                                if (startKey != null)
+                                if (startKey != null) {
                                     range.setStart_key(columnFamily.getKeySerializer().toByteBuffer(startKey));
-                                if (endKey != null)
+                                }
+                                if (endKey != null) {
                                     range.setEnd_key(columnFamily.getKeySerializer().toByteBuffer(endKey));
+                                }
                                 range.setCount(count).setStart_token(startToken).setEnd_token(endToken);
 
                                 List<org.apache.cassandra.thrift.KeySlice> keySlices = client.get_range_slices(
                                         new ColumnParent().setColumn_family(columnFamily.getName()), predicate, range,
-                                        ThriftConverter.ToThriftConsistencyLevel(consistencyLevel));
+                                        ThriftConverter.toThriftConsistencyLevel(consistencyLevel));
 
                                 if (keySlices == null || keySlices.isEmpty()) {
-                                    return new EmptyRowsImpl<K, C>();
+                                    return new EmptyRowsImpl<>();
                                 }
                                 else {
-                                    return new ThriftRowsSliceImpl<K, C>(keySlices, columnFamily.getKeySerializer(),
+                                    return new ThriftRowsSliceImpl<>(keySlices, columnFamily.getKeySerializer(),
                                             columnFamily.getColumnSerializer());
                                 }
                             }
 
                             @Override
                             public ByteBuffer getRowKey() {
-                                if (startKey != null)
+                                if (startKey != null) {
                                     return columnFamily.getKeySerializer().toByteBuffer(startKey);
+                                }
                                 return null;
                             }
                         }, retry);
@@ -434,12 +418,7 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
 
             @Override
             public ListenableFuture<OperationResult<Rows<K, C>>> executeAsync() throws ConnectionException {
-                return executor.submit(new Callable<OperationResult<Rows<K, C>>>() {
-                    @Override
-                    public OperationResult<Rows<K, C>> call() throws Exception {
-                        return execute();
-                    }
-                });
+                return executor.submit(this::execute);
             }
 
             @Override
@@ -463,12 +442,12 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
                                 Map<ByteBuffer, List<ColumnOrSuperColumn>> cfmap = client.multiget_slice(columnFamily
                                         .getKeySerializer().toBytesList(keys), new ColumnParent()
                                         .setColumn_family(columnFamily.getName()), predicate, ThriftConverter
-                                        .ToThriftConsistencyLevel(consistencyLevel));
+                                        .toThriftConsistencyLevel(consistencyLevel));
                                 if (cfmap == null || cfmap.isEmpty()) {
-                                    return new EmptyRowsImpl<K, C>();
+                                    return new EmptyRowsImpl<>();
                                 }
                                 else {
-                                    return new ThriftRowsListImpl<K, C>(cfmap, columnFamily.getKeySerializer(),
+                                    return new ThriftRowsListImpl<>(cfmap, columnFamily.getKeySerializer(),
                                             columnFamily.getColumnSerializer());
                                 }
                             }
@@ -477,12 +456,7 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
 
             @Override
             public ListenableFuture<OperationResult<Rows<K, C>>> executeAsync() throws ConnectionException {
-                return executor.submit(new Callable<OperationResult<Rows<K, C>>>() {
-                    @Override
-                    public OperationResult<Rows<K, C>> call() throws Exception {
-                        return execute();
-                    }
-                });
+                return executor.submit(this::execute);
             }
 
             @Override
@@ -500,7 +474,7 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
                                                 columnFamily.getKeySerializer().toBytesList(keys),
                                                 new ColumnParent().setColumn_family(columnFamily.getName()),
                                                 predicate,
-                                                ThriftConverter.ToThriftConsistencyLevel(consistencyLevel));
+                                                ThriftConverter.toThriftConsistencyLevel(consistencyLevel));
                                         if (cfmap == null || cfmap.isEmpty()) {
                                             return Maps.newHashMap();
                                         }
@@ -513,12 +487,7 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
 
                     @Override
                     public ListenableFuture<OperationResult<Map<K, Integer>>> executeAsync() throws ConnectionException {
-                        return executor.submit(new Callable<OperationResult<Map<K, Integer>>>() {
-                            @Override
-                            public OperationResult<Map<K, Integer>> call() throws Exception {
-                                return execute();
-                            }
-                        });
+                        return executor.submit(this::execute);
                     }
                 };
             }
@@ -526,7 +495,7 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
     }
 
     @Override
-    public RowSliceQuery<K, C> getKeySlice(final K keys[]) {
+    public RowSliceQuery<K, C> getKeySlice(final K[] keys) {
         return getKeySlice(Arrays.asList(keys));
     }
 
@@ -544,12 +513,12 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
                                 Map<ByteBuffer, List<ColumnOrSuperColumn>> cfmap = client.multiget_slice(columnFamily
                                         .getKeySerializer().toBytesList(keys), new ColumnParent()
                                         .setColumn_family(columnFamily.getName()), predicate, ThriftConverter
-                                        .ToThriftConsistencyLevel(consistencyLevel));
+                                        .toThriftConsistencyLevel(consistencyLevel));
                                 if (cfmap == null || cfmap.isEmpty()) {
-                                    return new EmptyRowsImpl<K, C>();
+                                    return new EmptyRowsImpl<>();
                                 }
                                 else {
-                                    return new ThriftRowsListImpl<K, C>(cfmap, columnFamily.getKeySerializer(),
+                                    return new ThriftRowsListImpl<>(cfmap, columnFamily.getKeySerializer(),
                                             columnFamily.getColumnSerializer());
                                 }
                             }
@@ -565,12 +534,7 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
 
             @Override
             public ListenableFuture<OperationResult<Rows<K, C>>> executeAsync() throws ConnectionException {
-                return executor.submit(new Callable<OperationResult<Rows<K, C>>>() {
-                    @Override
-                    public OperationResult<Rows<K, C>> call() throws Exception {
-                        return execute();
-                    }
-                });
+                return executor.submit(this::execute);
             }
 
             @Override
@@ -587,7 +551,7 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
                                         Map<ByteBuffer, Integer> cfmap = client.multiget_count(columnFamily
                                                 .getKeySerializer().toBytesList(keys), new ColumnParent()
                                                 .setColumn_family(columnFamily.getName()), predicate, ThriftConverter
-                                                .ToThriftConsistencyLevel(consistencyLevel));
+                                                .toThriftConsistencyLevel(consistencyLevel));
                                         if (cfmap == null || cfmap.isEmpty()) {
                                             return Maps.newHashMap();
                                         }
@@ -607,12 +571,7 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
 
                     @Override
                     public ListenableFuture<OperationResult<Map<K, Integer>>> executeAsync() throws ConnectionException {
-                        return executor.submit(new Callable<OperationResult<Map<K, Integer>>>() {
-                            @Override
-                            public OperationResult<Map<K, Integer>> call() throws Exception {
-                                return execute();
-                            }
-                        });
+                        return executor.submit(this::execute);
                     }
                 };
             }
@@ -637,7 +596,7 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
                             @Override
                             public Rows<K, C> execute(Client client, ConnectionContext context) throws ConnectionException {
                                 if (isPaginating && paginateNoMore) {
-                                    return new EmptyRowsImpl<K, C>();
+                                    return new EmptyRowsImpl<>();
                                 }
 
                                 return super.execute(client, context);
@@ -648,10 +607,10 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
                                 List<org.apache.cassandra.thrift.KeySlice> cfmap;
                                 cfmap = client.get_indexed_slices(
                                         new ColumnParent().setColumn_family(columnFamily.getName()), indexClause,
-                                        predicate, ThriftConverter.ToThriftConsistencyLevel(consistencyLevel));
+                                        predicate, ThriftConverter.toThriftConsistencyLevel(consistencyLevel));
 
                                 if (cfmap == null) {
-                                    return new EmptyRowsImpl<K, C>();
+                                    return new EmptyRowsImpl<>();
                                 }
                                 else {
                                     if (isPaginating) {
@@ -672,7 +631,7 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
                                             paginateNoMore = true;
                                         }
                                     }
-                                    return new ThriftRowsSliceImpl<K, C>(cfmap, columnFamily.getKeySerializer(),
+                                    return new ThriftRowsSliceImpl<>(cfmap, columnFamily.getKeySerializer(),
                                             columnFamily.getColumnSerializer());
                                 }
                             }
@@ -681,12 +640,7 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
 
             @Override
             public ListenableFuture<OperationResult<Rows<K, C>>> executeAsync() throws ConnectionException {
-                return executor.submit(new Callable<OperationResult<Rows<K, C>>>() {
-                    @Override
-                    public OperationResult<Rows<K, C>> call() throws Exception {
-                        return execute();
-                    }
-                });
+                return executor.submit(this::execute);
             }
         };
     }
@@ -698,7 +652,7 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
 
     @Override
     public AllRowsQuery<K, C> getAllRows() {
-        return new ThriftAllRowsQueryImpl<K, C>(this);
+        return new ThriftAllRowsQueryImpl<>(this);
     }
 
     @Override

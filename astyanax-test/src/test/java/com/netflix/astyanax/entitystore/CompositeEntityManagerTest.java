@@ -30,13 +30,13 @@ import com.netflix.astyanax.thrift.ThriftFamilyFactory;
 import com.netflix.astyanax.util.SingletonEmbeddedCassandra;
 
 public class CompositeEntityManagerTest {
-    private static Logger LOG = LoggerFactory.getLogger(CompositeEntityManagerTest.class);
+    private static Logger log = LoggerFactory.getLogger(CompositeEntityManagerTest.class);
     
     private static Keyspace                  keyspace;
     private static AstyanaxContext<Keyspace> keyspaceContext;
 
-    private static String TEST_CLUSTER_NAME  = "junit_cass_sandbox";
-    private static String TEST_KEYSPACE_NAME = "CompositeEntityManagerTest";
+    private static String testClusterName  = "junit_cass_sandbox";
+    private static String testKeyspaceName = "CompositeEntityManagerTest";
     private static final String SEEDS        = "localhost:9160";
 
     @Entity
@@ -82,8 +82,9 @@ public class CompositeEntityManagerTest {
 
     @AfterClass
     public static void teardown() throws Exception {
-        if (keyspaceContext != null)
+        if (keyspaceContext != null) {
             keyspaceContext.shutdown();
+        }
 
         Thread.sleep(1000 * 10);
     }
@@ -92,8 +93,8 @@ public class CompositeEntityManagerTest {
 
     private static void createKeyspace() throws Exception {
         keyspaceContext = new AstyanaxContext.Builder()
-        .forCluster(TEST_CLUSTER_NAME)
-        .forKeyspace(TEST_KEYSPACE_NAME)
+        .forCluster(testClusterName)
+        .forKeyspace(testKeyspaceName)
         .withAstyanaxConfiguration(
                 new AstyanaxConfigurationImpl()
                 .setCqlVersion("3.0.0")
@@ -101,8 +102,8 @@ public class CompositeEntityManagerTest {
                 .setDiscoveryType(NodeDiscoveryType.RING_DESCRIBE)
                 .setConnectionPoolType(ConnectionPoolType.TOKEN_AWARE))
                 .withConnectionPoolConfiguration(
-                        new ConnectionPoolConfigurationImpl(TEST_CLUSTER_NAME
-                                + "_" + TEST_KEYSPACE_NAME)
+                        new ConnectionPoolConfigurationImpl(testClusterName
+                                + "_" + testKeyspaceName)
                         .setSocketTimeout(30000)
                         .setMaxTimeoutWhenExhausted(2000)
                         .setMaxConnsPerHost(20)
@@ -119,7 +120,7 @@ public class CompositeEntityManagerTest {
             keyspace.dropKeyspace();
         }
         catch (Exception e) {
-            LOG.info(e.getMessage());
+            log.info(e.getMessage());
         }
 
         keyspace.createKeyspace(ImmutableMap.<String, Object>builder()
@@ -164,7 +165,7 @@ public class CompositeEntityManagerTest {
                 .whereId().in("A")
                 .getResultSet();
         Assert.assertEquals(20, entitiesNative.size());
-        LOG.info("NATIVE: " + entitiesNative);
+        log.info("NATIVE: " + entitiesNative);
         
         // Multi row query
         cqlEntities = manager.find("SELECT * from TestEntity WHERE KEY IN ('A', 'B')");
@@ -173,7 +174,7 @@ public class CompositeEntityManagerTest {
         entitiesNative = manager.createNativeQuery()
                 .whereId().in("A", "B")
                 .getResultSet();
-        LOG.info("NATIVE: " + entitiesNative);
+        log.info("NATIVE: " + entitiesNative);
         Assert.assertEquals(40, entitiesNative.size());
         
         // Simple prefix
@@ -181,17 +182,17 @@ public class CompositeEntityManagerTest {
                 .whereId().equal("A")
                 .whereColumn("part1").equal("a")
                 .getResultSet();
-        LOG.info("NATIVE: " + entitiesNative);
+        log.info("NATIVE: " + entitiesNative);
         Assert.assertEquals(10, entitiesNative.size());
         
         cqlEntities = manager.find("SELECT * from TestEntity WHERE KEY = 'A' AND column1='b' AND column2>=5 AND column2<8");
         Assert.assertEquals(3,  cqlEntities.size());
-        LOG.info(cqlEntities.toString());
+        log.info(cqlEntities.toString());
         
         manager.remove(new TestEntity("A", "b", 5L, null));
         cqlEntities = manager.find("SELECT * from TestEntity WHERE KEY = 'A' AND column1='b' AND column2>=5 AND column2<8");
         Assert.assertEquals(2,  cqlEntities.size());
-        LOG.info(cqlEntities.toString());
+        log.info(cqlEntities.toString());
         
         manager.delete("A");
         cqlEntities = manager.find("SELECT * from TestEntity WHERE KEY = 'A' AND column1='b' AND column2>=5 AND column2<8");
@@ -209,7 +210,7 @@ public class CompositeEntityManagerTest {
                 .whereColumn("part2").lessThan(8L)
                 .getResultSet();
 
-        LOG.info("NATIVE: " + entitiesNative.toString());
+        log.info("NATIVE: " + entitiesNative.toString());
         Assert.assertEquals(3, entitiesNative.size());
     }
     
@@ -241,7 +242,7 @@ public class CompositeEntityManagerTest {
             Assert.fail();
         }
         catch (Exception e) {
-            LOG.info(e.getMessage(), e);
+            log.info(e.getMessage(), e);
         }
     }
     
@@ -249,7 +250,7 @@ public class CompositeEntityManagerTest {
         // Read back all rows and log
         List<TestEntity> all = manager.getAll();
         for (TestEntity entity : all) {
-            LOG.info(prefix + entity.toString());
+            log.info(prefix + entity.toString());
         }
     }
 }

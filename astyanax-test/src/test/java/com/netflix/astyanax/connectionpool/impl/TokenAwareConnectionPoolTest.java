@@ -30,7 +30,7 @@ import com.netflix.astyanax.test.TokenTestOperation;
 import com.netflix.astyanax.util.TokenGenerator;
 
 public class TokenAwareConnectionPoolTest extends BaseConnectionPoolTest {
-    private static Logger LOG = LoggerFactory.getLogger(TokenAwareConnectionPoolTest.class);
+    private static Logger log = LoggerFactory.getLogger(TokenAwareConnectionPoolTest.class);
     private static Operation<TestClient, String> dummyOperation = new TestOperation();
 
     protected ConnectionPool<TestClient> createPool() {
@@ -41,7 +41,7 @@ public class TokenAwareConnectionPoolTest extends BaseConnectionPoolTest {
 
         CountingConnectionPoolMonitor monitor = new CountingConnectionPoolMonitor();
 
-        return new TokenAwareConnectionPoolImpl<TestClient>(
+        return new TokenAwareConnectionPoolImpl<>(
                 config, new TestConnectionFactory(config, monitor), monitor);
     }
 
@@ -50,7 +50,7 @@ public class TokenAwareConnectionPoolTest extends BaseConnectionPoolTest {
         ConnectionPool<TestClient> cp = createPool();
 
         List<Host> ring1 = makeRing(3, 1, 1);
-        LOG.info("testTokenMappingForMidRangeTokens\n" + TestTokenRange.getRingDetails(ring1));
+        log.info("testTokenMappingForMidRangeTokens\n" + TestTokenRange.getRingDetails(ring1));
         
         cp.setHosts(ring1);
         
@@ -59,43 +59,43 @@ public class TokenAwareConnectionPoolTest extends BaseConnectionPoolTest {
         RetryPolicy retryPolicy = new RunOnce();
 
         BigInteger key = BigInteger.ZERO;
-        LOG.info(key.toString() + " 127.0.1.2");
+        log.info(key.toString() + " 127.0.1.2");
         OperationResult<String> result = cp.executeWithFailover(new TokenTestOperation(key), retryPolicy);
         assertNotNull(result);
         assertEquals("127.0.1.2",result.getHost().getIpAddress());
 
         key = BigInteger.ONE;
-        LOG.info(key.toString() + " 127.0.1.0");
+        log.info(key.toString() + " 127.0.1.0");
         result = cp.executeWithFailover(new TokenTestOperation(key), retryPolicy);
         assertNotNull(result);
         assertEquals("127.0.1.0",result.getHost().getIpAddress());
 
         key = threeNodeRingIncrement.subtract(BigInteger.ONE);
-        LOG.info(key.toString() + " 127.0.1.0");
+        log.info(key.toString() + " 127.0.1.0");
         result = cp.executeWithFailover(new TokenTestOperation(key), retryPolicy);
         assertNotNull(result);
         assertEquals("127.0.1.0",result.getHost().getIpAddress());
         
         key = threeNodeRingIncrement;
-        LOG.info(key.toString() + " 127.0.1.0");
+        log.info(key.toString() + " 127.0.1.0");
         result = cp.executeWithFailover(new TokenTestOperation(key), retryPolicy);
         assertNotNull(result);
         assertEquals("127.0.1.0",result.getHost().getIpAddress());
         
         key = threeNodeRingIncrement.add(BigInteger.ONE);
-        LOG.info(key.toString() + " 127.0.1.1");
+        log.info(key.toString() + " 127.0.1.1");
         result = cp.executeWithFailover(new TokenTestOperation(key), retryPolicy);
         assertNotNull(result);
         assertEquals("127.0.1.1",result.getHost().getIpAddress());
         
         key = threeNodeRingIncrement.add(threeNodeRingIncrement).add(BigInteger.ONE);
-        LOG.info(key.toString() + " 127.0.1.1");
+        log.info(key.toString() + " 127.0.1.1");
         result = cp.executeWithFailover(new TokenTestOperation(key), retryPolicy);
         assertNotNull(result);
         assertEquals("127.0.1.1",result.getHost().getIpAddress());
 
         key = threeNodeRingIncrement.add(threeNodeRingIncrement).add(BigInteger.ONE).add(BigInteger.ONE);
-        LOG.info(key.toString() + " 127.0.1.2");
+        log.info(key.toString() + " 127.0.1.2");
         result = cp.executeWithFailover(new TokenTestOperation(key), retryPolicy);
         assertNotNull(result);
         assertEquals("127.0.1.2",result.getHost().getIpAddress());
@@ -110,7 +110,7 @@ public class TokenAwareConnectionPoolTest extends BaseConnectionPoolTest {
         //    node1 - ip = 127.0.1.1, token ownership range = (0 , 600]
         //    node1 - ip = 127.0.1.1, token ownership range = (600 , 1200]
         List<Host> ring1 = TestTokenRange.makeRing(3, 1, 1, BigInteger.ZERO, new BigInteger("1800"));
-        LOG.info("testTokenMappingForOrdinalTokens\n" + TestTokenRange.getRingDetails(ring1));
+        log.info("testTokenMappingForOrdinalTokens\n" + TestTokenRange.getRingDetails(ring1));
         
         cp.setHosts(ring1);
 
@@ -121,10 +121,10 @@ public class TokenAwareConnectionPoolTest extends BaseConnectionPoolTest {
         Operation<TestClient, String> thirdHostOp    = new TokenTestOperation(threeNodeRingIncrement.multiply(new BigInteger("2")));
         Operation<TestClient, String> maxTokenHostOp = new TokenTestOperation(threeNodeRingIncrement.multiply(new BigInteger("3")));
 
-        LOG.info(BigIntegerSerializer.get().fromByteBuffer(firstHostOp.getRowKey()).toString());
-        LOG.info(BigIntegerSerializer.get().fromByteBuffer(secondHostOp.getRowKey()).toString());
-        LOG.info(BigIntegerSerializer.get().fromByteBuffer(thirdHostOp.getRowKey()).toString());
-        LOG.info(BigIntegerSerializer.get().fromByteBuffer(maxTokenHostOp.getRowKey()).toString());
+        log.info(BigIntegerSerializer.get().fromByteBuffer(firstHostOp.getRowKey()).toString());
+        log.info(BigIntegerSerializer.get().fromByteBuffer(secondHostOp.getRowKey()).toString());
+        log.info(BigIntegerSerializer.get().fromByteBuffer(thirdHostOp.getRowKey()).toString());
+        log.info(BigIntegerSerializer.get().fromByteBuffer(maxTokenHostOp.getRowKey()).toString());
         RetryPolicy retryPolicy = new RunOnce();
 
         OperationResult<String> result = cp.executeWithFailover(firstHostOp, retryPolicy);
@@ -155,7 +155,7 @@ public class TokenAwareConnectionPoolTest extends BaseConnectionPoolTest {
         //    node1 - ip = 127.0.1.1, token ownership range = (10 , 510]
         List<Host> ring1 = TestTokenRange.makeRing(2, 1, 1, BigInteger.TEN, new BigInteger("1010"));
         cp.setHosts(ring1);
-        LOG.info("testTokenToHostMappingInWrappedRange\n" + TestTokenRange.getRingDetails(ring1));
+        log.info("testTokenToHostMappingInWrappedRange\n" + TestTokenRange.getRingDetails(ring1));
 
         Operation<TestClient, String> op = new TokenTestOperation(BigInteger.ZERO);
 
@@ -178,7 +178,7 @@ public class TokenAwareConnectionPoolTest extends BaseConnectionPoolTest {
         //    node1 - ip = 127.0.1.1, token ownership range = (0 , 500]
         List<Host> ring1 = TestTokenRange.makeRing(2, 1, 1, BigInteger.ZERO, new BigInteger("1000"));
         cp.setHosts(ring1);
-        LOG.info("testTokenToHostMappingOutsideOfRing\n" + TestTokenRange.getRingDetails(ring1));
+        log.info("testTokenToHostMappingOutsideOfRing\n" + TestTokenRange.getRingDetails(ring1));
 
         Operation<TestClient, String> op = new TokenTestOperation(new BigInteger("1250"));
 
@@ -204,11 +204,11 @@ public class TokenAwareConnectionPoolTest extends BaseConnectionPoolTest {
         cp.setHosts(ring2);
         List<HostConnectionPool<TestClient>> hosts2 = cp.getActivePools();
 
-        LOG.info(hosts1.toString());
-        LOG.info(hosts2.toString());
+        log.info(hosts1.toString());
+        log.info(hosts2.toString());
     }
 
-    private List<Host> makeRing(int nHosts, int replication_factor, int id) {
-        return TestTokenRange.makeRing(nHosts,replication_factor,id,TokenGenerator.MINIMUM,TokenGenerator.MAXIMUM);
+    private List<Host> makeRing(int nHosts, int replicationFactor, int id) {
+        return TestTokenRange.makeRing(nHosts,replicationFactor,id,TokenGenerator.MINIMUM,TokenGenerator.MAXIMUM);
     }
 }

@@ -39,8 +39,8 @@ public class CqlOperationResultImpl<R> implements OperationResult<R> {
 
 	private Host host;
 	private R result; 
-	private int attemptCount = 0;
-	private long durationMicros = 0L;
+	private int attemptCount;
+	private long durationMicros;
 	
 	public CqlOperationResultImpl(ResultSet rs, R result) {
 		this.host = parseHostInfo(rs);

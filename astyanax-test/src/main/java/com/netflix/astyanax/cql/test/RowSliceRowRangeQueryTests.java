@@ -44,18 +44,18 @@ import com.netflix.astyanax.model.Rows;
 
 public class RowSliceRowRangeQueryTests extends ReadTests {
 
-	private static ColumnFamily<String, String> CF_COLUMN_RANGE_TEST = TestUtils.CF_COLUMN_RANGE_TEST;
+	private static ColumnFamily<String, String> cfColumnRangeTest = TestUtils.CF_COLUMN_RANGE_TEST;
 
 	@BeforeClass
 	public static void init() throws Exception {
 		initContext();
-		keyspace.createColumnFamily(CF_COLUMN_RANGE_TEST, null);
-		CF_COLUMN_RANGE_TEST.describe(keyspace);
+		keyspace.createColumnFamily(cfColumnRangeTest, null);
+		cfColumnRangeTest.describe(keyspace);
 	}
 	
 	@AfterClass
 	public static void tearDown() throws Exception {
-		keyspace.dropColumnFamily(CF_COLUMN_RANGE_TEST);
+		keyspace.dropColumnFamily(cfColumnRangeTest);
 	}
 
 	@Test
@@ -91,7 +91,7 @@ public class RowSliceRowRangeQueryTests extends ReadTests {
 		
 		Set<String> rowKeys = getRandomRowKeys();
 		
-		Rows<String, String> rows = keyspace.prepareQuery(CF_COLUMN_RANGE_TEST).getRowSlice(rowKeys).execute().getResult();
+		Rows<String, String> rows = keyspace.prepareQuery(cfColumnRangeTest).getRowSlice(rowKeys).execute().getResult();
     	
 		if (rowDeleted) {
 			Assert.assertTrue(rows.isEmpty());
@@ -123,7 +123,7 @@ public class RowSliceRowRangeQueryTests extends ReadTests {
 		Set<String> rowKeys = getRandomRowKeys();
 		Set<String> columns = getRandomColumns();
 		
-		Rows<String, String> rows = keyspace.prepareQuery(CF_COLUMN_RANGE_TEST)
+		Rows<String, String> rows = keyspace.prepareQuery(cfColumnRangeTest)
 											.getRowSlice(rowKeys)
 											.withColumnSlice(columns)
 											.execute().getResult();
@@ -135,7 +135,7 @@ public class RowSliceRowRangeQueryTests extends ReadTests {
 		
     	Assert.assertFalse(rows.isEmpty());
 
-    	List<String> expected = new ArrayList<String>(columns);
+    	List<String> expected = new ArrayList<>(columns);
     	Collections.sort(expected);
     
     	int rowKeysSize = rowKeys.size();
@@ -144,7 +144,7 @@ public class RowSliceRowRangeQueryTests extends ReadTests {
     		boolean isPresent = rowKeys.remove(row.getKey());
     		Assert.assertTrue("Extraneous row: " + row.getKey(), isPresent);
     		
-        	List<String> result = new ArrayList<String>();
+        	List<String> result = new ArrayList<>();
         	ColumnList<String> colList = row.getColumns();
         	for (Column<String> col : colList) {
         		result.add(col.getName());
@@ -164,7 +164,7 @@ public class RowSliceRowRangeQueryTests extends ReadTests {
 		// get random start and end column
 		CqlRangeImpl<String> columns = (CqlRangeImpl<String>) getRandomColumnRange();
 		
-		Rows<String, String> rows = keyspace.prepareQuery(CF_COLUMN_RANGE_TEST)
+		Rows<String, String> rows = keyspace.prepareQuery(cfColumnRangeTest)
 											.getRowSlice(rowKeys)
 											.withColumnRange(columns)
 											.execute().getResult();
@@ -198,14 +198,14 @@ public class RowSliceRowRangeQueryTests extends ReadTests {
 	
 	private void testRowRangeWithAllColumns(boolean rowDeleted) throws Exception {
 
-		List<String> expectedColumns = new ArrayList<String>();
+		List<String> expectedColumns = new ArrayList<>();
 		for (char ch = 'a'; ch <= 'z'; ch++) {
 			expectedColumns.add(String.valueOf(ch));
 		}
 		
 		for (TestTokenRange testRange : getTestTokenRanges()) {
 		
-			Rows<String, String> rows = keyspace.prepareQuery(CF_COLUMN_RANGE_TEST)
+			Rows<String, String> rows = keyspace.prepareQuery(cfColumnRangeTest)
 					.getRowRange(null, null, testRange.startToken, testRange.endToken, -1)
 					.execute().getResult();
 
@@ -216,7 +216,7 @@ public class RowSliceRowRangeQueryTests extends ReadTests {
 
 			Assert.assertFalse(rows.isEmpty());
 			
-			List<String> list = new ArrayList<String>();
+			List<String> list = new ArrayList<>();
 			for (Row<String, String> row : rows) {
 				String key = row.getKey();
 				list.add(key);
@@ -233,12 +233,12 @@ public class RowSliceRowRangeQueryTests extends ReadTests {
 
 		Set<String> randomColumns = getRandomColumns();
 		
-		List<String> expectedColumns = new ArrayList<String>(randomColumns);
+		List<String> expectedColumns = new ArrayList<>(randomColumns);
 		Collections.sort(expectedColumns);
 		
 		for (TestTokenRange testRange : getTestTokenRanges()) {
 		
-			Rows<String, String> rows = keyspace.prepareQuery(CF_COLUMN_RANGE_TEST)
+			Rows<String, String> rows = keyspace.prepareQuery(cfColumnRangeTest)
 					.getRowRange(null, null, testRange.startToken, testRange.endToken, -1)
 					.withColumnSlice(randomColumns)
 					.execute().getResult();
@@ -250,7 +250,7 @@ public class RowSliceRowRangeQueryTests extends ReadTests {
 
 			Assert.assertFalse(rows.isEmpty());
 			
-			List<String> list = new ArrayList<String>();
+			List<String> list = new ArrayList<>();
 			for (Row<String, String> row : rows) {
 				String key = row.getKey();
 				list.add(key);
@@ -269,7 +269,7 @@ public class RowSliceRowRangeQueryTests extends ReadTests {
 		
 		for (TestTokenRange testRange : getTestTokenRanges()) {
 		
-			Rows<String, String> rows = keyspace.prepareQuery(CF_COLUMN_RANGE_TEST)
+			Rows<String, String> rows = keyspace.prepareQuery(cfColumnRangeTest)
 					.getRowRange(null, null, testRange.startToken, testRange.endToken, -1)
 					.withColumnRange(columnRange)
 					.execute().getResult();
@@ -284,7 +284,7 @@ public class RowSliceRowRangeQueryTests extends ReadTests {
     		int numExpectedCols = columnRange.getCqlEnd().charAt(0) - columnRange.getCqlStart().charAt(0) + 1;
     		
 
-			List<String> list = new ArrayList<String>();
+			List<String> list = new ArrayList<>();
 			for (Row<String, String> row : rows) {
 				String key = row.getKey();
 				list.add(key);
@@ -307,7 +307,7 @@ public class RowSliceRowRangeQueryTests extends ReadTests {
 		Random random = new Random();
 		int numRowKeys = random.nextInt(26) + 1;  // avoid 0 rows
 		
-		Set<String> set = new HashSet<String>();
+		Set<String> set = new HashSet<>();
 		for (int i=0; i<numRowKeys; i++) {
 			
 			int no = random.nextInt(26);
@@ -323,7 +323,7 @@ public class RowSliceRowRangeQueryTests extends ReadTests {
 		Random random = new Random();
 		int numRowKeys = random.nextInt(26) + 1;  // avoid 0 rows
 		
-		Set<String> set = new HashSet<String>();
+		Set<String> set = new HashSet<>();
 		for (int i=0; i<numRowKeys; i++) {
 			
 			int no = random.nextInt(26);

@@ -36,7 +36,7 @@ import com.netflix.astyanax.util.TimeUUIDUtils;
 public class ClickStreamTests extends KeyspaceTests {
 
 	public static AnnotatedCompositeSerializer<SessionEvent> SE_SERIALIZER 
-	= new AnnotatedCompositeSerializer<SessionEvent>(SessionEvent.class);
+	= new AnnotatedCompositeSerializer<>(SessionEvent.class);
 
 	public static ColumnFamily<String, SessionEvent> CF_CLICK_STREAM = 
 			ColumnFamily.newColumnFamily("ClickStream", StringSerializer.get(), SE_SERIALIZER);
@@ -60,7 +60,7 @@ public class ClickStreamTests extends KeyspaceTests {
 		MutationBatch m = keyspace.prepareMutationBatch();
 		String userId = "UserId";
 
-		List<UUID> uuids = new ArrayList<UUID>();
+		List<UUID> uuids = new ArrayList<>();
 		for (int j = 0; j < 10; j++) {
 			uuids.add(TimeUUIDUtils.getTimeUUID(j));
 		}

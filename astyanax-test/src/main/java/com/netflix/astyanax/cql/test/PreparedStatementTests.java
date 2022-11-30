@@ -42,32 +42,32 @@ import com.netflix.astyanax.serializers.StringSerializer;
 
 public class PreparedStatementTests extends ReadTests {
 
-	private static int TestRowCount = 10;
+	private static int testRowCount = 10;
 
-	private static ColumnFamily<String, String> CF_ROW_RANGE = 
-			new ColumnFamily<String, String>("rowrange", StringSerializer.get(), StringSerializer.get(), IntegerSerializer.get());
+	private static ColumnFamily<String, String> cfRowRange = 
+			new ColumnFamily<>("rowrange", StringSerializer.get(), StringSerializer.get(), IntegerSerializer.get());
 	
 	@BeforeClass
 	public static void init() throws Exception {
 		initContext();
 		keyspace.createColumnFamily(CF_USER_INFO, null);
-		keyspace.createColumnFamily(CF_ROW_RANGE, null);
+		keyspace.createColumnFamily(cfRowRange, null);
 		CF_USER_INFO.describe(keyspace);
-		CF_ROW_RANGE.describe(keyspace);
-		populateRowsForUserInfo(TestRowCount); 
+		cfRowRange.describe(keyspace);
+		populateRowsForUserInfo(testRowCount); 
 		populateRowsForColumnRange();
 	}
 	
 	@AfterClass
 	public static void tearDown() throws Exception {
 		keyspace.dropColumnFamily(CF_USER_INFO);
-		keyspace.dropColumnFamily(CF_ROW_RANGE);
+		keyspace.dropColumnFamily(cfRowRange);
 	}
 
 	@Test
 	public void testSingleRowAllColumnsQuery() throws Exception {
 
-		for (int i=0; i<TestRowCount; i++) {
+		for (int i=0; i<testRowCount; i++) {
 			ColumnList<String> result = keyspace.prepareQuery(CF_USER_INFO)
 					.withCaching(true)
 					.getRow("acct_" + i)
@@ -80,7 +80,7 @@ public class PreparedStatementTests extends ReadTests {
 	@Test
 	public void testSingleRowSingleColumnQuery() throws Exception {
 
-		for (int i=0; i<TestRowCount; i++) {
+		for (int i=0; i<testRowCount; i++) {
 			Column<String> result = keyspace.prepareQuery(CF_USER_INFO)
 					.withCaching(true)
 					.getRow("acct_" + i)
@@ -98,7 +98,7 @@ public class PreparedStatementTests extends ReadTests {
 	@Test
 	public void testSingleRowColumnSliceQueryWithCollection() throws Exception {
 
-		for (int i=0; i<TestRowCount; i++) {
+		for (int i=0; i<testRowCount; i++) {
 			ColumnList<String> result = keyspace.prepareQuery(CF_USER_INFO)
 					.withCaching(true)
 					.getRow("acct_" + i)
@@ -168,7 +168,7 @@ public class PreparedStatementTests extends ReadTests {
 	@Test
 	public void testRowKeysColumnRangeQuery() throws Exception {
 
-		keyspace.prepareQuery(CF_ROW_RANGE)
+		keyspace.prepareQuery(cfRowRange)
 				.withCaching(true)
 				.getRowSlice("A", "B", "C", "D")
 				.withColumnRange(new CqlRangeBuilder<String>()
@@ -177,7 +177,7 @@ public class PreparedStatementTests extends ReadTests {
 						.build())
 						.execute();
 		
-		Rows<String, String> result = keyspace.prepareQuery(CF_ROW_RANGE)
+		Rows<String, String> result = keyspace.prepareQuery(cfRowRange)
 				.withCaching(true)
 				.getRowSlice("E", "F", "G", "H")
 				.withColumnRange(new CqlRangeBuilder<String>()
@@ -203,12 +203,12 @@ public class PreparedStatementTests extends ReadTests {
 		String startToken = Murmur3Partitioner.get().getTokenForKey(StringSerializer.get().fromString("A"));
 		String endToken = Murmur3Partitioner.get().getTokenForKey(StringSerializer.get().fromString("G"));
 		
-		keyspace.prepareQuery(CF_ROW_RANGE)
+		keyspace.prepareQuery(cfRowRange)
 				.withCaching(true)
 				.getRowRange(null, null, startToken, endToken, 10)
 				.execute();
 
-		Rows<String, String> result = keyspace.prepareQuery(CF_ROW_RANGE)
+		Rows<String, String> result = keyspace.prepareQuery(cfRowRange)
 				.withCaching(true)
 				.getRowRange(null, null, startToken, endToken, 10)
 				.execute()
@@ -227,13 +227,13 @@ public class PreparedStatementTests extends ReadTests {
 		String startToken = Murmur3Partitioner.get().getTokenForKey(StringSerializer.get().fromString("A"));
 		String endToken = Murmur3Partitioner.get().getTokenForKey(StringSerializer.get().fromString("G"));
 		
-		keyspace.prepareQuery(CF_ROW_RANGE)
+		keyspace.prepareQuery(cfRowRange)
 				.withCaching(true)
 				.getRowRange(null, null, startToken, endToken, 10)
 				.withColumnSlice("a", "s", "d", "f")
 				.execute();
 		
-		Rows<String, String> result = keyspace.prepareQuery(CF_ROW_RANGE)
+		Rows<String, String> result = keyspace.prepareQuery(cfRowRange)
 				.withCaching(true)
 				.getRowRange(null, null, startToken, endToken, 10)
 				.withColumnSlice("a", "s", "d", "f")
@@ -253,7 +253,7 @@ public class PreparedStatementTests extends ReadTests {
 		String startToken = Murmur3Partitioner.get().getTokenForKey(StringSerializer.get().fromString("A"));
 		String endToken = Murmur3Partitioner.get().getTokenForKey(StringSerializer.get().fromString("G"));
 		
-		keyspace.prepareQuery(CF_ROW_RANGE)
+		keyspace.prepareQuery(cfRowRange)
 				.withCaching(true)
 				.getRowRange(null, null, startToken, endToken, 10)
 				.withColumnRange(new CqlRangeBuilder<String>()
@@ -262,7 +262,7 @@ public class PreparedStatementTests extends ReadTests {
 						.build())
 						.execute();
 
-		Rows<String, String> result = keyspace.prepareQuery(CF_ROW_RANGE)
+		Rows<String, String> result = keyspace.prepareQuery(cfRowRange)
 				.withCaching(true)
 				.getRowRange(null, null, startToken, endToken, 10)
 				.withColumnRange(new CqlRangeBuilder<String>()
@@ -291,8 +291,8 @@ public class PreparedStatementTests extends ReadTests {
 			.putColumn("lastname", "smith_" + i, null)
 			.putColumn("address", "john smith address " + i, null)
 			.putColumn("age", 30+i, null)
-			.putColumn("ageShort", new Integer(30+i).shortValue(), null)
-			.putColumn("ageLong", new Integer(30+i).longValue(), null)
+			.putColumn("ageShort", Integer.valueOf(30 + i).shortValue(), null)
+			.putColumn("ageLong", Integer.valueOf(30 + i).longValue(), null)
 			.putColumn("percentile", 30.1)
 			.putColumn("married", true)
 			.putColumn("single", false)
@@ -312,7 +312,7 @@ public class PreparedStatementTests extends ReadTests {
 
         for (char keyName = 'A'; keyName <= 'Z'; keyName++) {
         	String rowKey = Character.toString(keyName);
-        	ColumnListMutation<String> colMutation = m.withRow(CF_ROW_RANGE, rowKey);
+        	ColumnListMutation<String> colMutation = m.withRow(cfRowRange, rowKey);
               for (char cName = 'a'; cName <= 'z'; cName++) {
             	  colMutation.putColumn(Character.toString(cName), (int) (cName - 'a') + 1, null);
               }

@@ -84,7 +84,7 @@ import com.netflix.astyanax.ddl.ColumnDefinition;
 public class FlatTableRowQueryGen {
 	
 	// Reference to the session that is needed for "preparing" the statements
-	private AtomicReference<Session> sessionRef = new AtomicReference<Session>(null);
+	private AtomicReference<Session> sessionRef = new AtomicReference<>(null);
 	private final String keyspace; 
 	private final CqlColumnFamilyDefinitionImpl cfDef;
 
@@ -117,30 +117,24 @@ public class FlatTableRowQueryGen {
 	 * to the {@link PreparedStatement} that it creates which can then be re-used by subsequent queries that 
 	 * have the same signature (i.e read all columns)
 	 */
-	private QueryGenCache<CqlRowQueryImpl<?,?>> SelectEntireRow = new QueryGenCache<CqlRowQueryImpl<?,?>>(sessionRef) {
+	private QueryGenCache<CqlRowQueryImpl<?,?>> selectEntireRow = new QueryGenCache<CqlRowQueryImpl<?,?>>(sessionRef) {
 
 		@Override
 		public Callable<RegularStatement> getQueryGen(CqlRowQueryImpl<?, ?> rowQuery) {
 
-			return new Callable<RegularStatement>() {
+			return () -> {
+                Selection select = QueryBuilder.select();
 
-				@Override
-				public RegularStatement call() throws Exception {
-					Selection select = QueryBuilder.select();
+                for (int i = 0; i < allPrimayKeyCols.length; i++) {
+                    select.column(allPrimayKeyCols[i]);
+                }
 
-					for (int i=0; i<allPrimayKeyCols.length; i++) {
-						select.column(allPrimayKeyCols[i]);
-					}
-
-					for (ColumnDefinition colDef : regularCols) {
-						String colName = colDef.getName();
-						select.column(colName).ttl(colName).writeTime(colName);
-					}
-
-					RegularStatement stmt = select.from(keyspace, cfDef.getName()).where(eq(partitionKeyCol, BIND_MARKER));
-					return stmt; 
-				}
-			};
+                for (ColumnDefinition colDef : regularCols) {
+                    String colName = colDef.getName();
+                    select.column(colName).ttl(colName).writeTime(colName);
+                }
+                return select.from(keyspace, cfDef.getName()).where(eq(partitionKeyCol, BIND_MARKER));
+            };
 		}
 
 		@Override
@@ -158,27 +152,23 @@ public class FlatTableRowQueryGen {
 	 * to the {@link PreparedStatement} that it creates which can then be re-used by subsequent queries that 
 	 * have the same signature (i.e read the same column slice for a given row)
 	 */
-	private QueryGenCache<CqlRowQueryImpl<?,?>> SelectColumnSlice = new QueryGenCache<CqlRowQueryImpl<?,?>>(sessionRef) {
+	private QueryGenCache<CqlRowQueryImpl<?,?>> selectColumnSlice = new QueryGenCache<CqlRowQueryImpl<?,?>>(sessionRef) {
 
 		@Override
 		public Callable<RegularStatement> getQueryGen(final CqlRowQueryImpl<?, ?> rowQuery) {
 
-			return new Callable<RegularStatement>() {
+			return () -> {
 
-				@Override
-				public RegularStatement call() throws Exception {
+                Select.Selection select = QueryBuilder.select();
+                select.column(partitionKeyCol);
 
-					Select.Selection select = QueryBuilder.select();
-					select.column(partitionKeyCol);
+                for (Object col : rowQuery.getColumnSlice().getColumns()) {
+                    String columnName = (String) col;
+                    select.column(columnName).ttl(columnName).writeTime(columnName);
+                }
 
-					for (Object col : rowQuery.getColumnSlice().getColumns()) {
-						String columnName = (String)col;
-						select.column(columnName).ttl(columnName).writeTime(columnName);
-					}
-
-					return select.from(keyspace, cfDef.getName()).where(eq(partitionKeyCol, BIND_MARKER));
-				}
-			};
+                return select.from(keyspace, cfDef.getName()).where(eq(partitionKeyCol, BIND_MARKER));
+            };
 		}
 
 		@Override
@@ -192,9 +182,9 @@ public class FlatTableRowQueryGen {
 		switch (rowQuery.getQueryType()) {
 		
 		case AllColumns:
-			return SelectEntireRow.getBoundStatement(rowQuery, useCaching);
+			return selectEntireRow.getBoundStatement(rowQuery, useCaching);
 		case ColumnSlice:
-			return SelectColumnSlice.getBoundStatement(rowQuery, useCaching);
+			return selectColumnSlice.getBoundStatement(rowQuery, useCaching);
 		case ColumnRange:
 			throw new RuntimeException("Cannot perform col range query with current schema, missing pk cols");
 		default :

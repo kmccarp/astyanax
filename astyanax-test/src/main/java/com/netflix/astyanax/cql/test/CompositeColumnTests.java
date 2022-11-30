@@ -40,21 +40,21 @@ import com.netflix.astyanax.serializers.IntegerSerializer;
 
 public class CompositeColumnTests extends KeyspaceTests {
 
-	private static AnnotatedCompositeSerializer<Population> compSerializer = new AnnotatedCompositeSerializer<Population>(Population.class);
+	private static AnnotatedCompositeSerializer<Population> compSerializer = new AnnotatedCompositeSerializer<>(Population.class);
 
-	private static ColumnFamily<Integer, Population> CF_POPULATION = 
-			new ColumnFamily<Integer, Population>("population", IntegerSerializer.get(), compSerializer, IntegerSerializer.get());
+	private static ColumnFamily<Integer, Population> cfPopulation = 
+			new ColumnFamily<>("population", IntegerSerializer.get(), compSerializer, IntegerSerializer.get());
 
 	@BeforeClass
 	public static void init() throws Exception {
 		initContext();
-		keyspace.createColumnFamily(CF_POPULATION,     null);
-		CF_POPULATION.describe(keyspace);
+		keyspace.createColumnFamily(cfPopulation,     null);
+		cfPopulation.describe(keyspace);
 	}
 	
 	@AfterClass
 	public static void teardown() throws Exception {
-		keyspace.dropColumnFamily(CF_POPULATION);
+		keyspace.dropColumnFamily(cfPopulation);
 	}
 
 	@Test
@@ -120,7 +120,7 @@ public class CompositeColumnTests extends KeyspaceTests {
 		
 		for (int year = 2001; year <= 2014; year++) {
 			
-			m.withRow(CF_POPULATION, year)
+			m.withRow(cfPopulation, year)
 				.putColumn(NewYork.clone(), random.nextInt(25000))
 				.putColumn(SanDiego.clone(), random.nextInt(25000))
 				.putColumn(SanFrancisco.clone(), random.nextInt(25000))
@@ -135,7 +135,7 @@ public class CompositeColumnTests extends KeyspaceTests {
 		MutationBatch m = keyspace.prepareMutationBatch(); 
 		
 		for (int year = 2001; year <= 2014; year ++) {
-			m.withRow(CF_POPULATION, year).delete();
+			m.withRow(cfPopulation, year).delete();
 		}
 		
 		m.execute();
@@ -144,7 +144,7 @@ public class CompositeColumnTests extends KeyspaceTests {
 	private void testReadSingleRowAllColumns(boolean rowDeleted) throws Exception {
 		
 		for (int year = 2001; year <= 2014; year++) {
-			ColumnList<Population> result = keyspace.prepareQuery(CF_POPULATION)
+			ColumnList<Population> result = keyspace.prepareQuery(cfPopulation)
 													.getRow(year)
 													.execute().getResult();
 			if (rowDeleted) {
@@ -160,7 +160,7 @@ public class CompositeColumnTests extends KeyspaceTests {
 		
 		for (int year = 2001; year <= 2014; year++) {
 
-			Column<Population> result = keyspace.prepareQuery(CF_POPULATION)
+			Column<Population> result = keyspace.prepareQuery(cfPopulation)
 					.getRow(year)
 					.getColumn(SanFrancisco.clone())
 					.execute().getResult();
@@ -178,11 +178,11 @@ public class CompositeColumnTests extends KeyspaceTests {
 	
 	private void testReadSingleRowColumnRange(boolean rowDeleted) throws Exception {
 		
-		AnnotatedCompositeSerializer<Population> compSerializer = new AnnotatedCompositeSerializer<Population>(Population.class);
+		AnnotatedCompositeSerializer<Population> compSerializer = new AnnotatedCompositeSerializer<>(Population.class);
 		
 		for (int year = 2001; year <= 2001; year++) {
 
-			ColumnList<Population> result = keyspace.prepareQuery(CF_POPULATION)
+			ColumnList<Population> result = keyspace.prepareQuery(cfPopulation)
 					.getRow(year)
 					.withColumnRange(compSerializer.buildRange()
 									.withPrefix("CA")
@@ -196,7 +196,7 @@ public class CompositeColumnTests extends KeyspaceTests {
 				checkResult(result, SanDiego, SanFrancisco);
 			}
 		
-			result = keyspace.prepareQuery(CF_POPULATION)
+			result = keyspace.prepareQuery(cfPopulation)
 					.getRow(year)
 					.withColumnRange(compSerializer.buildRange()
 									.withPrefix("CA")
@@ -211,7 +211,7 @@ public class CompositeColumnTests extends KeyspaceTests {
 				checkResult(result, SanFrancisco);
 			}
 			
-			result = keyspace.prepareQuery(CF_POPULATION)
+			result = keyspace.prepareQuery(cfPopulation)
 					.getRow(year)
 					.withColumnRange(compSerializer.buildRange()
 									.withPrefix("WA")
@@ -231,7 +231,7 @@ public class CompositeColumnTests extends KeyspaceTests {
 	
 	private void testReadMultipleRowKeysWithAllColumns(boolean rowDeleted) throws Exception {
 		
-		Rows<Integer, Population> result = keyspace.prepareQuery(CF_POPULATION)
+		Rows<Integer, Population> result = keyspace.prepareQuery(cfPopulation)
 				.getKeySlice(2001, 2002, 2003, 2004, 2005)
 				.execute().getResult();
 		if (rowDeleted) {
@@ -243,7 +243,7 @@ public class CompositeColumnTests extends KeyspaceTests {
 	
 	private void testReadMultipleRowKeysWithColumnRange(boolean rowDeleted) throws Exception {
 		
-		Rows<Integer, Population> result = keyspace.prepareQuery(CF_POPULATION)
+		Rows<Integer, Population> result = keyspace.prepareQuery(cfPopulation)
 													.getKeySlice(2001, 2002, 2003, 2004, 2005)
 													.withColumnRange(compSerializer.buildRange()
 															.withPrefix("CA")
@@ -256,7 +256,7 @@ public class CompositeColumnTests extends KeyspaceTests {
 			checkRowResult(result, 2001, 5, SanDiego, SanFrancisco);
 		}
 								
-		result = keyspace.prepareQuery(CF_POPULATION)
+		result = keyspace.prepareQuery(cfPopulation)
 						 .getKeySlice(2001, 2002, 2003, 2004, 2005)
 						 .withColumnRange(compSerializer.buildRange()
 								 		  .withPrefix("CA")
@@ -270,7 +270,7 @@ public class CompositeColumnTests extends KeyspaceTests {
 			checkRowResult(result, 2001, 5, SanFrancisco);
 		}
 									
-		result = keyspace.prepareQuery(CF_POPULATION)
+		result = keyspace.prepareQuery(cfPopulation)
 				 .getKeySlice(2001, 2002, 2003, 2004, 2005)
 				 .withColumnRange(compSerializer.buildRange()
 						 		  .withPrefix("WA")
@@ -291,7 +291,7 @@ public class CompositeColumnTests extends KeyspaceTests {
 		List<TestRange> testRanges = getTestRanges();
 
 		for (TestRange testRange : testRanges) {
-			Rows<Integer, Population> result = keyspace.prepareQuery(CF_POPULATION)
+			Rows<Integer, Population> result = keyspace.prepareQuery(cfPopulation)
 					.getKeyRange(null, null, testRange.start, testRange.end, 100)
 					.execute().getResult();
 
@@ -308,7 +308,7 @@ public class CompositeColumnTests extends KeyspaceTests {
 		List<TestRange> testRanges = getTestRanges();
 		for (TestRange testRange : testRanges) {
 
-			Rows<Integer, Population> result = keyspace.prepareQuery(CF_POPULATION)
+			Rows<Integer, Population> result = keyspace.prepareQuery(cfPopulation)
 					.getKeyRange(null, null, testRange.start, testRange.end, 100)
 					.withColumnRange(compSerializer.buildRange()
 							.withPrefix("CA")
@@ -321,7 +321,7 @@ public class CompositeColumnTests extends KeyspaceTests {
 				checkRowResult(result, testRange.expectedRowKeys, SanDiego, SanFrancisco);
 			}
 
-			result = keyspace.prepareQuery(CF_POPULATION)
+			result = keyspace.prepareQuery(cfPopulation)
 					.getKeyRange(null, null, testRange.start, testRange.end, 100)
 					.withColumnRange(compSerializer.buildRange()
 							.withPrefix("CA")
@@ -335,7 +335,7 @@ public class CompositeColumnTests extends KeyspaceTests {
 				checkRowResult(result, testRange.expectedRowKeys, SanFrancisco);
 			}
 
-			result = keyspace.prepareQuery(CF_POPULATION)
+			result = keyspace.prepareQuery(cfPopulation)
 					.getKeyRange(null, null, testRange.start, testRange.end, 100)
 					.withColumnRange(compSerializer.buildRange()
 							.withPrefix("WA")
@@ -357,7 +357,7 @@ public class CompositeColumnTests extends KeyspaceTests {
 	private void testReadSingleRowAllColumnsWithColumnCount(boolean rowDeleted) throws Exception {
 		
 		for (int year = 2001; year <= 2014; year++) {
-			Integer result = keyspace.prepareQuery(CF_POPULATION)
+			Integer result = keyspace.prepareQuery(cfPopulation)
 													.getRow(year)
 													.getCount()
 													.execute().getResult();
@@ -370,7 +370,7 @@ public class CompositeColumnTests extends KeyspaceTests {
 		
 		for (int year = 2001; year <= 2014; year++) {
 			
-			Integer result = keyspace.prepareQuery(CF_POPULATION)
+			Integer result = keyspace.prepareQuery(cfPopulation)
 												   .getRow(year)
 												   .withColumnRange(compSerializer.buildRange()
 														   			.withPrefix("CA")
@@ -380,7 +380,7 @@ public class CompositeColumnTests extends KeyspaceTests {
 			int expected = rowDeleted ? 0 : 2;
 			Assert.assertTrue(expected == result.intValue());
 
-			result = keyspace.prepareQuery(CF_POPULATION)
+			result = keyspace.prepareQuery(cfPopulation)
 										  .getRow(year)
 										  .withColumnRange(compSerializer.buildRange()
 												  		   .withPrefix("CA")
@@ -391,7 +391,7 @@ public class CompositeColumnTests extends KeyspaceTests {
 			expected = rowDeleted ? 0 : 1;
 			Assert.assertTrue(expected == result.intValue());
 
-			result = keyspace.prepareQuery(CF_POPULATION)
+			result = keyspace.prepareQuery(cfPopulation)
 					   						.getRow(year)
 					   						.withColumnRange(compSerializer.buildRange()
 					   								.withPrefix("WA")
@@ -407,11 +407,11 @@ public class CompositeColumnTests extends KeyspaceTests {
 
 	private void testReadMultipleRowKeysAllColumnsWithColumnCount(boolean rowDeleted) throws Exception {
 
-		Map<Integer, Integer> result = keyspace.prepareQuery(CF_POPULATION)
+		Map<Integer, Integer> result = keyspace.prepareQuery(cfPopulation)
 				.getKeySlice(2001, 2002, 2003, 2004, 2005)
 				.getColumnCounts()
 				.execute().getResult();
-		Map<Integer, Integer> expected = new HashMap<Integer, Integer>();
+		Map<Integer, Integer> expected = new HashMap<>();
 		if (!rowDeleted) {
 			for (int year = 2001; year<= 2005; year++) {
 				expected.put(year, 4);
@@ -422,7 +422,7 @@ public class CompositeColumnTests extends KeyspaceTests {
 
 	private void testReadMultipleRowKeysColumnRangeWithColumnCount(boolean rowDeleted) throws Exception {
 
-			Map<Integer, Integer> result = keyspace.prepareQuery(CF_POPULATION)
+			Map<Integer, Integer> result = keyspace.prepareQuery(cfPopulation)
 					 .getKeySlice(2001, 2002, 2003, 2004, 2005)
 					 .withColumnRange(compSerializer.buildRange()
 							.withPrefix("CA")
@@ -430,7 +430,7 @@ public class CompositeColumnTests extends KeyspaceTests {
 							.getColumnCounts()
 							.execute().getResult();
 
-			Map<Integer, Integer> expected = new HashMap<Integer, Integer>();
+			Map<Integer, Integer> expected = new HashMap<>();
 			if (!rowDeleted) {
 				for (Integer rowKey = 2001; rowKey<=2005; rowKey++) {
 					expected.put(rowKey, 2);
@@ -439,7 +439,7 @@ public class CompositeColumnTests extends KeyspaceTests {
 			
 			Assert.assertEquals(expected, result);
 			
-			result = keyspace.prepareQuery(CF_POPULATION)
+			result = keyspace.prepareQuery(cfPopulation)
 					 .getKeySlice(2001, 2002, 2003, 2004, 2005)
 					 .withColumnRange(compSerializer.buildRange()
 							.withPrefix("CA")
@@ -448,7 +448,7 @@ public class CompositeColumnTests extends KeyspaceTests {
 							.getColumnCounts()
 							.execute().getResult();
 
-			expected = new HashMap<Integer, Integer>();
+			expected = new HashMap<>();
 			if (!rowDeleted) {
 				for (Integer rowKey = 2001; rowKey<=2005; rowKey++) {
 					expected.put(rowKey, 1);
@@ -457,7 +457,7 @@ public class CompositeColumnTests extends KeyspaceTests {
 			
 			Assert.assertEquals(expected, result);
 			
-			result = keyspace.prepareQuery(CF_POPULATION)
+			result = keyspace.prepareQuery(cfPopulation)
 					 .getKeySlice(2001, 2002, 2003, 2004, 2005)
 					 .withColumnRange(compSerializer.buildRange()
 							.withPrefix("WA")
@@ -467,7 +467,7 @@ public class CompositeColumnTests extends KeyspaceTests {
 							.getColumnCounts()
 							.execute().getResult();
 
-			expected = new HashMap<Integer, Integer>();
+			expected = new HashMap<>();
 			if (!rowDeleted) {
 				for (Integer rowKey = 2001; rowKey<=2005; rowKey++) {
 					expected.put(rowKey, 1);
@@ -483,12 +483,12 @@ public class CompositeColumnTests extends KeyspaceTests {
 		
 		TestRange range = testRanges.get(0);
 		
-		Map<Integer, Integer> result = keyspace.prepareQuery(CF_POPULATION)
+		Map<Integer, Integer> result = keyspace.prepareQuery(cfPopulation)
 				.getKeyRange(null, null, range.start, range.end, 100)
 				.getColumnCounts()
 				.execute().getResult();
 		
-		Map<Integer, Integer> expected = new HashMap<Integer, Integer>();
+		Map<Integer, Integer> expected = new HashMap<>();
 		if (!rowDeleted) {
 			for (Integer year : range.expectedRowKeys) {
 				expected.put(year, 4);
@@ -502,7 +502,7 @@ public class CompositeColumnTests extends KeyspaceTests {
 		List<TestRange> testRanges = getTestRanges();
 		for (TestRange testRange : testRanges) {
 
-			Map<Integer, Integer> result = keyspace.prepareQuery(CF_POPULATION)
+			Map<Integer, Integer> result = keyspace.prepareQuery(cfPopulation)
 					.getKeyRange(null, null, testRange.start, testRange.end, 100)
 					.withColumnRange(compSerializer.buildRange()
 							.withPrefix("CA")
@@ -510,7 +510,7 @@ public class CompositeColumnTests extends KeyspaceTests {
 							.getColumnCounts()
 							.execute().getResult();
 
-			Map<Integer, Integer> expected = new HashMap<Integer, Integer>();
+			Map<Integer, Integer> expected = new HashMap<>();
 			if (!rowDeleted) {
 				for (Integer rowKey : testRange.expectedRowKeys) {
 					expected.put(rowKey, 2);
@@ -519,7 +519,7 @@ public class CompositeColumnTests extends KeyspaceTests {
 			
 			Assert.assertEquals(expected, result);
 			
-			result = keyspace.prepareQuery(CF_POPULATION)
+			result = keyspace.prepareQuery(cfPopulation)
 					.getKeyRange(null, null, testRange.start, testRange.end, 100)
 					.withColumnRange(compSerializer.buildRange()
 							.withPrefix("CA")
@@ -528,7 +528,7 @@ public class CompositeColumnTests extends KeyspaceTests {
 							.getColumnCounts()
 							.execute().getResult();
 
-			expected = new HashMap<Integer, Integer>();
+			expected = new HashMap<>();
 			if (!rowDeleted) {
 				for (Integer rowKey : testRange.expectedRowKeys) {
 					expected.put(rowKey, 1);
@@ -537,7 +537,7 @@ public class CompositeColumnTests extends KeyspaceTests {
 			
 			Assert.assertEquals(expected, result);
 			
-			result = keyspace.prepareQuery(CF_POPULATION)
+			result = keyspace.prepareQuery(cfPopulation)
 					.getKeyRange(null, null, testRange.start, testRange.end, 100)
 					.withColumnRange(compSerializer.buildRange()
 							.withPrefix("WA")
@@ -547,7 +547,7 @@ public class CompositeColumnTests extends KeyspaceTests {
 							.getColumnCounts()
 							.execute().getResult();
 
-			expected = new HashMap<Integer, Integer>();
+			expected = new HashMap<>();
 			if (!rowDeleted) {
 				for (Integer rowKey : testRange.expectedRowKeys) {
 					expected.put(rowKey, 1);
@@ -626,9 +626,15 @@ public class CompositeColumnTests extends KeyspaceTests {
 
 		@Override
 		public boolean equals(Object obj) {
-			if (this == obj) return true;
-			if (obj == null)return false;
-			if (getClass() != obj.getClass()) return false;
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
 			Population other = (Population) obj;
 			boolean equal = true;
 			equal &= (state != null) ? (state.equals(other.state)) : other.state == null; 
@@ -640,21 +646,21 @@ public class CompositeColumnTests extends KeyspaceTests {
 		public Population clone() {
 			return new Population(state, city, zipcode);
 		}
-	}	
-	
-	/**
-	 *   2014 -->  -6625834866172541556    2003 -->  -5952676706262623311    2009 -->  -4850296245464368619
-	 *   2010 -->  -4012971246572234480    2005 -->  -3904377230599730913    2006 -->  -3604768136712843506 
-	 *   2012 -->  -3193851331505022123    2007 -->  -797272529921810676     2001 -->   267648259961407629 
-	 *   2002 -->   313927025611477591     2011 -->   2700799408278278395    2004 -->   5455601112738248795  
-	 *   2013 -->   8821734684824899422    2008 -->   9033513988054576353
-	*/
-	
-	private static class TestRange {
+	}
+
+    /**
+     *   2014 -->  -6625834866172541556    2003 -->  -5952676706262623311    2009 -->  -4850296245464368619
+     *   2010 -->  -4012971246572234480    2005 -->  -3904377230599730913    2006 -->  -3604768136712843506 
+     *   2012 -->  -3193851331505022123    2007 -->  -797272529921810676     2001 -->   267648259961407629 
+     *   2002 -->   313927025611477591     2011 -->   2700799408278278395    2004 -->   5455601112738248795  
+     *   2013 -->   8821734684824899422    2008 -->   9033513988054576353
+    */
+    
+    private static final class TestRange {
 		
 		private String start; 
 		private String end; 
-		private List<Integer> expectedRowKeys = new ArrayList<Integer>(); 
+		private List<Integer> expectedRowKeys = new ArrayList<>(); 
 		
 		private TestRange(String start, String end, Integer ... rows) {
 			this.start = start;
@@ -665,7 +671,7 @@ public class CompositeColumnTests extends KeyspaceTests {
 	
 	private List<TestRange> getTestRanges() {
 		
-		List<TestRange> list = new ArrayList<TestRange>();
+		List<TestRange> list = new ArrayList<>();
 		list.add(new TestRange("-6625834866172541556", "-4850296245464368619", 2014, 2003, 2009));
 		list.add(new TestRange("-4012971246572234480", "-3604768136712843506", 2010, 2005, 2006));
 		list.add(new TestRange("-3193851331505022123", "267648259961407629", 2012, 2007, 2001));
