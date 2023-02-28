@@ -57,7 +57,7 @@ public class StressSimpleHostConnectionPoolImpl {
         CountingConnectionPoolMonitor monitor = new CountingConnectionPoolMonitor();
 
         Host host = new Host("127.0.0.1", TestHostType.GOOD_IMMEDIATE.ordinal());
-        final SimpleHostConnectionPool<TestClient> pool = new SimpleHostConnectionPool<TestClient>(
+        final SimpleHostConnectionPool<TestClient> pool = new SimpleHostConnectionPool<>(
                 host, new TestConnectionFactory(null, monitor), monitor,
                 config, new NoOpListener());
 
@@ -67,21 +67,18 @@ public class StressSimpleHostConnectionPoolImpl {
 
         ExecutorService executor = Executors.newFixedThreadPool(numThreads);
         for (int i = 0; i < numThreads; i++) {
-            executor.submit(new Runnable() {
-                @Override
-                public void run() {
-                    for (int i = 0; i < numOperations; i++) {
-                        Connection<TestClient> conn = null;
-                        try {
-                            conn = pool.borrowConnection(timeout);
-                            think(10, 10);
-                        } catch (OperationException e) {
-                            // e.printStackTrace();
-                        } catch (ConnectionException e) {
-                            // e.printStackTrace();
-                        } finally {
-                            conn.getHostConnectionPool().returnConnection(conn);
-                        }
+            executor.submit(() -> {
+                for (int i = 0; i < numOperations; i++) {
+                    Connection<TestClient> conn = null;
+                    try {
+                        conn = pool.borrowConnection(timeout);
+                        think(10, 10);
+                    } catch (OperationException e) {
+                        // e.printStackTrace();
+                    } catch (ConnectionException e) {
+                        // e.printStackTrace();
+                    } finally {
+                        conn.getHostConnectionPool().returnConnection(conn);
                     }
                 }
             });

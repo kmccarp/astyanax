@@ -23,17 +23,17 @@ final class NullableEntity {
 		
 		@Override
 		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
-				return false;
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
 			AllOptionalNestedEntity other = (AllOptionalNestedEntity) obj;
-			if(((nullable == null && other.nullable == null) || (nullable != null && nullable.equals(other.nullable))))
-				return true;
-			else
-				return false;
+            return (nullable == null && other.nullable == null) || (nullable != null && nullable.equals(other.nullable));
 		}
 
         @Override
@@ -58,17 +58,17 @@ final class NullableEntity {
 		
 		@Override
 		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
-				return false;
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
 			AllMandatoryNestedEntity other = (AllMandatoryNestedEntity) obj;
-			if(((notnullable == null && other.notnullable == null) || (notnullable != null && notnullable.equals(other.notnullable))))
-				return true;
-			else
-				return false;
+            return (notnullable == null && other.notnullable == null) || (notnullable != null && notnullable.equals(other.notnullable));
 		}
 
         @Override
@@ -164,28 +164,27 @@ final class NullableEntity {
 	
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
 		NullableEntity other = (NullableEntity) obj;
-		if(id.equals(other.id) && 
-				((notnullable == null && other.notnullable == null) || (notnullable != null && notnullable.equals(other.notnullable))) &&
-				((nullable == null && other.nullable == null) || (notnullable != null && notnullable.equals(other.notnullable))) &&
-				((notnullableAllOptionalNestedEntity == null && other.notnullableAllOptionalNestedEntity == null) 
-						|| (notnullableAllOptionalNestedEntity != null && notnullableAllOptionalNestedEntity.equals(other.notnullableAllOptionalNestedEntity))) &&
-				((nullableAllOptionalNestedEntity == null && other.nullableAllOptionalNestedEntity == null) 
-						|| (nullableAllOptionalNestedEntity != null && nullableAllOptionalNestedEntity.equals(other.nullableAllOptionalNestedEntity))) &&
-				((notnullableAllMandatoryNestedEntity == null && other.notnullableAllMandatoryNestedEntity == null) 
-						|| (notnullableAllMandatoryNestedEntity != null && notnullableAllMandatoryNestedEntity.equals(other.notnullableAllMandatoryNestedEntity))) &&
-				((nullableAllMandatoryNestedEntity == null && other.nullableAllMandatoryNestedEntity == null) 
-						|| (nullableAllMandatoryNestedEntity != null && nullableAllMandatoryNestedEntity.equals(other.nullableAllMandatoryNestedEntity)))
-				)
-			return true;
-		else
-			return false;
+        return id.equals(other.id) &&
+                ((notnullable == null && other.notnullable == null) || (notnullable != null && notnullable.equals(other.notnullable))) &&
+                ((nullable == null && other.nullable == null) || (notnullable != null && notnullable.equals(other.notnullable))) &&
+                ((notnullableAllOptionalNestedEntity == null && other.notnullableAllOptionalNestedEntity == null)
+                        || (notnullableAllOptionalNestedEntity != null && notnullableAllOptionalNestedEntity.equals(other.notnullableAllOptionalNestedEntity))) &&
+                ((nullableAllOptionalNestedEntity == null && other.nullableAllOptionalNestedEntity == null)
+                        || (nullableAllOptionalNestedEntity != null && nullableAllOptionalNestedEntity.equals(other.nullableAllOptionalNestedEntity))) &&
+                ((notnullableAllMandatoryNestedEntity == null && other.notnullableAllMandatoryNestedEntity == null)
+                        || (notnullableAllMandatoryNestedEntity != null && notnullableAllMandatoryNestedEntity.equals(other.notnullableAllMandatoryNestedEntity))) &&
+                ((nullableAllMandatoryNestedEntity == null && other.nullableAllMandatoryNestedEntity == null)
+                        || (nullableAllMandatoryNestedEntity != null && nullableAllMandatoryNestedEntity.equals(other.nullableAllMandatoryNestedEntity)));
 	}
 
     @Override

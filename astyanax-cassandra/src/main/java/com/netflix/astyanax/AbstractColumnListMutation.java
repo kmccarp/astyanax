@@ -37,7 +37,7 @@ import org.apache.commons.codec.binary.StringUtils;
  */
 public abstract class AbstractColumnListMutation<C> implements ColumnListMutation<C> {
     protected long timestamp;
-    protected Integer defaultTtl = null;
+    protected Integer defaultTtl;
 
     public AbstractColumnListMutation(long timestamp) {
         this.timestamp = timestamp;
@@ -76,8 +76,9 @@ public abstract class AbstractColumnListMutation<C> implements ColumnListMutatio
 
     @Override
     public <V> ColumnListMutation<C> putColumnIfNotNull(C columnName, V value, Serializer<V> valueSerializer, Integer ttl) {
-        if (value == null)
+        if (value == null) {
             return this;
+        }
         return putColumn(columnName, value, valueSerializer, ttl);
     }
     
@@ -407,15 +408,17 @@ public abstract class AbstractColumnListMutation<C> implements ColumnListMutatio
 
     @Override
     public ColumnListMutation<C> putCompressedColumnIfNotNull(C columnName, String value, Integer ttl) {
-        if (value == null)
+        if (value == null) {
             return this;
+        }
         return putCompressedColumn(columnName, value, ttl);
     }
 
     @Override
     public ColumnListMutation<C> putCompressedColumnIfNotNull(C columnName, String value) {
-        if (value == null)
+        if (value == null) {
             return this;
+        }
         return putCompressedColumn(columnName, value);
     }
 

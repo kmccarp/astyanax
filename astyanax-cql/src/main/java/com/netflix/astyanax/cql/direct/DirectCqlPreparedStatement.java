@@ -45,7 +45,7 @@ public class DirectCqlPreparedStatement implements CqlPreparedStatement {
 
 	private final Session session;
 	private final PreparedStatement pStmt; 
-	private final List<Object> bindValues = new ArrayList<Object>(); 
+	private final List<Object> bindValues = new ArrayList<>(); 
 	
 	public DirectCqlPreparedStatement(Session session, PreparedStatement pStmt) {
 		this.session = session;
@@ -59,7 +59,7 @@ public class DirectCqlPreparedStatement implements CqlPreparedStatement {
 		ResultSet resultSet = session.execute(bStmt);
 		
 		CqlStatementResult result = new DirectCqlStatementResultImpl(resultSet);
-		return new CqlOperationResultImpl<CqlStatementResult>(resultSet, result);
+		return new CqlOperationResultImpl<>(resultSet, result);
 	}
 
 	@Override
@@ -73,7 +73,7 @@ public class DirectCqlPreparedStatement implements CqlPreparedStatement {
 			@Override
 			public OperationResult<CqlStatementResult> getOperationResult(ResultSet rs) {
 				CqlStatementResult result = new DirectCqlStatementResultImpl(rs);
-				return new CqlOperationResultImpl<CqlStatementResult>(rs, result);			}
+				return new CqlOperationResultImpl<>(rs, result);			}
 		};
 	}
 

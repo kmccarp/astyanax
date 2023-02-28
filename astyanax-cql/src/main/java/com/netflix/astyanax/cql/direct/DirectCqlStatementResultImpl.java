@@ -46,7 +46,7 @@ public class DirectCqlStatementResultImpl implements CqlStatementResult {
 	public <K, C> Rows<K, C> getRows(ColumnFamily<K, C> columnFamily) {
 
 		List<com.datastax.driver.core.Row> rows = rs.all(); 
-		return new CqlRowListImpl<K, C>(rows, columnFamily);
+		return new CqlRowListImpl<>(rows, columnFamily);
 	}
 
 	@Override

@@ -43,8 +43,8 @@ import com.netflix.astyanax.serializers.UUIDSerializer;
 
 public abstract class AbstractColumnListMutationImpl<C> implements ColumnListMutation<C> {
     
-	protected final AtomicReference<Long> defaultTimestamp = new AtomicReference<Long>(null);
-	protected final AtomicReference<Integer> defaultTTL = new AtomicReference<Integer>(null);
+	protected final AtomicReference<Long> defaultTimestamp = new AtomicReference<>(null);
+	protected final AtomicReference<Integer> defaultTTL = new AtomicReference<>(null);
 
     public AbstractColumnListMutationImpl(Long newTimestamp) {
         this.defaultTimestamp.set(newTimestamp);
@@ -83,8 +83,9 @@ public abstract class AbstractColumnListMutationImpl<C> implements ColumnListMut
 
     @Override
     public <V> ColumnListMutation<C> putColumnIfNotNull(C columnName, V value, Serializer<V> valueSerializer, Integer ttl) {
-        if (value == null)
+        if (value == null) {
             return this;
+        }
         return putColumn(columnName, value, valueSerializer, ttl);
     }
     
@@ -408,15 +409,17 @@ public abstract class AbstractColumnListMutationImpl<C> implements ColumnListMut
 
     @Override
     public ColumnListMutation<C> putCompressedColumnIfNotNull(C columnName, String value, Integer ttl) {
-        if (value == null)
+        if (value == null) {
             return this;
+        }
         return putCompressedColumn(columnName, value, ttl);
     }
 
     @Override
     public ColumnListMutation<C> putCompressedColumnIfNotNull(C columnName, String value) {
-        if (value == null)
+        if (value == null) {
             return this;
+        }
         return putCompressedColumn(columnName, value);
     }
 

@@ -32,7 +32,7 @@ import org.apache.commons.csv.CSVParser;
  * 
  */
 public class CsvColumnReader implements RecordReader {
-    private CSVParser parser;
+    private final CSVParser parser;
     private boolean hasHeaderLine = true;
 
     public CsvColumnReader(Reader reader) {
@@ -62,14 +62,16 @@ public class CsvColumnReader implements RecordReader {
     public List<Pair<String, String>> next() throws IOException {
         // Iterate rows
         String[] row = parser.getLine();
-        if (null == row)
+        if (null == row) {
             return null;
+        }
 
-        List<Pair<String, String>> columns = new ArrayList<Pair<String, String>>();
+        List<Pair<String, String>> columns = new ArrayList<>();
         // Build row mutation for all columns
         columns.add(Pair.create("key", row[0]));
-        if (row.length == 3)
+        if (row.length == 3) {
             columns.add(Pair.create(row[1], row[2]));
+        }
         return columns;
     }
 }

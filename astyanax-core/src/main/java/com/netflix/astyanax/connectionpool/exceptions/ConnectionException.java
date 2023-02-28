@@ -33,9 +33,9 @@ public abstract class ConnectionException extends Exception {
      */
     private static final long serialVersionUID = -3476496346094715988L;
     private Host host = Host.NO_HOST;
-    private long latency = 0;
-    private long latencyWithPool = 0;
-    private int attemptCount = 0;
+    private long latency;
+    private long latencyWithPool;
+    private int attemptCount;
 
     public ConnectionException(String message) {
         super(message);

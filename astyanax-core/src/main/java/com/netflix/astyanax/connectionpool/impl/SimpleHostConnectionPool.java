@@ -70,9 +70,9 @@ import com.netflix.astyanax.connectionpool.exceptions.UnknownException;
  * 
  */
 public class SimpleHostConnectionPool<CL> implements HostConnectionPool<CL> {
-    private final static Logger LOG = LoggerFactory.getLogger(SimpleHostConnectionPool.class);
-    private final static int MAX_PRIME_CONNECTIONS_RETRY_ATTEMPT = 2;
-    private final static int PRIME_CONNECTION_DELAY = 100;
+    private static final Logger LOG = LoggerFactory.getLogger(SimpleHostConnectionPool.class);
+    private static final int MAX_PRIME_CONNECTIONS_RETRY_ATTEMPT = 2;
+    private static final int PRIME_CONNECTION_DELAY = 100;
 
     /**
      * Interface to notify the owning connection pool of up/down state changes.
@@ -130,7 +130,7 @@ public class SimpleHostConnectionPool<CL> implements HostConnectionPool<CL> {
         this.latencyStrategy = config.getLatencyScoreStrategy().createInstance();
         this.badHostDetector = config.getBadHostDetector().createInstance();
         this.monitor         = monitor;
-        this.availableConnections = new LinkedBlockingQueue<Connection<CL>>();
+        this.availableConnections = new LinkedBlockingQueue<>();
         this.executor        = config.getHostReconnectExecutor();
         
         Preconditions.checkNotNull(config.getHostReconnectExecutor(), "HostReconnectExecutor cannot be null");
@@ -198,10 +198,11 @@ public class SimpleHostConnectionPool<CL> implements HostConnectionPool<CL> {
                 connection = waitForConnection(isOpenning ? config.getConnectTimeout() : timeout);
                 return connection;
             }
-            else
+            else {
                 throw new PoolTimeoutException("Fast fail waiting for connection from pool")
                         .setHost(getHost())
                         .setLatency(System.currentTimeMillis() - startTime);
+            }
         }
         finally {
             if (connection != null) {
@@ -225,8 +226,9 @@ public class SimpleHostConnectionPool<CL> implements HostConnectionPool<CL> {
         try {
             blockedThreads.incrementAndGet();
             connection = availableConnections.poll(timeout, TimeUnit.MILLISECONDS);
-            if (connection != null)
+            if (connection != null) {
                 return connection;
+            }
             
             throw new PoolTimeoutException("Timed out waiting for connection")
                 .setHost(getHost())
@@ -301,8 +303,9 @@ public class SimpleHostConnectionPool<CL> implements HostConnectionPool<CL> {
     }
 
     private void noteError(ConnectionException reason) {
-        if (errorsSinceLastSuccess.incrementAndGet() > 3) 
+        if (errorsSinceLastSuccess.incrementAndGet() > 3) {
             markAsDown(reason);
+        }
     }
     
     /**
@@ -332,8 +335,9 @@ public class SimpleHostConnectionPool<CL> implements HostConnectionPool<CL> {
                     public void run() {
                         Thread.currentThread().setName("RetryService : " + host.getName());
                         try {
-                            if (activeCount.get() == 0)
+                            if (activeCount.get() == 0) {
                                 reconnect();
+                            }
                             
                             // Created a new connection successfully.
                             try {
@@ -458,8 +462,9 @@ public class SimpleHostConnectionPool<CL> implements HostConnectionPool<CL> {
                             // Trying to open way too many connections here
                         }
                         finally {
-                            if (connection == null)
+                            if (connection == null) {
                                 pendingConnections.decrementAndGet();
+                            }
                         }
                     }
                 }

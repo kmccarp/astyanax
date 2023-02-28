@@ -30,7 +30,7 @@ import com.netflix.astyanax.thrift.ThriftFamilyFactory;
 @Ignore
 public class UniquenessConstraintTest {
 
-    private static Logger LOG = LoggerFactory
+    private static Logger log = LoggerFactory
             .getLogger(UniquenessConstraintTest.class);
 
     private static AstyanaxContext<Cluster> clusterContext;
@@ -41,7 +41,7 @@ public class UniquenessConstraintTest {
 
     private static final boolean TEST_INIT_KEYSPACE = true;
 
-    private static ColumnFamily<Long, String> CF_DATA = ColumnFamily
+    private static ColumnFamily<Long, String> cfData = ColumnFamily
             .newColumnFamily(TEST_DATA_CF, LongSerializer.get(),
                     StringSerializer.get());
 
@@ -64,18 +64,18 @@ public class UniquenessConstraintTest {
         if (TEST_INIT_KEYSPACE) {
             Cluster cluster = clusterContext.getEntity();
             try {
-                LOG.info("Dropping keyspace: " + TEST_KEYSPACE_NAME);
+                log.info("Dropping keyspace: " + TEST_KEYSPACE_NAME);
                 cluster.dropKeyspace(TEST_KEYSPACE_NAME);
                 Thread.sleep(10000);
             } catch (ConnectionException e) {
-                LOG.warn(e.getMessage());
+                log.warn(e.getMessage());
             }
 
-            Map<String, String> stratOptions = new HashMap<String, String>();
+            Map<String, String> stratOptions = new HashMap<>();
             stratOptions.put("replication_factor", "3");
 
             try {
-                LOG.info("Creating keyspace: " + TEST_KEYSPACE_NAME);
+                log.info("Creating keyspace: " + TEST_KEYSPACE_NAME);
 
                 KeyspaceDefinition ksDef = cluster.makeKeyspaceDefinition();
 
@@ -84,46 +84,44 @@ public class UniquenessConstraintTest {
                         .setStrategyClass("SimpleStrategy")
                         .addColumnFamily(
                                 cluster.makeColumnFamilyDefinition()
-                                        .setName(CF_DATA.getName())
+                                        .setName(cfData.getName())
                                         .setComparatorType("UTF8Type"));
                 cluster.addKeyspace(ksDef);
                 Thread.sleep(1000);
             } catch (ConnectionException e) {
-                LOG.error(e.getMessage());
+                log.error(e.getMessage());
             }
         }
     }
 
     @AfterClass
     public static void teardown() {
-        if (clusterContext != null)
+        if (clusterContext != null) {
             clusterContext.shutdown();
+        }
     }
 
     @Test
     public void testUniqueness() throws Exception {
-        LOG.info("Starting");
+        log.info("Starting");
 
         Keyspace keyspace = clusterContext.getEntity().getKeyspace(TEST_KEYSPACE_NAME);
 
         UniquenessConstraintWithPrefix<Long> unique = new UniquenessConstraintWithPrefix<Long>(
-                keyspace, CF_DATA)
+                keyspace, cfData)
                 .setTtl(2)
                 .setPrefix("unique_")
                 .setConsistencyLevel(ConsistencyLevel.CL_ONE)
                 .setMonitor(
-                        new UniquenessConstraintViolationMonitor<Long, String>() {
-                            @Override
-                            public void onViolation(Long key, String column) {
-                                LOG.info("Violated: " + key + " column: "
-                                        + column);
-                            }
-                        });
+                (key, column) -> {
+                    log.info("Violated: " + key + " column: "
+                            + column);
+                });
 
         try {
             String column = unique.isUnique(1234L);
             Assert.assertNotNull(column);
-            LOG.info(column);
+            log.info(column);
             column = unique.isUnique(1234L);
             Assert.assertNull(column);
 
@@ -133,9 +131,9 @@ public class UniquenessConstraintTest {
             }
             column = unique.isUnique(1234L);
             Assert.assertNotNull(column);
-            LOG.info(column);
+            log.info(column);
         } catch (ConnectionException e) {
-            LOG.error(e.getMessage());
+            log.error(e.getMessage());
             Assert.fail(e.getMessage());
         }
     }

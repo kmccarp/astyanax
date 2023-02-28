@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author elandau
  */
 public class MessageQueueShard implements MessageQueueShardStats {
-    private volatile int   lastCount = 0;
+    private volatile int   lastCount;
     private final String   name;
     private final int      partition;
     private final int      shard;

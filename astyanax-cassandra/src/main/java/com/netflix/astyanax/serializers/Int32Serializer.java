@@ -49,8 +49,7 @@ public class Int32Serializer extends AbstractSerializer<Integer> {
             return null;
         }
         ByteBuffer dup = byteBuffer.duplicate();
-        int in = dup.getInt();
-        return in;
+        return dup.getInt();
     }
 
     @Override

@@ -27,7 +27,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import com.google.common.base.Function;
 import com.google.common.base.Supplier;
 import com.google.common.collect.Lists;
-import com.netflix.astyanax.connectionpool.Host;
 
 public class TestDriver {
     private int                         nThreads;
@@ -35,16 +34,16 @@ public class TestDriver {
     private ScheduledExecutorService    executor;
     private Function<TestDriver, Void>  callback;
     private volatile int                delta;
-    private AtomicLong                  callbackCounter = new AtomicLong();
+    private final AtomicLong                  callbackCounter = new AtomicLong();
     private long                        iterationCount = 100;
-    private long                        futuresTimeout = 0;
+    private long                        futuresTimeout;
     private TimeUnit                    futuresUnits = TimeUnit.MILLISECONDS;
     private ExecutorService             futuresExecutor;
-    private ArrayList<Event>            events = Lists.newArrayList();              
+    private final ArrayList<Event>            events = Lists.newArrayList();              
     private long                        startTime;
-    private AtomicLong                  operationCounter = new AtomicLong(0);
+    private final AtomicLong                  operationCounter = new AtomicLong(0);
     
-    public static abstract class Event {
+    public abstract static class Event {
         protected Function<TestDriver, Void> function;
         
         public Event(Function<TestDriver, Void> function) {
@@ -66,17 +65,14 @@ public class TestDriver {
         }
         
         public void addToExecutor(ScheduledExecutorService service, final TestDriver driver) {
-            service.scheduleAtFixedRate(new Runnable() {
-                @Override
-                public void run() {
-                    function.apply(driver);
-                }
+            service.scheduleAtFixedRate(() -> {
+                function.apply(driver);
             }, delay, delay, units);
         }
     }
     
     public static class Builder {
-        private TestDriver driver = new TestDriver();
+        private final TestDriver driver = new TestDriver();
         
         public Builder withThreadCount(int nThreads) {
             driver.nThreads = nThreads;
@@ -111,8 +107,9 @@ public class TestDriver {
         
         public TestDriver build() {
             driver.executor = Executors.newScheduledThreadPool(driver.nThreads + 10);
-            if (driver.futuresTimeout != 0)
+            if (driver.futuresTimeout != 0) {
                 driver.futuresExecutor = Executors.newScheduledThreadPool(driver.nThreads);
+            }
             return driver;
         }
     }
@@ -138,8 +135,9 @@ public class TestDriver {
                         operationCounter.incrementAndGet();
                         try {
                             if (iterationCount != 0) {
-                                if (callbackCounter.incrementAndGet() > iterationCount) 
+                                if (callbackCounter.incrementAndGet() > iterationCount) {
                                     return;
+                                }
                             }
                             
                             if (futuresTimeout == 0) {
@@ -178,12 +176,7 @@ public class TestDriver {
             });
         }
         
-        this.executor.scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-                updateDelta();
-            }
-        },  1, 1, TimeUnit.SECONDS);
+        this.executor.scheduleAtFixedRate(this::updateDelta,  1, 1, TimeUnit.SECONDS);
         
         for (Event event : events) {
             event.addToExecutor(this.executor, this);

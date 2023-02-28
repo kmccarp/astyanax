@@ -52,7 +52,7 @@ import com.netflix.astyanax.model.Rows;
 public class CqlRowListIterator<K,C> implements Rows<K,C> {
 
 	private enum State {
-		UnSet, PreFetch, PrefetchDone, Iterator;
+		UnSet, PreFetch, PrefetchDone, Iterator
 	}
 	
 	private final ResultSet resultSet; 
@@ -60,20 +60,20 @@ public class CqlRowListIterator<K,C> implements Rows<K,C> {
 	private final Serializer<K> keySerializer;
 	private final boolean isClusteringKey;
 	
-	private final AtomicReference<State> stateRef = new AtomicReference<State>(State.UnSet);
+	private final AtomicReference<State> stateRef = new AtomicReference<>(State.UnSet);
 	
 	private final AtomicInteger iterRowCount = new AtomicInteger(0);
-	private final AtomicReference<Iterator<Row<K,C>>> iterRef = new AtomicReference<Iterator<Row<K,C>>>(null);
+	private final AtomicReference<Iterator<Row<K,C>>> iterRef = new AtomicReference<>(null);
 	
-	private final List<Row<K,C>>   rows = new ArrayList<Row<K,C>>();
-	private final Map<K, Row<K,C>> lookup = new HashMap<K, Row<K,C>>();
+	private final List<Row<K,C>>   rows = new ArrayList<>();
+	private final Map<K, Row<K,C>> lookup = new HashMap<>();
 
 	public CqlRowListIterator(ResultSet rs, ColumnFamily<K,C> cf) {
 		this.resultSet = rs;
 		this.cf = cf;
 		this.keySerializer = cf.getKeySerializer();
 		CqlColumnFamilyDefinitionImpl cfDef = (CqlColumnFamilyDefinitionImpl) cf.getColumnFamilyDefinition();
-		this.isClusteringKey = cfDef.getClusteringKeyColumnDefinitionList().size() > 0;
+		this.isClusteringKey = !cfDef.getClusteringKeyColumnDefinitionList().isEmpty();
 	}
 	
 	@Override
@@ -91,7 +91,7 @@ public class CqlRowListIterator<K,C> implements Rows<K,C> {
 		Iterator<Row<K,C>> rowIter =  new Iterator<Row<K,C>>() {
 
 			private final Iterator<com.datastax.driver.core.Row> rsIter = resultSet.iterator();
-			private List<com.datastax.driver.core.Row> currentList = new ArrayList<com.datastax.driver.core.Row>();
+			private List<com.datastax.driver.core.Row> currentList = new ArrayList<>();
 			private K currentRowKey = null; 
 			
 			@Override
@@ -121,33 +121,33 @@ public class CqlRowListIterator<K,C> implements Rows<K,C> {
 							currentRowKey = rowKey;
 						} else {
 							// Ok, we have read all columns of a single row. Return the current fully formed row
-							List<com.datastax.driver.core.Row> newList = new ArrayList<com.datastax.driver.core.Row>();
+							List<com.datastax.driver.core.Row> newList = new ArrayList<>();
 							newList.addAll(currentList);
 							
 							// reset the currentList and start with the new rowkey
-							currentList = new ArrayList<com.datastax.driver.core.Row>();
+							currentList = new ArrayList<>();
 							currentList.add(rsRow);
 							currentRowKey = rowKey;
 							iterRowCount.incrementAndGet();
 
-							return new CqlRowImpl<K,C>(newList, cf);
+							return new CqlRowImpl<>(newList, cf);
 						}
 					}
 					
 					// In case we got here, then we have exhausted the rsIter and can just return the last row
-					List<com.datastax.driver.core.Row> newList = new ArrayList<com.datastax.driver.core.Row>();
+					List<com.datastax.driver.core.Row> newList = new ArrayList<>();
 					newList.addAll(currentList);
 					
 					// reset the currentList and start with the new rowkey
-					currentList = new ArrayList<com.datastax.driver.core.Row>();
+					currentList = new ArrayList<>();
 					iterRowCount.incrementAndGet();
-					return new CqlRowImpl<K,C>(newList, cf);
+					return new CqlRowImpl<>(newList, cf);
 					
 				} else {
 					// Here each cql row corresponds to a single Astyanax row
 					if (rsIter.hasNext()) {
 						com.datastax.driver.core.Row rsRow = rsIter.next();
-						return new CqlRowImpl<K,C>(rsRow, cf);
+						return new CqlRowImpl<>(rsRow, cf);
 					} else {
 						return null; // this should not happen if this is all accessed via the iterator
 					}
@@ -202,7 +202,7 @@ public class CqlRowListIterator<K,C> implements Rows<K,C> {
 			return !this.iterRef.get().hasNext();
 		} else {
 			consumeAllRows();
-			return rows.size() == 0;
+			return rows.isEmpty();
 		}
 	}
 	

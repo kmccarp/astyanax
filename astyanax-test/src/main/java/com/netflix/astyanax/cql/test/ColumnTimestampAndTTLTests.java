@@ -28,16 +28,16 @@ import com.netflix.astyanax.serializers.StringSerializer;
 
 public class ColumnTimestampAndTTLTests extends KeyspaceTests {
 
-    private static ColumnFamily<Long, Long> CF_COL_TIMESTAMP = ColumnFamily
+    private static final ColumnFamily<Long, Long> CF_COL_TIMESTAMP = ColumnFamily
             .newColumnFamily(
-                    "columntimestamps", 
+                    "columntimestamps",
                     LongSerializer.get(),
                     LongSerializer.get(),
                     LongSerializer.get());
-	
-    private static ColumnFamily<String, String> CF_TTL = ColumnFamily
+
+    private static final ColumnFamily<String, String> CF_TTL = ColumnFamily
             .newColumnFamily(
-                    "columnttls", 
+                    "columnttls",
                     StringSerializer.get(),
                     StringSerializer.get());
 

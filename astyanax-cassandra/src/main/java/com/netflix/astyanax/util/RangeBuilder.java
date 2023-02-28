@@ -39,13 +39,13 @@ import com.netflix.astyanax.serializers.UUIDSerializer;
  * 
  */
 public class RangeBuilder {
-    private static ByteBuffer EMPTY_BUFFER = ByteBuffer.allocate(0);
+    private static final ByteBuffer EMPTY_BUFFER = ByteBuffer.allocate(0);
     private static final int DEFAULT_MAX_SIZE = Integer.MAX_VALUE;
 
     private ByteBuffer start = EMPTY_BUFFER;
     private ByteBuffer end = EMPTY_BUFFER;
     private int limit = DEFAULT_MAX_SIZE;
-    private boolean reversed = false;
+    private boolean reversed;
 
     /**
      * @deprecated use setLimit instead

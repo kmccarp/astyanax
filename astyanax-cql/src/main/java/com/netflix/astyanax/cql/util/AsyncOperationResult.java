@@ -34,7 +34,7 @@ import com.netflix.astyanax.connectionpool.OperationResult;
  */
 public abstract class AsyncOperationResult<V> implements ListenableFuture<OperationResult<V>> {
 
-	private ResultSetFuture rsFuture; 
+    private final ResultSetFuture rsFuture; 
 
 	public AsyncOperationResult(ResultSetFuture rsFuture) {
 		this.rsFuture = rsFuture;

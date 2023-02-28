@@ -69,15 +69,17 @@ public class TestConnectionFactory implements ConnectionFactory<TestClient> {
                     long now = System.nanoTime();
                     latency = now - startTime;
                     pool.addLatencySample(latency, now);
-                    return new OperationResultImpl<R>(result.getHost(), result.getResult(), latency);
+                    return new OperationResultImpl<>(result.getHost(), result.getResult(), latency);
                 } catch (Exception e) {
                     long now = System.nanoTime();
                     latency = now - startTime;
                     ConnectionException connectionException;
-                    if (!(e instanceof ConnectionException))
+                    if (!(e instanceof ConnectionException)) {
                         connectionException = new UnknownException(e);
-                    else 
-                        connectionException = (ConnectionException)e;
+                    }
+                    else {
+                        connectionException = (ConnectionException) e;
+                    }
                     connectionException.setLatency(latency);
                     
                     if (!(connectionException instanceof IsTimeoutException)) {
@@ -95,14 +97,11 @@ public class TestConnectionFactory implements ConnectionFactory<TestClient> {
             public void close() {
                 if (isOpen) {
                     monitor.incConnectionClosed(getHost(), lastException);
-                    executor.submit(new Runnable() {
-                        @Override
-                        public void run() {
-                            final TestHostType type = TestHostType
-                                    .get(getHost().getPort());
-                            type.close();
-                            isOpen = false;
-                        }
+                    executor.submit(() -> {
+                        final TestHostType type = TestHostType
+                                .get(getHost().getPort());
+                        type.close();
+                        isOpen = false;
                     });
                 }
             }
@@ -135,19 +134,16 @@ public class TestConnectionFactory implements ConnectionFactory<TestClient> {
             @Override
             public void openAsync(final AsyncOpenCallback<TestClient> callback) {
                 final Connection<TestClient> This = this;
-                executor.submit(new Runnable() {
-                    @Override
-                    public void run() {
-                        Thread.currentThread().setName("MockConnectionFactory");
-                        try {
-                            open();
-                            callback.success(This);
-                        } catch (ConnectionException e) {
-                            callback.failure(This, e);
-                        } catch (Exception e) {
-                            callback.failure(This, new UnknownException(
-                                    "Error openning async connection", e));
-                        }
+                executor.submit(() -> {
+                    Thread.currentThread().setName("MockConnectionFactory");
+                    try {
+                        open();
+                        callback.success(This);
+                    } catch (ConnectionException e) {
+                        callback.failure(This, e);
+                    } catch (Exception e) {
+                        callback.failure(This, new UnknownException(
+                                "Error openning async connection", e));
                     }
                 });
             }
