@@ -33,7 +33,7 @@ public class BadHostDetectorImpl implements BadHostDetector {
 	private final ConnectionPoolConfiguration config;
 	
 	public BadHostDetectorImpl(ConnectionPoolConfiguration config) {
-		this.timeouts = new LinkedBlockingQueue<Long>();
+		this.timeouts = new LinkedBlockingQueue<>();
 		this.config = config;
 	}
 	
@@ -48,25 +48,22 @@ public class BadHostDetectorImpl implements BadHostDetector {
 	
 	@Override
 	public Instance createInstance() {
-		return new Instance() {
-			@Override
-			public boolean addTimeoutSample() {
-				long currentTimeMillis = System.currentTimeMillis();
-				
-				timeouts.add(currentTimeMillis);
-				
-				// Determine if the host exceeded timeoutCounter exceptions in
-				// the timeoutWindow, in which case this is determined to be a
-				// failure
-				if (timeouts.size() > config.getMaxTimeoutCount()) {
-					Long last = timeouts.remove();
-					if ((currentTimeMillis - last.longValue()) < config.getTimeoutWindow()) {
-						return true;
-					}
-				}
-				return false;
-			}
-		};
+		return () -> {
+            long currentTimeMillis = System.currentTimeMillis();
+
+            timeouts.add(currentTimeMillis);
+
+            // Determine if the host exceeded timeoutCounter exceptions in
+            // the timeoutWindow, in which case this is determined to be a
+            // failure
+            if (timeouts.size() > config.getMaxTimeoutCount()) {
+                Long last = timeouts.remove();
+                if ((currentTimeMillis - last.longValue()) < config.getTimeoutWindow()) {
+                    return true;
+                }
+            }
+            return false;
+        };
 	}
 
 	@Override

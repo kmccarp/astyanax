@@ -37,7 +37,7 @@ import java.lang.reflect.Field;
 import java.util.Date;
 import java.util.UUID;
 
-class Coercions {
+final class Coercions {
     @SuppressWarnings("unchecked")
     static <T> void setFieldFromColumn(T instance, Field field,
             Column<String> column) {

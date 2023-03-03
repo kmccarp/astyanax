@@ -120,17 +120,17 @@ public class ColumnFamily<K, C> implements Comparable<ColumnFamily<K,C>>{
     }
     
     public PreparedIndexExpression<K, C> newIndexClause() {
-        return new PreparedIndexExpressionImpl<K, C>(this.columnSerializer);
+        return new PreparedIndexExpressionImpl<>(this.columnSerializer);
     }
 
     public static <K, C> ColumnFamily<K, C> newColumnFamily(String columnFamilyName, Serializer<K> keySerializer,
             Serializer<C> columnSerializer) {
-        return new ColumnFamily<K, C>(columnFamilyName, keySerializer, columnSerializer);
+        return new ColumnFamily<>(columnFamilyName, keySerializer, columnSerializer);
     }
     
     public static <K, C> ColumnFamily<K, C> newColumnFamily(String columnFamilyName, Serializer<K> keySerializer,
             Serializer<C> columnSerializer, Serializer<?> defaultSerializer) {
-        return new ColumnFamily<K, C>(columnFamilyName, keySerializer, columnSerializer, defaultSerializer);
+        return new ColumnFamily<>(columnFamilyName, keySerializer, columnSerializer, defaultSerializer);
     }
 
     @Override
@@ -140,12 +140,17 @@ public class ColumnFamily<K, C> implements Comparable<ColumnFamily<K,C>>{
 
     @Override
     public boolean equals(Object obj) {
-        
-        if (this == obj) return true;
-        if (obj == null) return false;
-        
-        if (!(obj instanceof ColumnFamily))
+
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
             return false;
+        }
+
+        if (!(obj instanceof ColumnFamily)) {
+            return false;
+        }
         
         ColumnFamily other = (ColumnFamily) obj;
         return (getName() == null) ? other.getName() == null : getName().equals(other.getName());

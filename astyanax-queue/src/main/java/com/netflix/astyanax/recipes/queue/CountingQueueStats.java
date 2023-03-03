@@ -19,15 +19,15 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class CountingQueueStats implements MessageQueueStats {
-    private AtomicLong emptyPartitionCount = new AtomicLong();
-    private AtomicLong lockContentionCount = new AtomicLong();
-    private AtomicLong eventProcessCount   = new AtomicLong();
-    private AtomicLong eventReprocessCount = new AtomicLong();
-    private AtomicLong expiredLockCount    = new AtomicLong();
-    private AtomicLong ackMessageCount     = new AtomicLong();
-    private AtomicLong sendMessageCount    = new AtomicLong();
-    private AtomicLong invalidTaskCount    = new AtomicLong();
-    private AtomicLong persistErrorCount   = new AtomicLong();
+    private final AtomicLong emptyPartitionCount = new AtomicLong();
+    private final AtomicLong lockContentionCount = new AtomicLong();
+    private final AtomicLong eventProcessCount = new AtomicLong();
+    private final AtomicLong eventReprocessCount = new AtomicLong();
+    private final AtomicLong expiredLockCount = new AtomicLong();
+    private final AtomicLong ackMessageCount = new AtomicLong();
+    private final AtomicLong sendMessageCount = new AtomicLong();
+    private final AtomicLong invalidTaskCount = new AtomicLong();
+    private final AtomicLong persistErrorCount = new AtomicLong();
     
     @Override
     public void incEmptyPartitionCount() {

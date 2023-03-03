@@ -23,7 +23,7 @@ public class AstyanaxContext {
 	private final Map<Object, Object> context;
 
 	public AstyanaxContext() {
-		this(new ConcurrentHashMap<Object, Object>());
+		this(new ConcurrentHashMap<>());
 	}
 
 	public AstyanaxContext(Map<Object, Object> context) {

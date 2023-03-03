@@ -49,7 +49,7 @@ public class ReadTests extends KeyspaceTests {
 	//public static int RowCount = 1;
 	
 	public static String[] columnNamesArr = {"firstname", "lastname", "address","age","ageShort", "ageLong","percentile", "married","single", "birthdate", "bytes", "uuid", "empty"};
-	public static List<String> columnNames = new ArrayList<String>(Arrays.asList(columnNamesArr));
+	public static List<String> columnNames = new ArrayList<>(Arrays.asList(columnNamesArr));
 	
 	public static ColumnFamily<String, String> CF_USER_INFO = ColumnFamily.newColumnFamily(
 			"UserInfo", // Column Family Name
@@ -70,8 +70,8 @@ public class ReadTests extends KeyspaceTests {
     	testColumnValue(resultColumns, "lastname", columnNames, "smith_" + i);
     	testColumnValue(resultColumns, "address", columnNames, "john smith address " + i);
     	testColumnValue(resultColumns, "age", columnNames, 30 + i);
-    	testColumnValue(resultColumns, "ageShort", columnNames, new Integer(30+i).shortValue());
-    	testColumnValue(resultColumns, "ageLong", columnNames, new Integer(30+i).longValue());
+    	testColumnValue(resultColumns, "ageShort", columnNames, Integer.valueOf(30 + i).shortValue());
+    	testColumnValue(resultColumns, "ageLong", columnNames, Integer.valueOf(30 + i).longValue());
     	testColumnValue(resultColumns, "percentile", columnNames, 30.1);
     	testColumnValue(resultColumns, "married", columnNames, true);
     	testColumnValue(resultColumns, "single", columnNames, false);
@@ -149,8 +149,8 @@ public class ReadTests extends KeyspaceTests {
     		.putColumn("lastname", "smith_" + i, null)
     		.putColumn("address", "john smith address " + i, null)
     		.putColumn("age", 30+i, null)
-    		.putColumn("ageShort", new Integer(30+i).shortValue(), null)
-    		.putColumn("ageLong", new Integer(30+i).longValue(), null)
+    		.putColumn("ageShort", Integer.valueOf(30 + i).shortValue(), null)
+    		.putColumn("ageLong", Integer.valueOf(30 + i).longValue(), null)
     		.putColumn("percentile", 30.1)
     		.putColumn("married", true)
     		.putColumn("single", false)
@@ -180,7 +180,7 @@ public class ReadTests extends KeyspaceTests {
 	public Collection<String> getRandomColumns(int numColumns) {
 
 		Random random = new Random();
-		Set<String> hashSet = new HashSet<String>();
+		Set<String> hashSet = new HashSet<>();
 
 		while(hashSet.size() < numColumns) {
 			int pick = random.nextInt(26);

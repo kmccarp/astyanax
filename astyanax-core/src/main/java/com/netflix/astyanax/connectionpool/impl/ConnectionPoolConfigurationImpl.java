@@ -58,10 +58,10 @@ public class ConnectionPoolConfigurationImpl implements ConnectionPoolConfigurat
     public static final int DEFAULT_FAILOVER_COUNT = -1;
     public static final int DEFAULT_MAX_CONNS = 1;
     public static final int DEFAULT_LATENCY_AWARE_WINDOW_SIZE = 100;
-    public static final float DEFAULT_LATENCY_AWARE_SENTINEL_COMPARE = 0.768f;
+    public static final float DEFAULT_LATENCY_AWARE_SENTINEL_COMPARE = 0.768F;
     public static final int DEFAULT_LATENCY_AWARE_UPDATE_INTERVAL = 10000;
     public static final int DEFAULT_LATENCY_AWARE_RESET_INTERVAL = 60000;
-    public static final float DEFAULT_LATENCY_AWARE_BADNESS_THRESHOLD = 0.10f;
+    public static final float DEFAULT_LATENCY_AWARE_BADNESS_THRESHOLD = 0.10F;
     public static final int DEFAULT_CONNECTION_LIMITER_WINDOW_SIZE = 2000;
     public static final int DEFAULT_CONNECTION_LIMITER_MAX_PENDING_COUNT = 50;
     public static final int DEFAULT_MAX_PENDING_CONNECTIONS_PER_HOST = 5;
@@ -72,7 +72,7 @@ public class ConnectionPoolConfigurationImpl implements ConnectionPoolConfigurat
     public static final int DEFAULT_RETRY_DELAY_SLICE = 10000;
     public static final int DEFAULT_RETRY_MAX_DELAY_SLICE = 10;
     public static final int DEFAULT_MAX_OPERATIONS_PER_CONNECTION = 10000;
-    public static final float DEFAULT_MIN_HOST_IN_POOL_RATIO = 0.65f;
+    public static final float DEFAULT_MIN_HOST_IN_POOL_RATIO = 0.65F;
     public static final int DEFAULT_BLOCKED_THREAD_THRESHOLD = 10;
     public static final BadHostDetector DEFAULT_BAD_HOST_DETECTOR = EmptyBadHostDetectorImpl.getInstance();
 //    public static final Partitioner DEFAULT_PARTITIONER = BigInteger127Partitioner.get();
@@ -109,24 +109,24 @@ public class ConnectionPoolConfigurationImpl implements ConnectionPoolConfigurat
     private float minHostInPoolRatio             = DEFAULT_MIN_HOST_IN_POOL_RATIO;
     private int blockedThreadThreshold           = DEFAULT_BLOCKED_THREAD_THRESHOLD;
 
-    private String seeds = null;
-    private RetryBackoffStrategy hostRetryBackoffStrategy = null;
+    private String seeds;
+    private RetryBackoffStrategy hostRetryBackoffStrategy;
     private HostSelectorStrategy hostSelectorStrategy     = HostSelectorStrategy.ROUND_ROBIN;
     private LatencyScoreStrategy latencyScoreStrategy     = new EmptyLatencyScoreStrategyImpl();
     private BadHostDetector badHostDetector               = DEFAULT_BAD_HOST_DETECTOR;
-    private AuthenticationCredentials credentials         = null;
+    private AuthenticationCredentials credentials;
     private OperationFilterFactory filterFactory          = EmptyOperationFilterFactory.getInstance();
     private OperationTracer opTracer                      = new EmptyOperationTracer();
-    private Partitioner partitioner                       = null;
+    private Partitioner partitioner;
     private SSLConnectionContext sslCtx;
 
     private ScheduledExecutorService maintainanceExecutor;
     private ScheduledExecutorService reconnectExecutor;
     
-    private boolean bOwnMaintainanceExecutor              = false;
-    private boolean bOwnReconnectExecutor                 = false;
+    private boolean bOwnMaintainanceExecutor;
+    private boolean bOwnReconnectExecutor;
             
-    private String localDatacenter = null;
+    private String localDatacenter;
 
     public ConnectionPoolConfigurationImpl(String name) {
         this.name = name;
@@ -335,7 +335,7 @@ public class ConnectionPoolConfigurationImpl implements ConnectionPoolConfigurat
      */
     @Override
     public List<Host> getSeedHosts() {
-        List<Host> hosts = new ArrayList<Host>();
+        List<Host> hosts = new ArrayList<>();
         if (seeds != null) {
             for (String seed : seeds.split(",")) {
                 seed = seed.trim();

@@ -46,7 +46,7 @@ import com.netflix.astyanax.connectionpool.ConnectionContext;
 
 @Ignore
 public abstract class BaseConnectionPoolTest {
-    private static Logger LOG = Logger
+    private static Logger log = Logger
             .getLogger(RoundRobinConnectionPoolImplTest.class);
 
     private static Operation<TestClient, String> dummyOperation = new TestOperation();
@@ -89,12 +89,12 @@ public abstract class BaseConnectionPoolTest {
             try {
                 OperationResult<String> result = pool.executeWithFailover(
                         dummyOperation, RunOnce.get());
-                LOG.info(result.getHost());
+                log.info(result.getHost());
             } catch (OperationException e) {
-                LOG.info(e.getMessage());
+                log.info(e.getMessage());
                 Assert.fail(e.getMessage());
             } catch (ConnectionException e) {
-                LOG.info(e.getCause());
+                log.info(e.getCause());
                 Assert.fail(e.getMessage());
             }
         }
@@ -104,7 +104,7 @@ public abstract class BaseConnectionPoolTest {
     public void testRollingRestart() {
         ConnectionPool<TestClient> pool = createPool();
 
-        List<Host> hosts = new ArrayList<Host>();
+        List<Host> hosts = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
             Host host = new Host("127.0." + i + ".0",
                     TestHostType.GOOD_FAST.ordinal());
@@ -141,9 +141,9 @@ public abstract class BaseConnectionPoolTest {
             pool.executeWithFailover(dummyOperation, RunOnce.get());
             Assert.fail();
         } catch (OperationException e) {
-            LOG.info(e.getMessage());
+            log.info(e.getMessage());
         } catch (ConnectionException e) {
-            LOG.info(e.getMessage());
+            log.info(e.getMessage());
         }
     }
 
@@ -159,9 +159,9 @@ public abstract class BaseConnectionPoolTest {
             pool.executeWithFailover(dummyOperation, RunOnce.get());
             Assert.fail();
         } catch (OperationException e) {
-            LOG.info(e.getMessage());
+            log.info(e.getMessage());
         } catch (ConnectionException e) {
-            LOG.info(e.getMessage());
+            log.info(e.getMessage());
         }
     }
 
@@ -177,9 +177,9 @@ public abstract class BaseConnectionPoolTest {
             pool.executeWithFailover(dummyOperation, RunOnce.get());
             Assert.fail();
         } catch (OperationException e) {
-            LOG.info(e.getMessage());
+            log.info(e.getMessage());
         } catch (ConnectionException e) {
-            LOG.info(e.getMessage());
+            log.info(e.getMessage());
         }
     }
 
@@ -195,9 +195,9 @@ public abstract class BaseConnectionPoolTest {
             pool.executeWithFailover(dummyOperation, RunOnce.get());
             Assert.fail();
         } catch (OperationException e) {
-            LOG.info(e.getMessage());
+            log.info(e.getMessage());
         } catch (ConnectionException e) {
-            LOG.info(e.getMessage());
+            log.info(e.getMessage());
         }
     }
 
@@ -212,9 +212,9 @@ public abstract class BaseConnectionPoolTest {
             pool.executeWithFailover(dummyOperation, RunOnce.get());
             Assert.fail();
         } catch (OperationException e) {
-            LOG.info(e.getMessage());
+            log.info(e.getMessage());
         } catch (ConnectionException e) {
-            LOG.info(e.getMessage());
+            log.info(e.getMessage());
         }
     }
 
@@ -231,9 +231,9 @@ public abstract class BaseConnectionPoolTest {
                 think(1);
                 pool.executeWithFailover(dummyOperation, RunOnce.get());
             } catch (OperationException e) {
-                LOG.info(e.getMessage());
+                log.info(e.getMessage());
             } catch (ConnectionException e) {
-                LOG.info(e.getMessage());
+                log.info(e.getMessage());
             }
         }
 
@@ -249,11 +249,11 @@ public abstract class BaseConnectionPoolTest {
         for (int i = 0; i < 10; i++) {
             try {
                 pool.executeWithFailover(dummyOperation, RunOnce.get());
-                LOG.info("Success");
+                log.info("Success");
             } catch (OperationException e) {
-                LOG.info(e.getMessage());
+                log.info(e.getMessage());
             } catch (ConnectionException e) {
-                LOG.info(e.getMessage());
+                log.info(e.getMessage());
             }
         }
     }
@@ -264,7 +264,7 @@ public abstract class BaseConnectionPoolTest {
                 TestConstants.CLUSTER_NAME + "_" + TestConstants.KEYSPACE_NAME);
         CountingConnectionPoolMonitor monitor = new CountingConnectionPoolMonitor();
         try {
-            ConnectionPool<TestClient> pool = new RoundRobinConnectionPoolImpl<TestClient>(
+            ConnectionPool<TestClient> pool = new RoundRobinConnectionPoolImpl<>(
                     config, new TestConnectionFactory(config, monitor), monitor);
         } catch (Exception e) {
             e.printStackTrace();
@@ -407,7 +407,7 @@ public abstract class BaseConnectionPoolTest {
             Assert.fail();
         } catch (ConnectionException e) {
             Assert.assertEquals(1, retry.getAttemptCount());
-            LOG.error(e);
+            log.error(e);
         }
 
         retry = new ConstantBackoff(1, 10);
@@ -416,7 +416,7 @@ public abstract class BaseConnectionPoolTest {
             Assert.fail();
         } catch (ConnectionException e) {
             Assert.assertEquals(10, retry.getAttemptCount());
-            LOG.info(e);
+            log.info(e);
         }
     }
 

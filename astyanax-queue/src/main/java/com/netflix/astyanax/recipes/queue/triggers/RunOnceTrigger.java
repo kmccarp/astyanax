@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 
 public class RunOnceTrigger extends AbstractTrigger {
     public static class Builder {
-        private RunOnceTrigger trigger = new RunOnceTrigger();
+        private final RunOnceTrigger trigger = new RunOnceTrigger();
         
         public Builder withDelay(long delay, TimeUnit units) {
             trigger.delay = TimeUnit.MILLISECONDS.convert(delay,  units);
@@ -28,10 +28,12 @@ public class RunOnceTrigger extends AbstractTrigger {
         }
         
         public RunOnceTrigger build() {
-            if (trigger.delay != null)
+            if (trigger.delay != null) {
                 trigger.setTriggerTime(System.currentTimeMillis() + trigger.delay);
-            else 
+            }
+            else {
                 trigger.setTriggerTime(System.currentTimeMillis());
+            }
             return trigger;
         }
     }

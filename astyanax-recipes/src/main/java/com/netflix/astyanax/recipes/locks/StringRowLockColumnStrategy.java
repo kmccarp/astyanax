@@ -21,7 +21,7 @@ import com.netflix.astyanax.util.RangeBuilder;
 public class StringRowLockColumnStrategy implements LockColumnStrategy<String> {
     public static final String   DEFAULT_LOCK_PREFIX             = "_LOCK_";
 
-    private String lockId     = null;
+    private String lockId;
     private String prefix     = DEFAULT_LOCK_PREFIX;
     
     public StringRowLockColumnStrategy() {

@@ -28,7 +28,6 @@ import com.netflix.astyanax.connectionpool.impl.ConnectionPoolType;
 import com.netflix.astyanax.connectionpool.impl.CountingConnectionPoolMonitor;
 import com.netflix.astyanax.cql.CqlFamilyFactory;
 import com.netflix.astyanax.cql.JavaDriverConnectionPoolConfigurationImpl;
-import com.netflix.astyanax.cql.test.utils.ClusterConfiguration.*;
 import com.netflix.astyanax.impl.AstyanaxConfigurationImpl;
 import com.netflix.astyanax.thrift.ThriftFamilyFactory;
 import org.apache.log4j.PropertyConfigurator;
@@ -41,7 +40,7 @@ import static com.netflix.astyanax.cql.test.utils.ClusterConfiguration.*;
 
 public class AstyanaxContextFactory {
 
-    private static final AtomicReference<Keyspace> keyspaceReference = new AtomicReference<Keyspace>(null);
+    private static final AtomicReference<Keyspace> keyspaceReference = new AtomicReference<>(null);
     
     static {
     	PropertyConfigurator.configure("./src/main/resources/test-log4j.properties");
@@ -65,18 +64,14 @@ public class AstyanaxContextFactory {
 
     private static AstyanaxContext<Cluster> clusterWithJavaDriver(String clusterName) {
 
-    	final String SEEDS = "localhost";
+    	final String seeds = "localhost";
 
-		Supplier<List<Host>> HostSupplier = new Supplier<List<Host>>() {
+		Supplier<List<Host>> hostSupplier = () -> {
+            Host host = new Host(seeds, -1);
+            return Collections.singletonList(host);
+        };
 
-			@Override
-			public List<Host> get() {
-				Host host = new Host(SEEDS, -1);
-				return Collections.singletonList(host);
-			}
-    	};
-    	
-    	AstyanaxContext<Cluster> context = new AstyanaxContext.Builder()
+    	return new AstyanaxContext.Builder()
                 .forCluster(clusterName)
                 .withAstyanaxConfiguration(
                         new AstyanaxConfigurationImpl()
@@ -89,29 +84,23 @@ public class AstyanaxContextFactory {
                                 .setMaxTimeoutWhenExhausted(2000)
                                 .setMaxConnsPerHost(20)
                                 .setInitConnsPerHost(10)
-                                .setSeeds(SEEDS)
+                                .setSeeds(seeds)
                                 .setPort(9042)
                                 )
-                .withHostSupplier(HostSupplier)
+                .withHostSupplier(hostSupplier)
                 .withConnectionPoolMonitor(new CountingConnectionPoolMonitor())
                 .buildCluster(CqlFamilyFactory.getInstance());
-
-    	return context;
     }
     
     private static AstyanaxContext<Cluster> clusterWithThriftDriver(String clusterName) {
     	final String SEEDS = "localhost";
 
-		Supplier<List<Host>> HostSupplier = new Supplier<List<Host>>() {
+		Supplier<List<Host>> HostSupplier = () -> {
+            Host host = new Host(SEEDS, -1);
+            return Collections.singletonList(host);
+        };
 
-			@Override
-			public List<Host> get() {
-				Host host = new Host(SEEDS, -1);
-				return Collections.singletonList(host);
-			}
-    	};
-    	
-    	AstyanaxContext<Cluster> context = new AstyanaxContext.Builder()
+    	return new AstyanaxContext.Builder()
     	.forCluster(clusterName)
     	.withAstyanaxConfiguration(
     			new AstyanaxConfigurationImpl()
@@ -131,8 +120,6 @@ public class AstyanaxContextFactory {
     					.withHostSupplier(HostSupplier)
     					.withConnectionPoolMonitor(new CountingConnectionPoolMonitor())
     					.buildCluster(ThriftFamilyFactory.getInstance());
-
-    	return context;
     }
 
     public static AstyanaxContext<Keyspace> getKeyspace() {
@@ -155,14 +142,10 @@ public class AstyanaxContextFactory {
 
     	final String SEEDS = "localhost";
 
-		Supplier<List<Host>> HostSupplier = new Supplier<List<Host>>() {
-
-			@Override
-			public List<Host> get() {
-				Host host = new Host(SEEDS, -1);
-				return Collections.singletonList(host);
-			}
-    	};
+		Supplier<List<Host>> HostSupplier = () -> {
+            Host host = new Host(SEEDS, -1);
+            return Collections.singletonList(host);
+        };
     	
     	ProtocolOptions protocolOptions = new ProtocolOptions(9042);
 		
@@ -170,30 +153,24 @@ public class AstyanaxContextFactory {
 				.withProtocolOptions(protocolOptions)
 				.build();
 
-		AstyanaxContext<Keyspace> context = new AstyanaxContext.Builder()
+    	return new AstyanaxContext.Builder()
 		.forKeyspace(keyspaceName)
 		.withHostSupplier(HostSupplier)
 		.withAstyanaxConfiguration(new AstyanaxConfigurationImpl())
 		.withConnectionPoolConfiguration(new JavaDriverConnectionPoolConfigurationImpl(jdConfig))
 		.buildKeyspace(CqlFamilyFactory.getInstance());
-
-    	return context;
     }
     
     private static AstyanaxContext<Keyspace> keyspaceWithThriftDriver(String keyspaceName) {
 
     	final String SEEDS = "localhost";
 
-		Supplier<List<Host>> HostSupplier = new Supplier<List<Host>>() {
+		Supplier<List<Host>> HostSupplier = () -> {
+            Host host = new Host(SEEDS, 9160);
+            return Collections.singletonList(host);
+        };
 
-			@Override
-			public List<Host> get() {
-				Host host = new Host(SEEDS, 9160);
-				return Collections.singletonList(host);
-			}
-    	};
-    	
-    	AstyanaxContext<Keyspace> context = new AstyanaxContext.Builder()
+    	return new AstyanaxContext.Builder()
                 .forCluster(TEST_CLUSTER_NAME)
                 .forKeyspace(keyspaceName)
                 .withAstyanaxConfiguration(
@@ -216,8 +193,6 @@ public class AstyanaxContextFactory {
                 .withHostSupplier(HostSupplier)
                 .withConnectionPoolMonitor(new CountingConnectionPoolMonitor())
                 .buildKeyspace(ThriftFamilyFactory.getInstance());
-
-    	return context;
     }
 
     public static Keyspace getCachedKeyspace() {

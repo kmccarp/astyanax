@@ -37,7 +37,7 @@ import com.netflix.astyanax.connectionpool.exceptions.ConnectionException;
  *
  */
 public class RingDescribeHostSupplier implements Supplier<List<Host>> {
-    private final static Logger LOG = LoggerFactory.getLogger(RingDescribeHostSupplier.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RingDescribeHostSupplier.class);
     
     private final Keyspace  keyspace;
     private final int       defaultPort;

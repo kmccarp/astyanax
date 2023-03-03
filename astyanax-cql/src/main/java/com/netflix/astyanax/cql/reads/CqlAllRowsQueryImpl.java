@@ -77,7 +77,7 @@ public class CqlAllRowsQueryImpl<K,C> implements AllRowsQuery<K,C> {
     private static final Logger LOG = LoggerFactory.getLogger(CqlAllRowsQueryImpl.class);
     
     private static final Partitioner DEFAULT_PARTITIONER = Murmur3Partitioner.get();
-    private final static int DEFAULT_PAGE_SIZE = 100;
+    private static final int DEFAULT_PAGE_SIZE = 100;
     
     private final Keyspace      keyspace;
     private final ColumnFamily<K, C> columnFamily;
@@ -92,12 +92,12 @@ public class CqlAllRowsQueryImpl<K,C> implements AllRowsQuery<K,C> {
     private    String              startToken;
     private    String              endToken;
     private    Boolean             includeEmptyRows;  // Default to null will discard tombstones
-    private    List<Future<Boolean>> futures = Lists.newArrayList();
-    private    AtomicBoolean       cancelling = new AtomicBoolean(false);
-    private    Partitioner         partitioner = DEFAULT_PARTITIONER;
+    private final    List<Future<Boolean>> futures = Lists.newArrayList();
+    private final    AtomicBoolean       cancelling = new AtomicBoolean(false);
+    private final    Partitioner         partitioner = DEFAULT_PARTITIONER;
     private    ConsistencyLevel	consistencyLevel;
     private    ExceptionCallback   exceptionCallback;
-    private AtomicReference<Exception>  error = new AtomicReference<Exception>();
+    private final AtomicReference<Exception>  error = new AtomicReference<>();
 
     public CqlAllRowsQueryImpl(Keyspace ks, ColumnFamily<K,C> cf) {
     	this.keyspace = ks;
@@ -146,13 +146,13 @@ public class CqlAllRowsQueryImpl<K,C> implements AllRowsQuery<K,C> {
 
 	@Override
 	public AllRowsQuery<K, C>  withColumnSlice(Collection<C> columns) {
-		this.columnSlice = new CqlColumnSlice<C>(columns);
+		this.columnSlice = new CqlColumnSlice<>(columns);
 		return this;
 	}
 
 	@Override
 	public AllRowsQuery<K, C>  withColumnSlice(ColumnSlice<C> columns) {
-		this.columnSlice = new CqlColumnSlice<C>(columns);
+		this.columnSlice = new CqlColumnSlice<>(columns);
 		return this;
 	}
 
@@ -162,7 +162,7 @@ public class CqlAllRowsQueryImpl<K,C> implements AllRowsQuery<K,C> {
 		CqlColumnFamilyDefinitionImpl cfDef = (CqlColumnFamilyDefinitionImpl) columnFamily.getColumnFamilyDefinition();
 		String pkColName = cfDef.getPartitionKeyColumnDefinitionList().get(1).getName();
 		
-		this.columnSlice = new CqlColumnSlice<C>(new CqlRangeBuilder<C>()
+		this.columnSlice = new CqlColumnSlice<>(new CqlRangeBuilder<C>()
 				.setColumn(pkColName)
 				.setStart(startColumn)
 				.setEnd(endColumn)
@@ -183,7 +183,7 @@ public class CqlAllRowsQueryImpl<K,C> implements AllRowsQuery<K,C> {
 	@Override
 	public AllRowsQuery<K, C> withColumnRange(ByteBufferRange range) {
 		if (range instanceof CqlRangeImpl) {
-			this.columnSlice = new CqlColumnSlice<C>();
+			this.columnSlice = new CqlColumnSlice<>();
 			((CqlColumnSlice<C>) this.columnSlice).setCqlRange((CqlRangeImpl<C>) range);
 			return this;
 		} else {
@@ -225,9 +225,9 @@ public class CqlAllRowsQueryImpl<K,C> implements AllRowsQuery<K,C> {
 	@Override
 	public OperationResult<Rows<K, C>> execute() throws ConnectionException {
 		
-		final AtomicReference<ConnectionException> reference = new AtomicReference<ConnectionException>(null);
+		final AtomicReference<ConnectionException> reference = new AtomicReference<>(null);
 		
-		final List<Row<K,C>> list = Collections.synchronizedList(new LinkedList<Row<K,C>>());
+		final List<Row<K,C>> list = Collections.synchronizedList(new LinkedList<>());
 		
 		RowCallback<K,C> rowCallback = new RowCallback<K,C>() {
 
@@ -253,8 +253,8 @@ public class CqlAllRowsQueryImpl<K,C> implements AllRowsQuery<K,C> {
 			throw reference.get();
 		}
 		
-		CqlRowListImpl<K,C> allRows = new CqlRowListImpl<K,C>(list);
-		return new CqlOperationResultImpl<Rows<K,C>>(null, allRows);
+		CqlRowListImpl<K,C> allRows = new CqlRowListImpl<>(list);
+		return new CqlOperationResultImpl<>(null, allRows);
 	}
 
 	@Override
@@ -326,99 +326,99 @@ public class CqlAllRowsQueryImpl<K,C> implements AllRowsQuery<K,C> {
 
 
     private Callable<Boolean> makeTokenRangeTask(final String startToken, final String endToken) {
-        return new Callable<Boolean>() {
-            @Override
-            public Boolean call() {
+        return () -> {
+            try {
+                String currentToken;
                 try {
-                    String currentToken;
-                    try {
-                        currentToken = checkpointManager.getCheckpoint(startToken);
-                        if (currentToken == null) {
-                            currentToken = startToken;
-                        }
-                        else if (currentToken.equals(endToken)) {
-                            return true;
-                        }
-                    } catch (Exception e) {
-                        error.compareAndSet(null, e);
-                        LOG.error("Failed to get checkpoint for startToken " + startToken, e);
-                        cancel();
-                        throw new RuntimeException("Failed to get checkpoint for startToken " + startToken, e);
+                    currentToken = checkpointManager.getCheckpoint(startToken);
+                    if (currentToken == null) {
+                        currentToken = startToken;
                     }
-                    
-                    int localPageSize = rowLimit;
-                    int rowsToSkip = 0;
-                    while (!cancelling.get()) {
-                        RowSliceQuery<K, C> query = prepareQuery().getKeyRange(null, null, currentToken, endToken, -1);
-                        
-                        if (columnSlice != null)
-                            query.withColumnSlice(columnSlice);
-                        
-                        Rows<K, C> rows = query.execute().getResult();
-                        if (!rows.isEmpty()) {
-                           try {
-                                if (rowCallback != null) {
-                                    try { 
-                                    	rowCallback.success(rows);
-                                    } catch (Exception e) {
-                                    	LOG.error("Failed to process rows", e);
-                                        cancel();
-                                        return false;
-                                    }
-                                } else {
-                                	LOG.error("Row function is empty");
-                                }
-                            } catch (Exception e) {
-                                error.compareAndSet(null, e);
-                                LOG.warn(e.getMessage(), e);
-                                cancel();
-                                throw new RuntimeException("Error processing row", e);
-                            }
-                                
-                            // Get the next block
-                            if (rows.size() == rowLimit) {
-                                Row<K, C> lastRow = rows.getRowByIndex(rows.size() - 1);
-                                String lastToken = partitioner.getTokenForKey(lastRow.getRawKey());
-                                checkpointManager.trackCheckpoint(startToken, currentToken);
-                                if (repeatLastToken) {
-                                    // Start token is non-inclusive
-                                    currentToken = partitioner.getTokenMinusOne(lastToken);
-                                    
-                                 // Determine the number of rows to skip in the response.  Since we are repeating the
-                                 // last token it's possible (although unlikely) that there is more than one key mapping to the
-                                 // token.  We therefore count backwards the number of keys that have the same token and skip 
-                                 // that number in the next iteration of the loop.  If, for example, 3 keys matched but only 2 were
-                                    // returned in this iteration then the first 2 keys will be skipped from the next response.
-                                    rowsToSkip = 1;
-                                    for (int i = rows.size() - 2; i >= 0; i--, rowsToSkip++) {
-                                        if (!lastToken.equals(partitioner.getTokenForKey(rows.getRowByIndex(i).getRawKey()))) {
-                                            break;
-                                        }
-                                    }
-
-                                    if (rowsToSkip == localPageSize) {
-                                        localPageSize++;
-                                    }
-                                } else {
-                                    currentToken = lastToken;
-                                }
-                                
-                                continue;
-                            }
-                        }
-                        
-                        // We're done!
-                        checkpointManager.trackCheckpoint(startToken, endToken);
+                    else if (currentToken.equals(endToken)) {
                         return true;
                     }
-                    cancel();
-                    return false;
                 } catch (Exception e) {
                     error.compareAndSet(null, e);
-                    LOG.error("Error process token/key range", e);
+                    LOG.error("Failed to get checkpoint for startToken " + startToken, e);
                     cancel();
-                    throw new RuntimeException("Error process token/key range", e);
+                    throw new RuntimeException("Failed to get checkpoint for startToken " + startToken, e);
                 }
+
+                int localPageSize = rowLimit;
+                int rowsToSkip = 0;
+                while (!cancelling.get()) {
+                    RowSliceQuery<K, C> query = prepareQuery().getKeyRange(null, null, currentToken, endToken, -1);
+
+                    if (columnSlice != null) {
+                        query.withColumnSlice(columnSlice);
+                    }
+
+                    Rows<K, C> rows = query.execute().getResult();
+                    if (!rows.isEmpty()) {
+                        try {
+                            if (rowCallback != null) {
+                                try {
+                                    rowCallback.success(rows);
+                                } catch (Exception e) {
+                                    LOG.error("Failed to process rows", e);
+                                    cancel();
+                                    return false;
+                                }
+                            }
+                            else {
+                                LOG.error("Row function is empty");
+                            }
+                        } catch (Exception e) {
+                            error.compareAndSet(null, e);
+                            LOG.warn(e.getMessage(), e);
+                            cancel();
+                            throw new RuntimeException("Error processing row", e);
+                        }
+
+                        // Get the next block
+                        if (rows.size() == rowLimit) {
+                            Row<K, C> lastRow = rows.getRowByIndex(rows.size() - 1);
+                            String lastToken = partitioner.getTokenForKey(lastRow.getRawKey());
+                            checkpointManager.trackCheckpoint(startToken, currentToken);
+                            if (repeatLastToken) {
+                                // Start token is non-inclusive
+                                currentToken = partitioner.getTokenMinusOne(lastToken);
+
+                                // Determine the number of rows to skip in the response.  Since we are repeating the
+                                // last token it's possible (although unlikely) that there is more than one key mapping to the
+                                // token.  We therefore count backwards the number of keys that have the same token and skip 
+                                // that number in the next iteration of the loop.  If, for example, 3 keys matched but only 2 were
+                                // returned in this iteration then the first 2 keys will be skipped from the next response.
+                                rowsToSkip = 1;
+                                for (int i = rows.size() - 2; i >= 0; i--, rowsToSkip++) {
+                                    if (!lastToken.equals(partitioner.getTokenForKey(rows.getRowByIndex(i).getRawKey()))) {
+                                        break;
+                                    }
+                                }
+
+                                if (rowsToSkip == localPageSize) {
+                                    localPageSize++;
+                                }
+                            }
+                            else {
+                                currentToken = lastToken;
+                            }
+
+                            continue;
+                        }
+                    }
+
+                    // We're done!
+                    checkpointManager.trackCheckpoint(startToken, endToken);
+                    return true;
+                }
+                cancel();
+                return false;
+            } catch (Exception e) {
+                error.compareAndSet(null, e);
+                LOG.error("Error process token/key range", e);
+                cancel();
+                throw new RuntimeException("Error process token/key range", e);
             }
         };
     }
@@ -465,8 +465,9 @@ public class CqlAllRowsQueryImpl<K,C> implements AllRowsQuery<K,C> {
     
     private ColumnFamilyQuery<K, C> prepareQuery() {
     	ColumnFamilyQuery<K, C> query = keyspace.prepareQuery(columnFamily);
-    	if (consistencyLevel != null)
-    		query.setConsistencyLevel(consistencyLevel);
+        if (consistencyLevel != null) {
+            query.setConsistencyLevel(consistencyLevel);
+        }
     	return query;
     }
     

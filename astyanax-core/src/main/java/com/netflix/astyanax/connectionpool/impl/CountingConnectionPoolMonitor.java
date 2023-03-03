@@ -49,33 +49,33 @@ import com.netflix.astyanax.connectionpool.exceptions.InterruptedOperationExcept
  * @author elandau
  */
 public class CountingConnectionPoolMonitor implements ConnectionPoolMonitor {
-    private static Logger LOG = LoggerFactory.getLogger(CountingConnectionPoolMonitor.class);
-    
-    private AtomicLong operationFailureCount  = new AtomicLong();
-    private AtomicLong operationSuccessCount  = new AtomicLong();
-    private AtomicLong connectionCreateCount  = new AtomicLong();
-    private AtomicLong connectionClosedCount  = new AtomicLong();
-    private AtomicLong connectionCreateFailureCount = new AtomicLong();
-    private AtomicLong connectionBorrowCount  = new AtomicLong();
-    private AtomicLong connectionReturnCount  = new AtomicLong();
-    
-    private AtomicLong operationFailoverCount = new AtomicLong();
-    
-    private AtomicLong hostAddedCount         = new AtomicLong();
-    private AtomicLong hostRemovedCount       = new AtomicLong();
-    private AtomicLong hostDownCount          = new AtomicLong();
-    private AtomicLong hostReactivatedCount   = new AtomicLong();
-    
-    private AtomicLong poolExhastedCount      = new AtomicLong();
-    private AtomicLong operationTimeoutCount  = new AtomicLong();
-    private AtomicLong socketTimeoutCount     = new AtomicLong();
-    private AtomicLong noHostsCount           = new AtomicLong();
-    private AtomicLong unknownErrorCount      = new AtomicLong();
-    private AtomicLong badRequestCount        = new AtomicLong();
-    private AtomicLong interruptedCount       = new AtomicLong();
-    private AtomicLong transportErrorCount    = new AtomicLong();
+    private static final Logger LOG = LoggerFactory.getLogger(CountingConnectionPoolMonitor.class);
 
-    private AtomicLong notFoundCounter        = new AtomicLong();
+    private final AtomicLong operationFailureCount = new AtomicLong();
+    private final AtomicLong operationSuccessCount = new AtomicLong();
+    private final AtomicLong connectionCreateCount = new AtomicLong();
+    private final AtomicLong connectionClosedCount = new AtomicLong();
+    private final AtomicLong connectionCreateFailureCount = new AtomicLong();
+    private final AtomicLong connectionBorrowCount = new AtomicLong();
+    private final AtomicLong connectionReturnCount = new AtomicLong();
+
+    private final AtomicLong operationFailoverCount = new AtomicLong();
+
+    private final AtomicLong hostAddedCount = new AtomicLong();
+    private final AtomicLong hostRemovedCount = new AtomicLong();
+    private final AtomicLong hostDownCount = new AtomicLong();
+    private final AtomicLong hostReactivatedCount = new AtomicLong();
+
+    private final AtomicLong poolExhastedCount = new AtomicLong();
+    private final AtomicLong operationTimeoutCount = new AtomicLong();
+    private final AtomicLong socketTimeoutCount = new AtomicLong();
+    private final AtomicLong noHostsCount = new AtomicLong();
+    private final AtomicLong unknownErrorCount = new AtomicLong();
+    private final AtomicLong badRequestCount = new AtomicLong();
+    private final AtomicLong interruptedCount = new AtomicLong();
+    private final AtomicLong transportErrorCount = new AtomicLong();
+
+    private final AtomicLong notFoundCounter = new AtomicLong();
     
     public CountingConnectionPoolMonitor() {
     }

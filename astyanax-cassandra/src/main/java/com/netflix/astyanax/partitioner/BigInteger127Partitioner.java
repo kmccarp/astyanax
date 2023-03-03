@@ -92,16 +92,18 @@ public class BigInteger127Partitioner implements Partitioner {
     public String getTokenMinusOne(String token) {
         BigInteger bigInt = new BigInteger(token);
         // if zero rotate to the Maximum else minus one.
-        if (bigInt.equals(MINIMUM))
+        if (bigInt.equals(MINIMUM)) {
             return MAXIMUM.toString();
-        else
+        }
+        else {
             return bigInt.subtract(ONE).toString();
+        }
     }
 
     public static List<String> splitRange(BigInteger first, BigInteger last, int count) {
         List<String> tokens = Lists.newArrayList();
         tokens.add(first.toString());
-        BigInteger delta = (last.subtract(first).divide(BigInteger.valueOf((long)count)));
+        BigInteger delta = last.subtract(first).divide(BigInteger.valueOf((long)count));
         BigInteger current = first;
         for (int i = 0; i < count-1; i++) {
             current = current.add(delta);

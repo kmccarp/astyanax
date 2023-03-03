@@ -63,72 +63,81 @@ public class OrderedColumnMap<C> implements ColumnMap<C> {
     @Override
     public String getString(C columnName, String defaultValue) {
         Column<C> column = columns.get(columnName);
-        if (column == null)
+        if (column == null) {
             return defaultValue;
+        }
         return column.getStringValue();
     }
 
     @Override
     public Integer getInteger(C columnName, Integer defaultValue) {
         Column<C> column = columns.get(columnName);
-        if (column == null)
+        if (column == null) {
             return defaultValue;
+        }
         return column.getIntegerValue();
     }
 
     @Override
     public Double getDouble(C columnName, Double defaultValue) {
         Column<C> column = columns.get(columnName);
-        if (column == null)
+        if (column == null) {
             return defaultValue;
+        }
         return column.getDoubleValue();
     }
 
     @Override
     public Long getLong(C columnName, Long defaultValue) {
         Column<C> column = columns.get(columnName);
-        if (column == null)
+        if (column == null) {
             return defaultValue;
+        }
         return column.getLongValue();
     }
 
     @Override
     public byte[] getByteArray(C columnName, byte[] defaultValue) {
         Column<C> column = columns.get(columnName);
-        if (column == null)
+        if (column == null) {
             return defaultValue;
+        }
         return column.getByteArrayValue();
     }
 
     @Override
     public Boolean getBoolean(C columnName, Boolean defaultValue) {
         Column<C> column = columns.get(columnName);
-        if (column == null)
+        if (column == null) {
             return defaultValue;
+        }
         return column.getBooleanValue();
     }
 
     @Override
     public ByteBuffer getByteBuffer(C columnName, ByteBuffer defaultValue) {
         Column<C> column = columns.get(columnName);
-        if (column == null)
+        if (column == null) {
             return defaultValue;
+        }
         return column.getByteBufferValue();
     }
 
     @Override
     public Date getDate(C columnName, Date defaultValue) {
         Column<C> column = columns.get(columnName);
-        if (column == null)
+        if (column == null) {
             return defaultValue;
+        }
         return column.getDateValue();
     }
 
     @Override
     public UUID getUUID(C columnName, UUID defaultValue) {
         Column<C> column = columns.get(columnName);
-        if (column == null)
+        if (column == null) {
             return defaultValue;
+        }
         return column.getUUIDValue();
     }
 

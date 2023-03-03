@@ -38,12 +38,12 @@ public class MessageContext {
      * MesasgeID used when acking
      */
     private String ackMessageId;
-    
+
     /**
      * History item associated with this message.  This is only 
      * valid if message.hasKey() is true.
      */
-    private MessageHistory history = new MessageHistory();
+    private final MessageHistory history = new MessageHistory();
     
     public Message getMessage() {
         return message;
