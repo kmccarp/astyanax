@@ -24,7 +24,6 @@ import org.apache.commons.codec.binary.Hex;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Maps.EntryTransformer;
 import com.netflix.astyanax.Clock;
 import com.netflix.astyanax.ColumnListMutation;
 import com.netflix.astyanax.MutationBatch;
@@ -38,13 +37,13 @@ public abstract class AbstractMutationBatchImpl implements MutationBatch {
 
 	//private static final long UNSET_TIMESTAMP = -1;
 
-	protected Long              timestamp = null; // UNSET_TIMESTAMP 
+	protected Long              timestamp; // UNSET_TIMESTAMP 
 	protected ConsistencyLevel    consistencyLevel;
 	protected Clock               clock;
 	protected Host                pinnedHost;
 	protected RetryPolicy         retry;
 	protected WriteAheadLog       wal;
-	protected boolean             useAtomicBatch = false;
+	protected boolean             useAtomicBatch;
 	protected String              keyspace; 
 
 	protected Map<ByteBuffer, Map<String, ColumnListMutation<?>>> mutationMap = Maps.newLinkedHashMap();
@@ -82,23 +81,30 @@ public abstract class AbstractMutationBatchImpl implements MutationBatch {
 
 		@Override
 		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
-				return false;
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
 			KeyAndColumnFamily other = (KeyAndColumnFamily) obj;
 			if (columnFamily == null) {
-				if (other.columnFamily != null)
-					return false;
-			} else if (!columnFamily.equals(other.columnFamily))
-				return false;
+                if (other.columnFamily != null) {
+                    return false;
+                }
+			} else if (!columnFamily.equals(other.columnFamily)) {
+                return false;
+            }
 			if (key == null) {
-				if (other.key != null)
-					return false;
-			} else if (!key.equals(other.key))
-				return false;
+                if (other.key != null) {
+                    return false;
+                }
+			} else if (!key.equals(other.key)) {
+                return false;
+            }
 			return true;
 		}
 	}
@@ -179,8 +185,9 @@ public abstract class AbstractMutationBatchImpl implements MutationBatch {
 		sb.append("MutationBatch[");
 		boolean first = true;
 		for (Entry<ByteBuffer, Map<String, ColumnListMutation<?>>> row : mutationMap.entrySet()) {
-			if (!first)
-				sb.append(",");
+            if (!first) {
+                sb.append(",");
+            }
 			sb.append(Hex.encodeHex(row.getKey().array()));
 			sb.append(row.getValue().entrySet().toString());
 		}
@@ -201,12 +208,7 @@ public abstract class AbstractMutationBatchImpl implements MutationBatch {
 	@Override
 	public Map<ByteBuffer, Set<String>> getRowKeys() {
 		return Maps.transformEntries(mutationMap,
-				new EntryTransformer<ByteBuffer, Map<String, ColumnListMutation<?>>, Set<String>>() {
-			@Override
-			public Set<String> transformEntry(ByteBuffer key, Map<String, ColumnListMutation<?>> value) {
-				return value.keySet();
-			}
-		});
+                (key, value) -> value.keySet());
 	}
 
 	public Map<ByteBuffer, Map<String, ColumnListMutation<?>>> getMutationMap() {

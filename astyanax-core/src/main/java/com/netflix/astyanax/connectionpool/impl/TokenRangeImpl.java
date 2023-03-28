@@ -35,10 +35,12 @@ public class TokenRangeImpl implements TokenRange {
     public TokenRangeImpl(String startToken, String endToken, List<String> endpoints) {
         this.startToken = startToken;
         this.endToken = endToken;
-        if (endpoints != null)
+        if (endpoints != null) {
             this.endpoints = ImmutableList.copyOf(endpoints);
-        else 
+        }
+        else {
             this.endpoints = Lists.newArrayList();
+        }
     }
 
     @Override

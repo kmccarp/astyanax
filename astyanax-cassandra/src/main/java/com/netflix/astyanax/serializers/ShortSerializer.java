@@ -48,8 +48,7 @@ public final class ShortSerializer extends AbstractSerializer<Short> {
             return null;
         }
         ByteBuffer dup = byteBuffer.duplicate();
-        short in = dup.getShort();
-        return in;
+        return dup.getShort();
     }
 
     @Override

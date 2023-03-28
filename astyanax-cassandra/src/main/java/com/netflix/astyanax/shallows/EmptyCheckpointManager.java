@@ -23,7 +23,7 @@ import com.netflix.astyanax.connectionpool.exceptions.ConnectionException;
 import com.netflix.astyanax.query.CheckpointManager;
 
 public class EmptyCheckpointManager implements CheckpointManager {
-    private ConcurrentMap<String, String> tokenMap = Maps.newConcurrentMap();
+    private final ConcurrentMap<String, String> tokenMap = Maps.newConcurrentMap();
     
 	/**
 	 * Do nothing since checkpoints aren't being persisted.

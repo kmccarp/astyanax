@@ -67,7 +67,7 @@ public abstract class NativeQuery<T, K> {
      *
      */
     public class NativeColumnQuery {
-        private ColumnPredicate predicate = new ColumnPredicate();
+        private final ColumnPredicate predicate = new ColumnPredicate();
         
         public NativeColumnQuery(String name) {
             predicate.setName(name);

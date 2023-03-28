@@ -30,13 +30,13 @@ import com.netflix.astyanax.thrift.ThriftFamilyFactory;
 import com.netflix.astyanax.util.SingletonEmbeddedCassandra;
 
 public class CompositeEntityManagerTest {
-    private static Logger LOG = LoggerFactory.getLogger(CompositeEntityManagerTest.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CompositeEntityManagerTest.class);
     
     private static Keyspace                  keyspace;
     private static AstyanaxContext<Keyspace> keyspaceContext;
 
-    private static String TEST_CLUSTER_NAME  = "junit_cass_sandbox";
-    private static String TEST_KEYSPACE_NAME = "CompositeEntityManagerTest";
+    private static final String TEST_CLUSTER_NAME = "junit_cass_sandbox";
+    private static final String TEST_KEYSPACE_NAME = "CompositeEntityManagerTest";
     private static final String SEEDS        = "localhost:9160";
 
     @Entity
@@ -82,8 +82,9 @@ public class CompositeEntityManagerTest {
 
     @AfterClass
     public static void teardown() throws Exception {
-        if (keyspaceContext != null)
+        if (keyspaceContext != null) {
             keyspaceContext.shutdown();
+        }
 
         Thread.sleep(1000 * 10);
     }
