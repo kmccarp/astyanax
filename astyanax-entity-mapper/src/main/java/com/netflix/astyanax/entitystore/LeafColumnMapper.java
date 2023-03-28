@@ -44,10 +44,13 @@ class LeafColumnMapper extends AbstractColumnMapper {
 	public boolean fillMutationBatch(Object entity, ColumnListMutation<String> clm, String prefix) throws Exception {
 		Object value = field.get(entity);
 		if(value == null) {
-			if(columnAnnotation.nullable())
-				return false; // skip
-			else
-				throw new IllegalArgumentException("cannot write non-nullable column with null value: " + columnName);
+            if (columnAnnotation.nullable()) {
+                return false;
+            }
+            // skip
+            else {
+                throw new IllegalArgumentException("cannot write non-nullable column with null value: " + columnName);
+            }
 		}
 		@SuppressWarnings("rawtypes")
 		final Serializer valueSerializer = serializer;
@@ -59,8 +62,9 @@ class LeafColumnMapper extends AbstractColumnMapper {
 	
     @Override
     public boolean setField(Object entity, Iterator<String> name, com.netflix.astyanax.model.Column<String> column) throws Exception {
-        if (name.hasNext()) 
+        if (name.hasNext()) {
             return false;
+        }
         final Object fieldValue = column.getValue(serializer);
         field.set(entity, fieldValue);
         return true;
@@ -68,7 +72,8 @@ class LeafColumnMapper extends AbstractColumnMapper {
 
     @Override
     public void validate(Object entity) throws Exception {
-        if (field.get(entity) == null && !columnAnnotation.nullable())
+        if (field.get(entity) == null && !columnAnnotation.nullable()) {
             throw new IllegalArgumentException("cannot find non-nullable column: " + columnName);
+        }
     }
 }

@@ -117,8 +117,8 @@ public abstract class AbstractComposite extends AbstractList<Object> implements 
 
     final boolean dynamic;
 
-    List<Serializer<?>> serializersByPosition = null;
-    List<String> comparatorsByPosition = null;
+    List<Serializer<?>> serializersByPosition;
+    List<String> comparatorsByPosition;
 
     public class Component<T> {
         final Serializer<T> serializer;
@@ -202,9 +202,9 @@ public abstract class AbstractComposite extends AbstractList<Object> implements 
         }
     }
 
-    List<Component<?>> components = new ArrayList<Component<?>>();
+    List<Component<?>> components = new ArrayList<>();
 
-    ByteBuffer serialized = null;
+    ByteBuffer serialized;
 
     public AbstractComposite(boolean dynamic) {
         this.dynamic = dynamic;
@@ -267,7 +267,7 @@ public abstract class AbstractComposite extends AbstractList<Object> implements 
 
     public void setSerializerByPosition(int index, Serializer<?> s) {
         if (serializersByPosition == null) {
-            serializersByPosition = new ArrayList<Serializer<?>>();
+            serializersByPosition = new ArrayList<>();
         }
         while (serializersByPosition.size() <= index) {
             serializersByPosition.add(null);
@@ -289,7 +289,7 @@ public abstract class AbstractComposite extends AbstractList<Object> implements 
 
     public void setComparatorByPosition(int index, String c) {
         if (comparatorsByPosition == null) {
-            comparatorsByPosition = new ArrayList<String>();
+            comparatorsByPosition = new ArrayList<>();
         }
         while (comparatorsByPosition.size() <= index) {
             comparatorsByPosition.add(null);
@@ -399,7 +399,7 @@ public abstract class AbstractComposite extends AbstractList<Object> implements 
     @Override
     public void clear() {
         serialized = null;
-        components = new ArrayList<Component<?>>();
+        components = new ArrayList<>();
     }
 
     @Override
@@ -629,8 +629,7 @@ public abstract class AbstractComposite extends AbstractList<Object> implements 
         if (i >= components.size()) {
             return null;
         }
-        Component c = components.get(i);
-        return c;
+        return components.get(i);
     }
 
     public Iterator<Component<?>> componentsIterator() {
@@ -692,7 +691,7 @@ public abstract class AbstractComposite extends AbstractList<Object> implements 
     @SuppressWarnings("unchecked")
     public void deserialize(ByteBuffer b) {
         serialized = b.duplicate();
-        components = new ArrayList<Component<?>>();
+        components = new ArrayList<>();
 
         String comparator = null;
         int i = 0;

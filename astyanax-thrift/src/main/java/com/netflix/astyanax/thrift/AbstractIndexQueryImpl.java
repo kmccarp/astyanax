@@ -47,8 +47,8 @@ import com.netflix.astyanax.serializers.UUIDSerializer;
 public abstract class AbstractIndexQueryImpl<K, C> implements IndexQuery<K, C> {
     protected final org.apache.cassandra.thrift.IndexClause indexClause = new org.apache.cassandra.thrift.IndexClause();
     protected SlicePredicate predicate = new SlicePredicate().setSlice_range(ThriftUtils.createAllInclusiveSliceRange());
-    protected boolean isPaginating = false;
-    protected boolean paginateNoMore = false;
+    protected boolean isPaginating;
+    protected boolean paginateNoMore;
     protected boolean firstPage = true;
     protected ColumnFamily<K, C> columnFamily;
 
@@ -68,9 +68,10 @@ public abstract class AbstractIndexQueryImpl<K, C> implements IndexQuery<K, C> {
 
     @Override
     public IndexQuery<K, C> withColumnSlice(Collection<C> columns) {
-        if (columns != null)
+        if (columns != null) {
             predicate.setColumn_names(columnFamily.getColumnSerializer().toBytesList(columns)).setSlice_rangeIsSet(
                     false);
+        }
         return this;
     }
 
@@ -128,8 +129,9 @@ public abstract class AbstractIndexQueryImpl<K, C> implements IndexQuery<K, C> {
         indexClause.setStart_key(byteBuffer);
         if (firstPage) {
             firstPage = false;
-            if (indexClause.getCount() != Integer.MAX_VALUE)
+            if (indexClause.getCount() != Integer.MAX_VALUE) {
                 indexClause.setCount(indexClause.getCount() + 1);
+            }
         }
     }
 

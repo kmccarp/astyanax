@@ -37,7 +37,7 @@ import com.netflix.astyanax.thrift.ThriftTypes;
 import com.netflix.astyanax.thrift.ThriftUtils;
 
 public class ThriftColumnFamilyDefinitionImpl implements ColumnFamilyDefinition {
-    private final static Map<String, FieldMetadata> fieldsMetadata = Maps.newHashMap();
+    private static final Map<String, FieldMetadata> fieldsMetadata = Maps.newHashMap();
     
     static {
         for (Entry<_Fields, FieldMetaData> field : CfDef.metaDataMap.entrySet()) {
@@ -124,8 +124,9 @@ public class ThriftColumnFamilyDefinitionImpl implements ColumnFamilyDefinition 
 
     @Override
     public ColumnFamilyDefinition setMinCompactionThreshold(Integer value) {
-        if (value != null)
+        if (value != null) {
             cfDef.setMin_compaction_threshold(value);
+        }
         return this;
     }
 
@@ -141,15 +142,17 @@ public class ThriftColumnFamilyDefinitionImpl implements ColumnFamilyDefinition 
 
     @Override
     public ColumnFamilyDefinition setReadRepairChance(Double value) {
-        if (value != null)
+        if (value != null) {
             cfDef.setRead_repair_chance(value);
+        }
         return this;
     }
 
     @Override
     public ColumnFamilyDefinition setReplicateOnWrite(Boolean value) {
-        if (value != null)
+        if (value != null) {
             cfDef.setReplicate_on_write(value);
+        }
         return this;
     }
 
@@ -161,15 +164,17 @@ public class ThriftColumnFamilyDefinitionImpl implements ColumnFamilyDefinition 
 
     @Override
     public ColumnFamilyDefinition setRowCacheSavePeriodInSeconds(Integer value) {
-        if (value != null)
+        if (value != null) {
             cfDef.setRow_cache_save_period_in_seconds(value);
+        }
         return this;
     }
 
     @Override
     public ColumnFamilyDefinition setRowCacheSize(Double size) {
-        if (size != null)
+        if (size != null) {
             cfDef.setRow_cache_size(size);
+        }
         return this;
     }
 
@@ -214,15 +219,17 @@ public class ThriftColumnFamilyDefinitionImpl implements ColumnFamilyDefinition 
 
     @Override
     public ByteBuffer getKeyAlias() {
-        if (cfDef.getKey_alias() == null)
+        if (cfDef.getKey_alias() == null) {
             return null;
+        }
         return ByteBuffer.wrap(cfDef.getKey_alias());
     }
 
     @Override
     public ColumnFamilyDefinition setKeyCacheSavePeriodInSeconds(Integer value) {
-        if (value != null)
+        if (value != null) {
             cfDef.setKey_cache_save_period_in_seconds(value);
+        }
         return this;
     }
 
@@ -233,8 +240,9 @@ public class ThriftColumnFamilyDefinitionImpl implements ColumnFamilyDefinition 
 
     @Override
     public ColumnFamilyDefinition setKeyCacheSize(Double keyCacheSize) {
-        if (keyCacheSize != null)
+        if (keyCacheSize != null) {
             cfDef.setKey_cache_size(keyCacheSize);
+        }
         return this;
     }
 
@@ -253,7 +261,7 @@ public class ThriftColumnFamilyDefinitionImpl implements ColumnFamilyDefinition 
     public ColumnFamilyDefinition addColumnDefinition(ColumnDefinition columnDef) {
         List<ColumnDef> columns = cfDef.getColumn_metadata();
         if (columns == null) {
-            columns = new ArrayList<ColumnDef>();
+            columns = new ArrayList<>();
             cfDef.setColumn_metadata(columns);
         }
 
@@ -263,7 +271,7 @@ public class ThriftColumnFamilyDefinitionImpl implements ColumnFamilyDefinition 
 
     @Override
     public List<ColumnDefinition> getColumnDefinitionList() {
-        List<ColumnDefinition> list = new ArrayList<ColumnDefinition>();
+        List<ColumnDefinition> list = new ArrayList<>();
 
         List<ColumnDef> cdefs = cfDef.getColumn_metadata();
         if (cdefs != null) {
@@ -276,7 +284,7 @@ public class ThriftColumnFamilyDefinitionImpl implements ColumnFamilyDefinition 
     
     @Override
     public void clearColumnDefinitionList() {
-        cfDef.setColumn_metadata(new ArrayList<ColumnDef>());
+        cfDef.setColumn_metadata(new ArrayList<>());
     }
 
     @Override
@@ -353,8 +361,9 @@ public class ThriftColumnFamilyDefinitionImpl implements ColumnFamilyDefinition 
 
     @Override
     public ColumnFamilyDefinition setMaxCompactionThreshold(Integer value) {
-        if (value != null)
+        if (value != null) {
             cfDef.setMax_compaction_threshold(value);
+        }
         return this;
     }
 
@@ -398,8 +407,9 @@ public class ThriftColumnFamilyDefinitionImpl implements ColumnFamilyDefinition 
 
     @Override
     public ColumnFamilyDefinition setBloomFilterFpChance(Double chance) {
-        if (chance != null)
+        if (chance != null) {
             cfDef.setBloom_filter_fp_chance(chance);
+        }
         return this;
     }
 
@@ -421,8 +431,9 @@ public class ThriftColumnFamilyDefinitionImpl implements ColumnFamilyDefinition 
 
     @Override
     public ColumnFamilyDefinition setLocalReadRepairChance(Double value) {
-        if (value != null)
+        if (value != null) {
             cfDef.setDclocal_read_repair_chance(value);
+        }
         return this;
     }
 
@@ -433,8 +444,9 @@ public class ThriftColumnFamilyDefinitionImpl implements ColumnFamilyDefinition 
 
     @Override
     public ColumnFamilyDefinition setGcGraceSeconds(Integer seconds) {
-        if (seconds != null)
+        if (seconds != null) {
             cfDef.setGc_grace_seconds(seconds);
+        }
         return this;
     }
 
@@ -448,11 +460,11 @@ public class ThriftColumnFamilyDefinitionImpl implements ColumnFamilyDefinition 
         for (Entry<String, FieldMetadata> field : fieldsMetadata.entrySet()) {
             String fieldName = field.getKey();
             if (options.containsKey(fieldName)) {
-                if (fieldName.equals("column_metadata")) {
+                if ("column_metadata".equals(fieldName)) {
                     Map<String, Object> columns = (Map<String, Object>) options.get("column_metadata");
                     for (Entry<String, Object> column : columns.entrySet()) {
                         ThriftColumnDefinitionImpl columnDef = new ThriftColumnDefinitionImpl();
-                        columnDef.setName(column.getKey().toString());
+                        columnDef.setName(column.getKey());
                         columnDef.setFields((Map<String, Object>) column.getValue());
                         
                         this.addColumnDefinition(columnDef);

@@ -132,9 +132,9 @@ public interface ColumnDefinition {
     
     /**
      * Set all extra options for this column.  Will override any previous values.
-     * @param index_options
+     * @param indexOptions
      */
-    ColumnDefinition setOptions(Map<String, String> index_options);
+    ColumnDefinition setOptions(Map<String, String> indexOptions);
 
     /**
      * Set an option

@@ -37,14 +37,14 @@ import com.netflix.astyanax.connectionpool.JmxConnectionPoolMonitorMBean;
  * @author elandau
  *
  */
-public class ConnectionPoolMBeanManager {
-    private static Logger LOG = LoggerFactory.getLogger(ConnectionPoolMBeanManager.class);
+public final class ConnectionPoolMBeanManager {
+    private static final Logger LOG = LoggerFactory.getLogger(ConnectionPoolMBeanManager.class);
 
-    private MBeanServer mbs;
+    private final MBeanServer mbs;
 
     private static ConnectionPoolMBeanManager monitorInstance;
 
-    private HashMap<String, JmxConnectionPoolMonitorMBean> monitors;
+    private final HashMap<String, JmxConnectionPoolMonitorMBean> monitors;
 
     private ConnectionPoolMBeanManager() {
         mbs = ManagementFactory.getPlatformMBeanServer();
@@ -99,7 +99,7 @@ public class ConnectionPoolMBeanManager {
         StringBuilder sb = new StringBuilder();
         sb.append("com.netflix.MonitoredResources");
         sb.append(":type=ASTYANAX");
-        sb.append(",name=" + name);
+        sb.append(",name=").append(name);
         sb.append(",ServiceType=connectionpool");
         return sb.toString();
     }

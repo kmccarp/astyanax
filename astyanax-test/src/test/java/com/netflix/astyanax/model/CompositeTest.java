@@ -43,7 +43,7 @@ public class CompositeTest {
         final UUID uuid = UUID.randomUUID();
         final boolean bool = true;
         final Integer integer = 10;
-        final Long longval = 20l;
+        final Long longval = 20L;
 
 
         builder.addString( string );

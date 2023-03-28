@@ -17,7 +17,7 @@ package com.netflix.astyanax.connectionpool;
 
 public class NodeDiscoveryMonitor implements NodeDiscoveryMonitorMBean {
 
-    private NodeDiscovery discovery;
+    private final NodeDiscovery discovery;
 
     public NodeDiscoveryMonitor(NodeDiscovery discovery) {
         this.discovery = discovery;

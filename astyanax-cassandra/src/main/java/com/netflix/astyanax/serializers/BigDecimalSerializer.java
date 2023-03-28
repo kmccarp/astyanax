@@ -30,8 +30,9 @@ public class BigDecimalSerializer extends AbstractSerializer<BigDecimal> {
 
     @Override
     public BigDecimal fromByteBuffer(final ByteBuffer byteBuffer) {
-        if (byteBuffer == null)
+        if (byteBuffer == null) {
             return null;
+        }
         return DecimalType.instance.compose(byteBuffer.duplicate());
     }
 
@@ -52,8 +53,9 @@ public class BigDecimalSerializer extends AbstractSerializer<BigDecimal> {
 
     @Override
     public String getString(final ByteBuffer byteBuffer) {
-        if (byteBuffer == null)
+        if (byteBuffer == null) {
             return null;
+        }
         return DecimalType.instance.getString(byteBuffer.duplicate());
     }
 

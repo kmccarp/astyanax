@@ -26,6 +26,6 @@ public class Callables {
      * @return
      */
     public static <T> Callable<T> decorateWithBarrier(CyclicBarrier barrier, Callable<T> callable) {
-        return new BarrierCallableDecorator<T>(barrier, callable);
+        return new BarrierCallableDecorator<>(barrier, callable);
     }
 }

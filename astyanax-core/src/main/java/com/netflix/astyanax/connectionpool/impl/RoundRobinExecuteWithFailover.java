@@ -65,10 +65,12 @@ public class RoundRobinExecuteWithFailover<CL, R> extends AbstractExecuteWithFai
         
         size = pools.size();
         retryCountdown = Math.min(config.getMaxFailoverCount(), size);
-        if (retryCountdown < 0)
+        if (retryCountdown < 0) {
             retryCountdown = size;
-        else if (retryCountdown == 0)
+        }
+        else if (retryCountdown == 0) {
             retryCountdown = 1;
+        }
 
         waitDelta = config.getMaxTimeoutWhenExhausted() / retryCountdown;
     }
@@ -79,8 +81,9 @@ public class RoundRobinExecuteWithFailover<CL, R> extends AbstractExecuteWithFai
         }
         finally {
             index++;
-            if (index < 0)
+            if (index < 0) {
                 index = 0;
+            }
         }
     }
 
