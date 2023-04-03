@@ -39,16 +39,16 @@ import com.netflix.astyanax.recipes.locks.BusyLockException;
  * @author elandau
  *
  */
-public class MessageQueueDispatcher {
+public final class MessageQueueDispatcher {
     private static final Logger LOG = LoggerFactory.getLogger(MessageQueueDispatcher.class);
     
-    public final static int   DEFAULT_BATCH_SIZE            = 5;
-    public final static int   DEFAULT_POLLING_INTERVAL     = 1000;
-    public final static int   DEFAULT_THREAD_COUNT          = 1;
-    public final static int   DEFAULT_CONSUMER_COUNT        = 1;
-    public final static int   DEFAULT_ACK_SIZE              = 100;
-    public final static int   DEFAULT_ACK_INTERVAL          = 100;
-    public final static int   DEFAULT_BACKLOG_SIZE          = 1000;
+    public static final int   DEFAULT_BATCH_SIZE            = 5;
+    public static final int   DEFAULT_POLLING_INTERVAL     = 1000;
+    public static final int   DEFAULT_THREAD_COUNT          = 1;
+    public static final int   DEFAULT_CONSUMER_COUNT        = 1;
+    public static final int   DEFAULT_ACK_SIZE              = 100;
+    public static final int   DEFAULT_ACK_INTERVAL          = 100;
+    public static final int   DEFAULT_BACKLOG_SIZE          = 1000;
     
     public static class Builder {
         private final MessageQueueDispatcher dispatcher = new MessageQueueDispatcher();
@@ -170,7 +170,7 @@ public class MessageQueueDispatcher {
     private long            ackInterval   = DEFAULT_ACK_INTERVAL;
     private int             backlogSize   = DEFAULT_BACKLOG_SIZE;
     private long            pollingInterval = DEFAULT_POLLING_INTERVAL;
-    private boolean         terminate     = false;
+    private boolean         terminate;
     private MessageQueue    messageQueue;
     private ExecutorService executor;
     private MessageConsumer ackConsumer;
@@ -184,9 +184,10 @@ public class MessageQueueDispatcher {
     
     private void initialize() {
         Preconditions.checkNotNull(messageQueue, "Must specify message queue");
-        
-        if (this.handlerFactory == null)
+
+        if (this.handlerFactory == null) {
             this.handlerFactory = new SimpleMessageHandlerFactory();
+        }
         toProcess = Queues.newLinkedBlockingQueue(backlogSize);
     }
     
@@ -212,135 +213,127 @@ public class MessageQueueDispatcher {
     private void startAckThread() {
         ackConsumer = messageQueue.createConsumer();
         
-        executor.submit(new Runnable() {
-            @Override
-            public void run() {
-                String name = StringUtils.join(Lists.newArrayList(messageQueue.getName(), "Ack"), ":");
-                Thread.currentThread().setName(name);
-                
-                while (!terminate) {
-                    try {
-                        List<MessageContext> messages = Lists.newArrayList();
-                        toAck.drainTo(messages);
-                        if (!messages.isEmpty()) {
-                            try {
-                                ackConsumer.ackMessages(messages);
-                            } catch (MessageQueueException e) {
-                                toAck.addAll(messages);
-                                LOG.warn("Failed to ack consumer", e);
-                            }
+        executor.submit(() -> {
+            String name = StringUtils.join(Lists.newArrayList(messageQueue.getName(), "Ack"), ":");
+            Thread.currentThread().setName(name);
+
+            while (!terminate) {
+                try {
+                    List<MessageContext> messages = Lists.newArrayList();
+                    toAck.drainTo(messages);
+                    if (!messages.isEmpty()) {
+                        try {
+                            ackConsumer.ackMessages(messages);
+                        } catch (MessageQueueException e) {
+                            toAck.addAll(messages);
+                            LOG.warn("Failed to ack consumer", e);
                         }
                     }
-                    catch (Throwable t) {
-                        LOG.info("Error acking messages", t);
-                    }
-                    
-                    try {
-                        Thread.sleep(ackInterval);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        return;
-                    }
+                }
+                catch (Throwable t) {
+                    LOG.info("Error acking messages", t);
+                }
+
+                try {
+                    Thread.sleep(ackInterval);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return;
                 }
             }
         });
     }
     
     private void startConsumer(final int id) {
-        executor.submit(new Runnable() {
-            @Override
-            public void run() {
-                String name = StringUtils.join(Lists.newArrayList(messageQueue.getName(), "Consumer", Integer.toString(id)), ":");
-                Thread.currentThread().setName(name);
-                
-                // Create the consumer context
-                final MessageConsumer consumer = messageQueue.createConsumer();
-                
-                while (!terminate) {
-                    // Process events in a tight loop, until asked to terminate
-                    Collection<MessageContext> messages = null;
+        executor.submit(() -> {
+            String name = StringUtils.join(Lists.newArrayList(messageQueue.getName(), "Consumer", Integer.toString(id)), ":");
+            Thread.currentThread().setName(name);
+
+            // Create the consumer context
+            final MessageConsumer consumer = messageQueue.createConsumer();
+
+            while (!terminate) {
+                // Process events in a tight loop, until asked to terminate
+                Collection<MessageContext> messages = null;
+                try {
+                    messages = consumer.readMessages(batchSize);
+                    if (messages.isEmpty()) {
+                        Thread.sleep(pollingInterval);
+                    }
+                    else {
+                        for (MessageContext context : messages) {
+                            toProcess.put(context);
+                        }
+                    }
+                }
+                catch (BusyLockException e) {
                     try {
-                        messages = consumer.readMessages(batchSize);
-                        if (messages.isEmpty()) {
-                            Thread.sleep(pollingInterval);
-                        }
-                        else {
-                            for (MessageContext context : messages) {
-                                toProcess.put(context);
-                            }
-                        }
-                    } 
-                    catch (BusyLockException e) {
-                        try {
-                            Thread.sleep(pollingInterval);
-                        } catch (InterruptedException e1) {
-                            Thread.interrupted();
-                            return;
-                        }
+                        Thread.sleep(pollingInterval);
+                    } catch (InterruptedException e1) {
+                        Thread.interrupted();
+                        return;
                     }
-                    catch (Throwable t) {
-                        LOG.warn("Error consuming messages ", t);
-                    }
+                }
+                catch (Throwable t) {
+                    LOG.warn("Error consuming messages ", t);
                 }
             }
         });
     }
     
     private void startProcessor(final int id) {
-        executor.submit(new Runnable() {
-            @Override
-            public void run() {
-                String name = StringUtils.join(Lists.newArrayList(messageQueue.getName(), "Processor", Integer.toString(id)), ":");
-                Thread.currentThread().setName(name);
-                LOG.info("Starting message processor : " + name);
-                try {
-                    while (!terminate) {
-                        // Pop a message off the queue, blocking if empty
-                        final MessageContext context;
-                        try {
-                            context = toProcess.take();
-                            if (context == null)
-                                continue;
-                        } catch (InterruptedException e) {
-                            Thread.currentThread().interrupt();
-                            return;
+        executor.submit(() -> {
+            String name = StringUtils.join(Lists.newArrayList(messageQueue.getName(), "Processor", Integer.toString(id)), ":");
+            Thread.currentThread().setName(name);
+            LOG.info("Starting message processor : " + name);
+            try {
+                while (!terminate) {
+                    // Pop a message off the queue, blocking if empty
+                    final MessageContext context;
+                    try {
+                        context = toProcess.take();
+                        if (context == null) {
+                            continue;
                         }
-                        
-                        // Process the message
-                        Message message = context.getMessage();
-                        try {
-                            // Message has a specific handler class
-                            if (message.getTaskClass() != null) {
-                                @SuppressWarnings("unchecked")
-                                Function<MessageContext, Boolean> task = handlerFactory.createInstance(message.getTaskClass());
-                                if (task.apply(context)) {
-                                    toAck.add(context);
-                                }
-                                continue;
-                            }
-                            
-                            // Use default callback
-                            if (callback.apply(context)) {
-                                context.setStatus(MessageStatus.DONE);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        return;
+                    }
+
+                    // Process the message
+                    Message message = context.getMessage();
+                    try {
+                        // Message has a specific handler class
+                        if (message.getTaskClass() != null) {
+                            @SuppressWarnings("unchecked")
+                            Function<MessageContext, Boolean> task = handlerFactory.createInstance(message.getTaskClass());
+                            if (task.apply(context)) {
                                 toAck.add(context);
-                                continue;
                             }
+                            continue;
                         }
-                        catch (Throwable t) {
-                            context.setException(t);
+
+                        // Use default callback
+                        if (callback.apply(context)) {
+                            context.setStatus(MessageStatus.DONE);
                             toAck.add(context);
-                            LOG.error("Error processing message " + message.getKey(), t);
+                            continue;
+                        }
+                    }
+                    catch (Throwable t) {
+                        context.setException(t);
+                        toAck.add(context);
+                        LOG.error("Error processing message " + message.getKey(), t);
 //                            try {
 //                                ackConsumer.ackPoisonMessage(context);
 //                            } catch (MessageQueueException e) {
 //                                LOG.warn("Failed to ack poison message " + message.getKey(), e);
 //                            }
-                        }
                     }
                 }
-                catch (Throwable t) {
-                    LOG.error("Error running producer : " + name, t);
-                }
+            }
+            catch (Throwable t) {
+                LOG.error("Error running producer : " + name, t);
             }
         });
     }

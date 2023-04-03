@@ -26,6 +26,6 @@ public class ThriftCql2Factory implements ThriftCqlFactory {
 
     @Override
     public <K, C> CqlQuery<K, C> createCqlQuery(ThriftColumnFamilyQueryImpl<K, C> cfQuery, String cql) {
-        return new ThriftCqlQuery<K, C>(cfQuery, cql);
+        return new ThriftCqlQuery<>(cfQuery, cql);
     }
 }

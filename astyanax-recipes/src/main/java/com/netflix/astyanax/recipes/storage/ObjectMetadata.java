@@ -64,7 +64,7 @@ public class ObjectMetadata {
     }
 
     public boolean isValidForRead() {
-        return (this.objectSize != null && this.chunkCount != null && this.chunkSize != null);
+        return this.objectSize != null && this.chunkCount != null && this.chunkSize != null;
     }
     
     public ObjectMetadata setParentPath(String parentPath) {

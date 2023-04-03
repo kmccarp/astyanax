@@ -29,7 +29,7 @@ import com.netflix.astyanax.model.Row;
 import com.netflix.astyanax.model.Rows;
 
 public class ThriftCqlRowsImpl<K, C> implements Rows<K, C> {
-    private List<Row<K, C>> rows;
+    private final List<Row<K, C>> rows;
     private Map<K, Row<K, C>> lookup;
 
     public ThriftCqlRowsImpl(final List<CqlRow> rows,
@@ -38,10 +38,10 @@ public class ThriftCqlRowsImpl<K, C> implements Rows<K, C> {
         for (CqlRow row : rows) {
             byte[] keyBytes = row.getKey();
             if (keyBytes == null || keyBytes.length == 0) {
-                this.rows.add(new ThriftRowImpl<K, C>(null, null,
+                this.rows.add(new ThriftRowImpl<>(null, null,
                         new ThriftColumnListImpl<C>(row.getColumns(), colSer)));
             } else {
-                this.rows.add(new ThriftRowImpl<K, C>(keySer
+                this.rows.add(new ThriftRowImpl<>(keySer
                         .fromBytes(keyBytes), ByteBuffer.wrap(keyBytes),
                         new ThriftColumnListImpl<C>(row.getColumns(), colSer)));
             }

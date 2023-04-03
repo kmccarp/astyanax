@@ -30,11 +30,11 @@ import com.netflix.astyanax.model.Row;
  * @param <K>
  * @param <C>
  */
-public class TraceFunction<K,C> implements Function<Row<K,C>, Boolean> {
+public final class TraceFunction<K, C> implements Function<Row<K,C>, Boolean> {
 
     public static class Builder<K,C> {
         private OutputStream out = System.out;
-        private boolean showColumns = false;
+        private boolean showColumns;
         
         public Builder(ColumnFamily<K,C> columnFamily) {
         }
@@ -50,12 +50,12 @@ public class TraceFunction<K,C> implements Function<Row<K,C>, Boolean> {
         }
         
         public TraceFunction<K,C> build() {
-            return new TraceFunction<K,C>(this);
+            return new TraceFunction<>(this);
         }
     }
 
     public static <K, C> Builder<K,C> builder(ColumnFamily<K,C> columnFamily) {
-        return new Builder<K,C>(columnFamily);
+        return new Builder<>(columnFamily);
     }
     
     private final OutputStream out;
@@ -75,10 +75,10 @@ public class TraceFunction<K,C> implements Function<Row<K,C>, Boolean> {
         
         StringBuilder sb = new StringBuilder();
         
-        sb.append(String.format("- row: '%s' size: '%dl' count: '%dl' \n", row.getKey(), size, row.getColumns().size()));
+        sb.append(String.format("- row: '%s' size: '%dl' count: '%dl' %n", row.getKey(), size, row.getColumns().size()));
         if (showColumns) {
             for (Column<C> column : row.getColumns()) {
-                sb.append(String.format("  '%s' (ts='%dl', ttl='%d')\n", column.getName(), column.getTimestamp(), column.getTtl()));
+                sb.append(String.format("  '%s' (ts='%dl', ttl='%d')%n", column.getName(), column.getTimestamp(), column.getTtl()));
             }
         }
         try {

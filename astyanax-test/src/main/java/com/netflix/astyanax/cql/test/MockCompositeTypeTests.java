@@ -53,11 +53,11 @@ public class MockCompositeTypeTests extends KeyspaceTests {
 		keyspace.dropColumnFamily(CF_COMPOSITE);
 	}
 
-	private static AnnotatedCompositeSerializer<MockCompositeType> M_SERIALIZER 
-    	= new AnnotatedCompositeSerializer<MockCompositeType>(MockCompositeType.class);
+    private static final AnnotatedCompositeSerializer<MockCompositeType> M_SERIALIZER
+            = new AnnotatedCompositeSerializer<>(MockCompositeType.class);
 
-    private static ColumnFamily<String, MockCompositeType> CF_COMPOSITE 
-    	= ColumnFamily.newColumnFamily("mockcompositetype", StringSerializer.get(), M_SERIALIZER);
+    private static final ColumnFamily<String, MockCompositeType> CF_COMPOSITE
+            = ColumnFamily.newColumnFamily("mockcompositetype", StringSerializer.get(), M_SERIALIZER);
 	
     
     @Test
@@ -190,10 +190,7 @@ public class MockCompositeTypeTests extends KeyspaceTests {
 	    }
 
 	    public String toString() {
-	        return new StringBuilder().append("MockCompositeType[")
-	                .append(stringPart).append(',').append(intPart).append(',')
-	                .append(intPart2).append(',').append(boolPart).append(',')
-	                .append(utf8StringPart).append(']').toString();
+	        return "MockCompositeType[" + stringPart + ',' + intPart + ',' + intPart2 + ',' + boolPart + ',' + utf8StringPart + ']';
 	    }
 	}
 }

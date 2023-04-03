@@ -71,19 +71,19 @@ public class ThriftColumnOrSuperColumnListImpl<C> extends AbstractColumnList<C> 
                 ColumnOrSuperColumn column = base.next();
                 if (column.isSetSuper_column()) {
                     SuperColumn sc = column.getSuper_column();
-                    return new ThriftSuperColumnImpl<C>(colSer.fromBytes(sc.getName()), sc);
+                    return new ThriftSuperColumnImpl<>(colSer.fromBytes(sc.getName()), sc);
                 }
                 else if (column.isSetCounter_column()) {
                     CounterColumn cc = column.getCounter_column();
-                    return new ThriftCounterColumnImpl<C>(colSer.fromBytes(cc.getName()), cc);
+                    return new ThriftCounterColumnImpl<>(colSer.fromBytes(cc.getName()), cc);
                 }
                 else if (column.isSetCounter_super_column()) {
                     CounterSuperColumn cc = column.getCounter_super_column();
-                    return new ThriftCounterSuperColumnImpl<C>(colSer.fromBytes(cc.getName()), cc);
+                    return new ThriftCounterSuperColumnImpl<>(colSer.fromBytes(cc.getName()), cc);
                 }
                 else if (column.isSetColumn()) {
                     org.apache.cassandra.thrift.Column c = column.getColumn();
-                    return new ThriftColumnImpl<C>(colSer.fromBytes(c.getName()), c);
+                    return new ThriftColumnImpl<>(colSer.fromBytes(c.getName()), c);
                 }
                 else {
                     throw new RuntimeException("Unknwon column type");
@@ -105,10 +105,10 @@ public class ThriftColumnOrSuperColumnListImpl<C> extends AbstractColumnList<C> 
             return null;
         }
         else if (column.isSetColumn()) {
-            return new ThriftColumnImpl<C>(columnName, column.getColumn());
+            return new ThriftColumnImpl<>(columnName, column.getColumn());
         }
         else if (column.isSetCounter_column()) {
-            return new ThriftCounterColumnImpl<C>(columnName, column.getCounter_column());
+            return new ThriftCounterColumnImpl<>(columnName, column.getCounter_column());
         }
         throw new UnsupportedOperationException("SuperColumn " + columnName + " has no value");
     }
@@ -121,10 +121,10 @@ public class ThriftColumnOrSuperColumnListImpl<C> extends AbstractColumnList<C> 
             return null;
         }
         else if (column.isSetColumn()) {
-            return new ThriftColumnImpl<C>(this.colSer.fromBytes(column.getColumn().getName()), column.getColumn());
+            return new ThriftColumnImpl<>(this.colSer.fromBytes(column.getColumn().getName()), column.getColumn());
         }
         else if (column.isSetCounter_column()) {
-            return new ThriftCounterColumnImpl<C>(this.colSer.fromBytes(column.getCounter_column().getName()),
+            return new ThriftCounterColumnImpl<>(this.colSer.fromBytes(column.getCounter_column().getName()),
                     column.getCounter_column());
         }
         throw new UnsupportedOperationException("SuperColumn " + idx + " has no value");
@@ -139,11 +139,11 @@ public class ThriftColumnOrSuperColumnListImpl<C> extends AbstractColumnList<C> 
         }
         else if (column.isSetSuper_column()) {
             SuperColumn sc = column.getSuper_column();
-            return new ThriftSuperColumnImpl<C2>(colSer.fromBytes(sc.getName()), sc);
+            return new ThriftSuperColumnImpl<>(colSer.fromBytes(sc.getName()), sc);
         }
         else if (column.isSetCounter_super_column()) {
             CounterSuperColumn sc = column.getCounter_super_column();
-            return new ThriftCounterSuperColumnImpl<C2>(colSer.fromBytes(sc.getName()), sc);
+            return new ThriftCounterSuperColumnImpl<>(colSer.fromBytes(sc.getName()), sc);
         }
         throw new UnsupportedOperationException("\'" + columnName + "\' is not a composite column");
     }
@@ -157,11 +157,11 @@ public class ThriftColumnOrSuperColumnListImpl<C> extends AbstractColumnList<C> 
         }
         else if (column.isSetSuper_column()) {
             SuperColumn sc = column.getSuper_column();
-            return new ThriftSuperColumnImpl<C2>(colSer.fromBytes(sc.getName()), sc);
+            return new ThriftSuperColumnImpl<>(colSer.fromBytes(sc.getName()), sc);
         }
         else if (column.isSetCounter_super_column()) {
             CounterSuperColumn sc = column.getCounter_super_column();
-            return new ThriftCounterSuperColumnImpl<C2>(colSer.fromBytes(sc.getName()), sc);
+            return new ThriftCounterSuperColumnImpl<>(colSer.fromBytes(sc.getName()), sc);
         }
         throw new UnsupportedOperationException("\'" + idx + "\' is not a super column");
     }
@@ -178,8 +178,9 @@ public class ThriftColumnOrSuperColumnListImpl<C> extends AbstractColumnList<C> 
 
     @Override
     public boolean isSuperColumn() {
-        if (columns.isEmpty())
+        if (columns.isEmpty()) {
             return false;
+        }
 
         ColumnOrSuperColumn sosc = columns.get(0);
         return sosc.isSetSuper_column() || sosc.isSetCounter_super_column();

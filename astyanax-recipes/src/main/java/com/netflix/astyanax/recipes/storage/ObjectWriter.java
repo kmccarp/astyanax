@@ -30,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Supplier;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.netflix.astyanax.util.BlockingConcurrentWindowCounter;
 
@@ -103,13 +102,13 @@ public class ObjectWriter implements Callable<ObjectMetadata> {
 
         final AtomicLong nBytesWritten = new AtomicLong(0);
         final AtomicInteger nChunksWritten = new AtomicInteger(0);
-        final AtomicReference<Exception> exception = new AtomicReference<Exception>();
+        final AtomicReference<Exception> exception = new AtomicReference<>();
 
         try {
             final ExecutorService executor = Executors.newFixedThreadPool(concurrencyLevel, new ThreadFactoryBuilder()
                     .setDaemon(true).setNameFormat("ChunkWriter-" + objectName + "-%d").build());
             final BlockingConcurrentWindowCounter chunkCounter = new BlockingConcurrentWindowCounter(concurrencyLevel);
-            final AutoAllocatingLinkedBlockingQueue<ByteBuffer> blocks = new AutoAllocatingLinkedBlockingQueue<ByteBuffer>(
+            final AutoAllocatingLinkedBlockingQueue<ByteBuffer> blocks = new AutoAllocatingLinkedBlockingQueue<>(
                     concurrencyLevel);
             try {
                 // Write file data one block at a time
@@ -120,12 +119,7 @@ public class ObjectWriter implements Callable<ObjectMetadata> {
                     final int chunkNumber = chunkCounter.incrementAndGet();
 
                     // Get a block or allocate a new one
-                    final ByteBuffer bb = blocks.poll(new Supplier<ByteBuffer>() {
-                        @Override
-                        public ByteBuffer get() {
-                            return ByteBuffer.allocate(chunkSize);
-                        }
-                    });
+                    final ByteBuffer bb = blocks.poll(() -> ByteBuffer.allocate(chunkSize));
 
                     // Reset the array and copy some data
                     bb.position(0);
@@ -134,27 +128,24 @@ public class ObjectWriter implements Callable<ObjectMetadata> {
                         bb.limit(nBytesRead);
 
                         // Send data in a worker thread
-                        executor.submit(new Runnable() {
-                            @Override
-                            public void run() {
-                                try {
-                                    if (exception.get() == null) {
-                                        LOG.debug("WRITE " + chunkNumber + " size=" + bb.limit());
-                                        provider.writeChunk(objectName, chunkNumber, bb, ttl);
-                                        callback.onChunk(chunkNumber, bb.limit());
-                                        nBytesWritten.addAndGet(bb.limit());
-                                        nChunksWritten.incrementAndGet();
-                                    }
+                        executor.submit(() -> {
+                            try {
+                                if (exception.get() == null) {
+                                    LOG.debug("WRITE " + chunkNumber + " size=" + bb.limit());
+                                    provider.writeChunk(objectName, chunkNumber, bb, ttl);
+                                    callback.onChunk(chunkNumber, bb.limit());
+                                    nBytesWritten.addAndGet(bb.limit());
+                                    nChunksWritten.incrementAndGet();
                                 }
-                                catch (Exception e) {
-                                    LOG.error(e.getMessage());
-                                    exception.compareAndSet(null, e);
-                                    callback.onChunkException(chunkNumber, e);
-                                }
-                                finally {
-                                    blocks.add(bb);
-                                    chunkCounter.release(chunkNumber);
-                                }
+                            }
+                            catch (Exception e) {
+                                LOG.error(e.getMessage());
+                                exception.compareAndSet(null, e);
+                                callback.onChunkException(chunkNumber, e);
+                            }
+                            finally {
+                                blocks.add(bb);
+                                chunkCounter.release(chunkNumber);
                             }
                         });
                     }
@@ -211,15 +202,16 @@ public class ObjectWriter implements Callable<ObjectMetadata> {
      */
     private static int readFully(InputStream in, byte[] b, int off, int len) throws IOException {
         int total = 0;
-        for (;;) {
+        while () {
             int got = in.read(b, off + total, len - total);
             if (got < 0) {
                 return (total == 0) ? -1 : total;
             }
             else {
                 total += got;
-                if (total == len)
+                if (total == len) {
                     return total;
+                }
             }
         }
     }

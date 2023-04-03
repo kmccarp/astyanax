@@ -38,8 +38,8 @@ import com.netflix.astyanax.serializers.ComparatorType;
  */
 public class CqlTypeMapping {
 
-	private static Map<String, String> comparatorToCql3Type = new HashMap<String, String>();
-	private static Map<String, ComparatorType> cqlToComparatorType = new HashMap<String, ComparatorType>();
+    private static final Map<String, String> comparatorToCql3Type = new HashMap<>();
+    private static final Map<String, ComparatorType> cqlToComparatorType = new HashMap<>();
 		
 	static {
 		initComparatorTypeMap();
@@ -47,7 +47,7 @@ public class CqlTypeMapping {
 		
 	private static void initComparatorTypeMap() {
 		
-		Map<ComparatorType, String> tmpMap = new HashMap<ComparatorType, String>();
+		Map<ComparatorType, String> tmpMap = new HashMap<>();
 
 		tmpMap.put(ComparatorType.ASCIITYPE, "ASCII");
 		tmpMap.put(ComparatorType.BYTESTYPE, "BLOB");    

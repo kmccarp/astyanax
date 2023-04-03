@@ -32,8 +32,9 @@ public class CharSerializer extends AbstractSerializer<Character> {
 
     @Override
     public ByteBuffer toByteBuffer(Character obj) {
-        if (obj == null)
+        if (obj == null) {
             return null;
+        }
 
         ByteBuffer buffer = ByteBuffer.allocate(Character.SIZE / Byte.SIZE);
 
@@ -54,8 +55,9 @@ public class CharSerializer extends AbstractSerializer<Character> {
 
     @Override
     public ByteBuffer fromString(String str) {
-        if (str == null || str.length() == 0)
+        if (str == null || str.length() == 0) {
             return null;
+        }
         return toByteBuffer(str.charAt(0));
     }
 

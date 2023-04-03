@@ -30,8 +30,9 @@ public class ReversedSerializer<T> extends AbstractSerializer<T>{
 		
 	@Override
 	public ByteBuffer toByteBuffer(T obj) {
-		if (obj == null)
-			return null;
+        if (obj == null) {
+            return null;
+        }
 		
 		return SerializerTypeInferer.getSerializer(obj).toByteBuffer(obj);		
 	}

@@ -25,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.netflix.astyanax.ColumnListMutation;
-import com.netflix.astyanax.ExceptionCallback;
 import com.netflix.astyanax.MutationBatch;
 import com.netflix.astyanax.RowCallback;
 import com.netflix.astyanax.connectionpool.OperationResult;
@@ -109,13 +108,10 @@ public class AllRowsQueryTest extends KeyspaceTests {
 		OperationResult<Rows<String, String>> rows = keyspace
 				.prepareQuery(CF_ALL_ROWS).getAllRows().setConcurrencyLevel(2).setRowLimit(30)
 				//.withColumnRange(new RangeBuilder().setLimit(0).build())
-				.setExceptionCallback(new ExceptionCallback() {
-					@Override
-					public boolean onException(ConnectionException e) {
-						Assert.fail(e.getMessage());
-						return true;
-					}
-				}).execute();
+				.setExceptionCallback(e -> {
+            Assert.fail(e.getMessage());
+            return true;
+        }).execute();
 		for (Row<String, String> row : rows.getResult()) {
 			counter.incrementAndGet();
 			LOG.info("ROW: " + row.getKey() + " " + row.getColumns().size());
