@@ -15,7 +15,6 @@
  */
 package com.netflix.astyanax.contrib.dualwrites;
 
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -52,7 +51,7 @@ public class AsyncFailedWritesLogger implements FailedWritesLogger {
 
     public AsyncFailedWritesLogger(FailedWritesLogger writer, int queueSize) {
         this.actualWriter = writer;
-        this.taskQueue = new LinkedBlockingQueue<WriteMetadata>(queueSize);
+        this.taskQueue = new LinkedBlockingQueue<>(queueSize);
     }
     
     @Override
@@ -76,29 +75,25 @@ public class AsyncFailedWritesLogger implements FailedWritesLogger {
             threadPool = Executors.newScheduledThreadPool(1);
         }
         
-        threadPool.submit(new Callable<Void>() {
+        threadPool.submit(() -> {
 
-            @Override
-            public Void call() throws Exception {
-                
-                Logger.info("Async failed writes logger starting..");
+            Logger.info("Async failed writes logger starting..");
 
-                while (!stop.get() && !Thread.currentThread().isInterrupted()) {
-                    try { 
-                        WriteMetadata writeMD = taskQueue.take();  // this is a blocking call
-                        try { 
-                            actualWriter.logFailedWrite(writeMD);
-                        } catch (Exception e) {
-                            Logger.error("Failed to log failed write asynchronously", e);
-                        }
-                    } catch(InterruptedException e) {
-                        // stop blocking on the queue and exit
-                        stop.set(true);
+            while (!stop.get() && !Thread.currentThread().isInterrupted()) {
+                try {
+                    WriteMetadata writeMD = taskQueue.take();  // this is a blocking call
+                    try {
+                        actualWriter.logFailedWrite(writeMD);
+                    } catch (Exception e) {
+                        Logger.error("Failed to log failed write asynchronously", e);
                     }
+                } catch (InterruptedException e) {
+                    // stop blocking on the queue and exit
+                    stop.set(true);
                 }
-                Logger.info("Async failed writes logger exiting..");
-                return null;
             }
+            Logger.info("Async failed writes logger exiting..");
+            return null;
         });
     }
     

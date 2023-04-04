@@ -147,7 +147,7 @@ public class CqlColumnSlice<C> extends ColumnSlice<C> {
 	}
 
 	public boolean isColumnSelectQuery() {
-		return (this.cqlColumns != null);
+		return this.cqlColumns != null;
 	}
 
 	public boolean isRangeQuery() {
@@ -155,21 +155,16 @@ public class CqlColumnSlice<C> extends ColumnSlice<C> {
 		if (isColumnSelectQuery()) {
 			return false;
 		}
-		
-		if (cqlRange != null)  {
-			return true;
-		}
-		
-		return false;
+        return cqlRange != null;
 	}
 	
 	
 	public boolean isSelectAllQuery() {
-		return (!isColumnSelectQuery() && !isRangeQuery());
+		return !isColumnSelectQuery() && !isRangeQuery();
 	}
-	
-	public static enum QueryType {
-		SELECT_ALL, COLUMN_COLLECTION, COLUMN_RANGE;
+
+    public enum QueryType {
+		SELECT_ALL, COLUMN_COLLECTION, COLUMN_RANGE
 	}
 	
 	public QueryType getQueryType() {

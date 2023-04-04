@@ -41,9 +41,9 @@ public abstract class QueryGenCache<Q> {
 	private static final Logger LOG = LoggerFactory.getLogger(QueryGenCache.class);
 
 	// reference to the session object. This is required for "preparing" a statement
-	private AtomicReference<Session> sessionRef = new AtomicReference<Session>(null); 
+	private AtomicReference<Session> sessionRef = new AtomicReference<>(null); 
 	// The cached reference to the query constructed by extending classes
-	private final AtomicReference<PreparedStatement> cachedStatement = new AtomicReference<PreparedStatement>(null);
+	private final AtomicReference<PreparedStatement> cachedStatement = new AtomicReference<>(null);
 
 	/**
 	 * Constructor

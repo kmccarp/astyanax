@@ -37,16 +37,16 @@ import com.netflix.astyanax.serializers.AnnotatedCompositeSerializer.ComponentSe
 
 public class CFColumnQueryGen {
 
-	private AtomicReference<Session> sessionRef = new AtomicReference<Session>(null);
+    private final AtomicReference<Session> sessionRef = new AtomicReference<>(null);
 	private final String keyspace; 
 	private final CqlColumnFamilyDefinitionImpl cfDef;
 
 	private final String partitionKeyCol;
 	private final List<ColumnDefinition> clusteringKeyCols;
 	private final List<ColumnDefinition> regularCols;
-	
-	private boolean isCompositeColumn = false;
-	private boolean isFlatTable = false;
+
+    private final boolean isCompositeColumn;
+    private final boolean isFlatTable;
 	
 	private static final String BIND_MARKER = "?";
 
@@ -62,134 +62,122 @@ public class CFColumnQueryGen {
 		clusteringKeyCols = cfDef.getClusteringKeyColumnDefinitionList();
 		regularCols = cfDef.getRegularColumnDefinitionList();
 		
-		isCompositeColumn = (clusteringKeyCols.size() > 1);
-		isFlatTable = (clusteringKeyCols.size() == 0);
+		isCompositeColumn = clusteringKeyCols.size() > 1;
+		isFlatTable = clusteringKeyCols.isEmpty();
 	}
-	
-	private QueryGenCache<CqlColumnQueryImpl<?>> ColumnQueryWithClusteringKey = new QueryGenCache<CqlColumnQueryImpl<?>>(sessionRef) {
 
-		@Override
-		public Callable<RegularStatement> getQueryGen(final CqlColumnQueryImpl<?> columnQuery) {
-			
-			return new Callable<RegularStatement>() {
+    private final QueryGenCache<CqlColumnQueryImpl<?>> columnQueryWithClusteringKey = new QueryGenCache<CqlColumnQueryImpl<?>>(sessionRef) {
 
-				@Override
-				public RegularStatement call() throws Exception {
-					if (clusteringKeyCols.size() != 1) {
-						throw new RuntimeException("Cannot use this query for this schema, clustetingKeyCols.size: " + clusteringKeyCols.size());
-					}
-					
-					String valueColName = regularCols.get(0).getName();
+        @Override
+        public Callable<RegularStatement> getQueryGen(final CqlColumnQueryImpl<?> columnQuery) {
 
-					return QueryBuilder.select()
-							.column(valueColName).ttl(valueColName).writeTime(valueColName)
-							.from(keyspace, cfDef.getName())
-							.where(eq(partitionKeyCol, BIND_MARKER))
-							.and(eq(clusteringKeyCols.get(0).getName(), BIND_MARKER));
-				}
-			};
-		}
+            return () -> {
+                if (clusteringKeyCols.size() != 1) {
+                    throw new RuntimeException("Cannot use this query for this schema, clustetingKeyCols.size: " + clusteringKeyCols.size());
+                }
 
-		@Override
-		public BoundStatement bindValues(PreparedStatement pStatement, CqlColumnQueryImpl<?> columnQuery) {
-			return pStatement.bind(columnQuery.getRowKey(), columnQuery.getColumnName());		
-		}
-	};
-	
-	private QueryGenCache<CqlColumnQueryImpl<?>> ColumnQueryWithCompositeColumn = new QueryGenCache<CqlColumnQueryImpl<?>>(sessionRef) {
+                String valueColName = regularCols.get(0).getName();
 
-		@Override
-		public Callable<RegularStatement> getQueryGen(final CqlColumnQueryImpl<?> columnQuery) {
-			
-			return new Callable<RegularStatement>() {
+                return QueryBuilder.select()
+                        .column(valueColName).ttl(valueColName).writeTime(valueColName)
+                        .from(keyspace, cfDef.getName())
+                        .where(eq(partitionKeyCol, BIND_MARKER))
+                        .and(eq(clusteringKeyCols.get(0).getName(), BIND_MARKER));
+            };
+        }
 
-				@Override
-				public RegularStatement call() throws Exception {
-					
-					if (clusteringKeyCols.size() <= 1) {
-						throw new RuntimeException("Cannot use this query for this schema, clustetingKeyCols.size: " + clusteringKeyCols.size());
-					}
-					
-					String valueColName = regularCols.get(0).getName();
+        @Override
+        public BoundStatement bindValues(PreparedStatement pStatement, CqlColumnQueryImpl<?> columnQuery) {
+            return pStatement.bind(columnQuery.getRowKey(), columnQuery.getColumnName());
+        }
+    };
 
-					ColumnFamily<?,?> cf = columnQuery.getCF();
-					AnnotatedCompositeSerializer<?> compSerializer = (AnnotatedCompositeSerializer<?>) cf.getColumnSerializer();
-					List<ComponentSerializer<?>> components = compSerializer.getComponents();
+    private final QueryGenCache<CqlColumnQueryImpl<?>> columnQueryWithCompositeColumn = new QueryGenCache<CqlColumnQueryImpl<?>>(sessionRef) {
 
-					// select the individual columns as dictated by the no of component serializers
-					Builder select = QueryBuilder.select()
-							.column(valueColName).ttl(valueColName).writeTime(valueColName);
+        @Override
+        public Callable<RegularStatement> getQueryGen(final CqlColumnQueryImpl<?> columnQuery) {
 
-					Where where = select.from(keyspace, cfDef.getName()).where(eq(partitionKeyCol, BIND_MARKER));
+            return () -> {
 
-					for (int index = 0; index<components.size(); index++) {
-						where.and(eq(clusteringKeyCols.get(index).getName(), BIND_MARKER));
-					}
+                if (clusteringKeyCols.size() <= 1) {
+                    throw new RuntimeException("Cannot use this query for this schema, clustetingKeyCols.size: " + clusteringKeyCols.size());
+                }
 
-					return where;
-				}
-			};
-		}
+                String valueColName = regularCols.get(0).getName();
 
-		@Override
-		public BoundStatement bindValues(PreparedStatement pStatement, CqlColumnQueryImpl<?> columnQuery) {
-		
-			List<Object> values = new ArrayList<Object>();
-			values.add(columnQuery.getRowKey());
-			
-			ColumnFamily<?,?> cf = columnQuery.getCF();
-			AnnotatedCompositeSerializer<?> compSerializer = (AnnotatedCompositeSerializer<?>) cf.getColumnSerializer();
-			List<ComponentSerializer<?>> components = compSerializer.getComponents();
+                ColumnFamily<?, ?> cf = columnQuery.getCF();
+                AnnotatedCompositeSerializer<?> compSerializer = (AnnotatedCompositeSerializer<?>) cf.getColumnSerializer();
+                List<ComponentSerializer<?>> components = compSerializer.getComponents();
 
-			Object columnName = columnQuery.getColumnName();
-			for (ComponentSerializer<?> component : components) {
-				values.add(component.getFieldValueDirectly(columnName));
-			}
+                // select the individual columns as dictated by the no of component serializers
+                Builder select = QueryBuilder.select()
+                        .column(valueColName).ttl(valueColName).writeTime(valueColName);
 
-			return pStatement.bind(values.toArray());
-		}
-	};
-	
-	
-	private QueryGenCache<CqlColumnQueryImpl<?>> FlatTableColumnQuery = new QueryGenCache<CqlColumnQueryImpl<?>>(sessionRef) {
+                Where where = select.from(keyspace, cfDef.getName()).where(eq(partitionKeyCol, BIND_MARKER));
 
-		@Override
-		public Callable<RegularStatement> getQueryGen(final CqlColumnQueryImpl<?> columnQuery) {
-			
-			return new Callable<RegularStatement>() {
+                for (int index = 0; index < components.size(); index++) {
+                    where.and(eq(clusteringKeyCols.get(index).getName(), BIND_MARKER));
+                }
 
-				@Override
-				public RegularStatement call() throws Exception {
-					
-					if (clusteringKeyCols.size() != 0) {
-						throw new RuntimeException("Cannot use this query for this schema, clustetingKeyCols.size: " + clusteringKeyCols.size());
-					}
+                return where;
+            };
+        }
 
-					String columnNameString = (String)columnQuery.getColumnName();
-					return QueryBuilder.select()
-							.column(columnNameString).ttl(columnNameString).writeTime(columnNameString)
-							.from(keyspace, cfDef.getName())
-							.where(eq(partitionKeyCol, BIND_MARKER));				}
-				
-			};
-		}
+        @Override
+        public BoundStatement bindValues(PreparedStatement pStatement, CqlColumnQueryImpl<?> columnQuery) {
 
-		@Override
-		public BoundStatement bindValues(PreparedStatement pStatement, CqlColumnQueryImpl<?> columnQuery) {
-			return pStatement.bind(columnQuery.getRowKey());
-		}
-	};
+            List<Object> values = new ArrayList<>();
+            values.add(columnQuery.getRowKey());
+
+            ColumnFamily<?, ?> cf = columnQuery.getCF();
+            AnnotatedCompositeSerializer<?> compSerializer = (AnnotatedCompositeSerializer<?>) cf.getColumnSerializer();
+            List<ComponentSerializer<?>> components = compSerializer.getComponents();
+
+            Object columnName = columnQuery.getColumnName();
+            for (ComponentSerializer<?> component : components) {
+                values.add(component.getFieldValueDirectly(columnName));
+            }
+
+            return pStatement.bind(values.toArray());
+        }
+    };
+
+
+    private final QueryGenCache<CqlColumnQueryImpl<?>> flatTableColumnQuery = new QueryGenCache<CqlColumnQueryImpl<?>>(sessionRef) {
+
+        @Override
+        public Callable<RegularStatement> getQueryGen(final CqlColumnQueryImpl<?> columnQuery) {
+
+            return () -> {
+
+                if (!clusteringKeyCols.isEmpty()) {
+                    throw new RuntimeException("Cannot use this query for this schema, clustetingKeyCols.size: " + clusteringKeyCols.size());
+                }
+
+                String columnNameString = (String) columnQuery.getColumnName();
+                return QueryBuilder.select()
+                        .column(columnNameString).ttl(columnNameString).writeTime(columnNameString)
+                        .from(keyspace, cfDef.getName())
+                        .where(eq(partitionKeyCol, BIND_MARKER));
+            };
+        }
+
+        @Override
+        public BoundStatement bindValues(PreparedStatement pStatement, CqlColumnQueryImpl<?> columnQuery) {
+            return pStatement.bind(columnQuery.getRowKey());
+        }
+    };
 	
 	public BoundStatement getQueryStatement(CqlColumnQueryImpl<?> columnQuery, boolean useCaching) {
 
 		if (isFlatTable) {
-			return FlatTableColumnQuery.getBoundStatement(columnQuery, useCaching);
+			return flatTableColumnQuery.getBoundStatement(columnQuery, useCaching);
 		}
 		
 		if (isCompositeColumn) {
-			return ColumnQueryWithCompositeColumn.getBoundStatement(columnQuery, useCaching);
+			return columnQueryWithCompositeColumn.getBoundStatement(columnQuery, useCaching);
 		} else {
-			return ColumnQueryWithClusteringKey.getBoundStatement(columnQuery, useCaching);
+			return columnQueryWithClusteringKey.getBoundStatement(columnQuery, useCaching);
 		}
 	}
 }

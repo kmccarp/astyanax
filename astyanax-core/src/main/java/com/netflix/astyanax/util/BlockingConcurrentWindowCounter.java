@@ -21,8 +21,8 @@ import java.util.concurrent.TimeUnit;
 
 public class BlockingConcurrentWindowCounter {
     private final PriorityBlockingQueue<Integer> queue;
-    private volatile int tail = 0;
-    private volatile int head = 0;
+    private volatile int tail;
+    private volatile int head;
     private final Semaphore semaphore;
 
     public BlockingConcurrentWindowCounter(int size) {
@@ -30,7 +30,7 @@ public class BlockingConcurrentWindowCounter {
     }
 
     public BlockingConcurrentWindowCounter(int size, int init) {
-        this.queue = new PriorityBlockingQueue<Integer>(size);
+        this.queue = new PriorityBlockingQueue<>(size);
         this.semaphore = new Semaphore(size);
         this.head = this.tail = init;
     }
@@ -57,8 +57,9 @@ public class BlockingConcurrentWindowCounter {
             tail++;
             count++;
         }
-        if (count > 0)
+        if (count > 0) {
             semaphore.release(count);
+        }
         return count;
     }
 }

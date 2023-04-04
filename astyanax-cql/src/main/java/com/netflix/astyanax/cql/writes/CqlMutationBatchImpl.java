@@ -45,7 +45,7 @@ public class CqlMutationBatchImpl extends AbstractMutationBatchImpl {
 	private final KeyspaceContext ksContext; 
 	
 	// Control to turn use of prepared statement caching ON/OFF
-	private boolean useCaching = false;
+	private boolean useCaching;
 	
 	public CqlMutationBatchImpl(KeyspaceContext ksCtx, Clock clock, ConsistencyLevel consistencyLevel, RetryPolicy retry) {
 		super(clock, consistencyLevel, retry);
@@ -112,7 +112,7 @@ public class CqlMutationBatchImpl extends AbstractMutationBatchImpl {
 
 	private List<CqlColumnListMutationImpl<?, ?>> getColumnMutations() {
 		
-		List<CqlColumnListMutationImpl<?,?>> colListMutation = new ArrayList<CqlColumnListMutationImpl<?,?>>();
+		List<CqlColumnListMutationImpl<?,?>> colListMutation = new ArrayList<>();
 		
 		for (Entry<ByteBuffer, Map<String, ColumnListMutation<?>>> entry : super.getMutationMap().entrySet()) {
 			for (ColumnListMutation<?> colMutation : entry.getValue().values()) {
@@ -126,7 +126,7 @@ public class CqlMutationBatchImpl extends AbstractMutationBatchImpl {
 		
 		final List<CqlColumnListMutationImpl<?, ?>> colListMutations = getColumnMutations();
 
-		if (colListMutations == null || colListMutations.size() == 0) {
+		if (colListMutations == null || colListMutations.isEmpty()) {
 			return new BatchStatement(Type.UNLOGGED);
 		}
 		

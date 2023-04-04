@@ -70,8 +70,9 @@ public final class BigIntegerSerializer extends AbstractSerializer<BigInteger> {
 
     @Override
     public ByteBuffer getNext(final ByteBuffer byteBuffer) {
-        if (byteBuffer == null)
+        if (byteBuffer == null) {
             return null;
+        }
         BigInteger bigint = fromByteBuffer(byteBuffer.duplicate());
         bigint = bigint.add(new BigInteger("1"));
         return toByteBuffer(bigint);
