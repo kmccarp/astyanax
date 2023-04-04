@@ -83,8 +83,9 @@ public class UniquenessConstraintWithPrefix<K> {
             return prefix + unique;
         }
 
-        if (this.monitor != null)
+        if (this.monitor != null) {
             this.monitor.onViolation(key, prefix + unique);
+        }
 
         // Rollback
         m = keyspace.prepareMutationBatch().setConsistencyLevel(consistencyLevel);

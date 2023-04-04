@@ -80,8 +80,9 @@ public class CassandraChunkedStorageProvider implements ChunkedStorageProvider {
     }
 
     private String getColumnName(Columns column) {
-        if (names.containsKey(column))
+        if (names.containsKey(column)) {
             return names.get(column);
+        }
         return column.name();
     }
 
@@ -157,14 +158,18 @@ public class CassandraChunkedStorageProvider implements ChunkedStorageProvider {
         MutationBatch m = keyspace.prepareMutationBatch().withRetryPolicy(retryPolicy);
 
         ColumnListMutation<String> row = m.withRow(cf, objectName);
-        if (objMetaData.getChunkSize() != null)
+        if (objMetaData.getChunkSize() != null) {
             row.putColumn(getColumnName(Columns.CHUNKSIZE), objMetaData.getChunkSize(), objMetaData.getTtl());
-        if (objMetaData.getChunkCount() != null)
+        }
+        if (objMetaData.getChunkCount() != null) {
             row.putColumn(getColumnName(Columns.CHUNKCOUNT), objMetaData.getChunkCount(), objMetaData.getTtl());
-        if (objMetaData.getObjectSize() != null)
+        }
+        if (objMetaData.getObjectSize() != null) {
             row.putColumn(getColumnName(Columns.OBJECTSIZE), objMetaData.getObjectSize(), objMetaData.getTtl());
-        if (objMetaData.getAttributes() != null)
+        }
+        if (objMetaData.getAttributes() != null) {
             row.putColumn(getColumnName(Columns.ATTRIBUTES), objMetaData.getAttributes(), objMetaData.getTtl());
+        }
         m.execute();
     }
 
@@ -186,8 +191,9 @@ public class CassandraChunkedStorageProvider implements ChunkedStorageProvider {
     public void deleteObject(String objectName, Integer chunkCount) throws Exception, NotFoundException {
         if (chunkCount == null) {
             ObjectMetadata attr = readMetadata(objectName);
-            if (attr.getChunkCount() == null)
+            if (attr.getChunkCount() == null) {
                 throw new NotFoundException("Object not found :" + objectName);
+            }
             chunkCount = attr.getChunkCount();
         }
 

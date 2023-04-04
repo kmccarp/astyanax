@@ -34,7 +34,7 @@ import com.netflix.astyanax.connectionpool.exceptions.ConnectionException;
  */
 public class AbstractOperationFilter<CL, R> implements Operation<CL, R>{
 
-    private Operation<CL, R> next;
+    private final Operation<CL, R> next;
     
     public AbstractOperationFilter(Operation<CL, R> next) {
         this.next = next;

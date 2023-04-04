@@ -38,7 +38,7 @@ public class ThriftCounterSuperColumnImpl<C> extends AbstractColumnImpl<C> {
 
     @Override
     public <C2> ColumnList<C2> getSubColumns(Serializer<C2> ser) {
-        return new ThriftCounterColumnListImpl<C2>(this.column.getColumns(), ser);
+        return new ThriftCounterColumnListImpl<>(this.column.getColumns(), ser);
     }
 
     @Override

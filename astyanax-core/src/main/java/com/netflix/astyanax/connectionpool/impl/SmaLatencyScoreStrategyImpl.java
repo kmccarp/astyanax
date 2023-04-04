@@ -39,8 +39,8 @@ public class SmaLatencyScoreStrategyImpl extends AbstractLatencyScoreStrategyImp
 
     public final Instance newInstance() {
         return new Instance() {
-            private final LinkedBlockingQueue<Long> latencies = new LinkedBlockingQueue<Long>(windowSize);
-            private volatile Double cachedScore = 0.0d;
+            private final LinkedBlockingQueue<Long> latencies = new LinkedBlockingQueue<>(windowSize);
+            private volatile Double cachedScore = 0.0D;
     
             @Override
             public void addSample(long sample) {

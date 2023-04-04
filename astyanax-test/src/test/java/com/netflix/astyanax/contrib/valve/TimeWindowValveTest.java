@@ -2,7 +2,6 @@ package com.netflix.astyanax.contrib.valve;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicLong;
 
 import junit.framework.Assert;
@@ -29,7 +28,7 @@ public class TimeWindowValveTest {
     
     private void testSingleThread(final TimeWindowValve window, int numRequests, int expectedSuccesses) {
         
-        Map<RequestStatus, Long> status = new HashMap<RequestStatus, Long>();
+        Map<RequestStatus, Long> status = new HashMap<>();
         
         for (int i=0; i<numRequests; i++) {
             RequestStatus ret = window.decrementAndCheckQuota();
@@ -66,16 +65,12 @@ public class TimeWindowValveTest {
         // track success rate of rps that is allowed to pass through
         final AtomicLong successCount = new AtomicLong(0L);
         
-        testControl.runTest(new Callable<Void>() {
-
-            @Override
-            public Void call() throws Exception {
-                RequestStatus status = window.decrementAndCheckQuota();
-                if (status == RequestStatus.Permitted) {
-                    successCount.incrementAndGet();
-                }
-                return null;
+        testControl.runTest(() -> {
+            RequestStatus status = window.decrementAndCheckQuota();
+            if (status == RequestStatus.Permitted) {
+                successCount.incrementAndGet();
             }
+            return null;
         });
         
         Thread.sleep(runTestMillis);

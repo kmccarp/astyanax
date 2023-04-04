@@ -47,8 +47,8 @@ import com.netflix.astyanax.model.ColumnList;
 @SuppressWarnings("unchecked")
 public class CqlColumnListImpl<C> implements ColumnList<C> {
 
-	private List<Column<C>> columnList = new ArrayList<Column<C>>();
-	private LinkedHashMap<C, Column<C>> map = new LinkedHashMap<C, Column<C>>();
+	private List<Column<C>> columnList = new ArrayList<>();
+	private LinkedHashMap<C, Column<C>> map = new LinkedHashMap<>();
 	
 	public CqlColumnListImpl() {
 
@@ -65,7 +65,7 @@ public class CqlColumnListImpl<C> implements ColumnList<C> {
 		int index = 1; // skip the key column
 		while (index < cfDefinitions.size()) {
 			String columnName = cfDefinitions.getName(index); 
-			CqlColumnImpl<C> cqlCol = new CqlColumnImpl<C>((C) columnName, row, index);
+			CqlColumnImpl<C> cqlCol = new CqlColumnImpl<>((C) columnName, row, index);
 			columnList.add(cqlCol);
 			map.put((C) columnName, cqlCol);
 			index+=3;  // skip past the ttl and the timestamp
@@ -87,7 +87,7 @@ public class CqlColumnListImpl<C> implements ColumnList<C> {
 			Object columnName = CqlTypeMapping.getDynamicColumn(row, cf.getColumnSerializer(), columnNameIndex, cf);
 			int valueIndex = cfDef.getPartitionKeyColumnDefinitionList().size() + cfDef.getClusteringKeyColumnDefinitionList().size();
 			
-			CqlColumnImpl<C> cqlCol = new CqlColumnImpl<C>((C) columnName, row, valueIndex);
+			CqlColumnImpl<C> cqlCol = new CqlColumnImpl<>((C) columnName, row, valueIndex);
 			columnList.add(cqlCol);
 			map.put((C) columnName, cqlCol);
 		}
@@ -102,7 +102,7 @@ public class CqlColumnListImpl<C> implements ColumnList<C> {
 	}
 	
 	public void trimFirstColumn() {
-		if (columnList.size() == 0) {
+		if (columnList.isEmpty()) {
 			return;
 		}
 		Column<C> firstCol = this.columnList.remove(0);
@@ -252,7 +252,7 @@ public class CqlColumnListImpl<C> implements ColumnList<C> {
 
 	@Override
 	public boolean isEmpty() {
-		return columnList.size() == 0;
+		return columnList.isEmpty();
 	}
 
 	@Override

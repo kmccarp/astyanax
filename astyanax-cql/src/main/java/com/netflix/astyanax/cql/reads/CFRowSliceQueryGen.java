@@ -50,7 +50,7 @@ import com.netflix.astyanax.serializers.CompositeRangeBuilder.RangeQueryRecord;
 public class CFRowSliceQueryGen {
 
 	// Thread safe reference to the underlying session object. We need the session object to be able to "prepare" query statements
-	protected final AtomicReference<Session> sessionRef = new AtomicReference<Session>(null);
+	protected final AtomicReference<Session> sessionRef = new AtomicReference<>(null);
 	// the keyspace being queried. Used for all the underlying queries being generated
 	protected final String keyspace; 
 	// the cf definition which helps extending classes construct the right query as per the schema
@@ -80,7 +80,7 @@ public class CFRowSliceQueryGen {
 		clusteringKeyCols = cfDef.getClusteringKeyColumnDefinitionList();
 		regularCols = cfDef.getRegularColumnDefinitionList();
 
-		isCompositeColumn = (clusteringKeyCols.size() > 1);
+		isCompositeColumn = clusteringKeyCols.size() > 1;
 	}
 	
 	/**
@@ -142,8 +142,6 @@ public class CFRowSliceQueryGen {
 		if (columnSlice.getLimit() != -1) {
 			values.add(columnSlice.getLimit());
 		}
-
-		return;
 	}
 	
 
@@ -178,7 +176,7 @@ public class CFRowSliceQueryGen {
 					break;
 				default:
 					throw new RuntimeException("Cannot recognize operator: " + op.getOperator().name());
-				}; // end of switch stmt
+				} // end of switch stmt
 			} // end of inner for for ops for each range query record
 		}
 		return stmt;
@@ -193,7 +191,6 @@ public class CFRowSliceQueryGen {
 				values.add(op.getValue());
 			}
 		}
-		return;
 	}
 	
 	protected Object[] bindMarkerArray(int n) {

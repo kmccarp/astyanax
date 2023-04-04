@@ -51,7 +51,7 @@ public class ThriftColumnFamilyMutationImpl<C> extends AbstractColumnListMutatio
 
     @Override
     public <SC> ColumnListMutation<SC> withSuperColumn(ColumnPath<SC> superColumnPath) {
-        return new ThriftSuperColumnMutationImpl<SC>(timestamp, mutationList, superColumnPath);
+        return new ThriftSuperColumnMutationImpl<>(timestamp, mutationList, superColumnPath);
     }
 
     @Override
@@ -64,20 +64,24 @@ public class ThriftColumnFamilyMutationImpl<C> extends AbstractColumnListMutatio
         if (column.getName().length == 0) {
             throw new RuntimeException("Column name cannot be empty");
         }
-        
-        if (value == null) 
+
+        if (value == null) {
             column.setValue(ThriftUtils.EMPTY_BYTE_BUFFER);
-        else 
+        }
+        else {
             column.setValue(valueSerializer.toByteBuffer(value));
+        }
         
         column.setTimestamp(timestamp);
         if (ttl != null) {
             // Treat TTL of 0 or -1 as no TTL
-            if (ttl > 0)
+            if (ttl > 0) {
                 column.setTtl(ttl);
+            }
         }
-        else if (defaultTtl != null)
+        else if (defaultTtl != null) {
             column.setTtl(defaultTtl);
+        }
 
         // 2. Create a mutation and append to the mutation list.
         Mutation mutation = new Mutation();
@@ -101,11 +105,13 @@ public class ThriftColumnFamilyMutationImpl<C> extends AbstractColumnListMutatio
         column.setTimestamp(timestamp);
         if (ttl != null) {
             // Treat TTL of 0 or -1 as no TTL
-            if (ttl > 0)
+            if (ttl > 0) {
                 column.setTtl(ttl);
+            }
         }
-        else if (defaultTtl != null)
+        else if (defaultTtl != null) {
             column.setTtl(defaultTtl);
+        }
 
         // 2. Create a mutation and append to the mutation list.
         Mutation mutation = new Mutation();

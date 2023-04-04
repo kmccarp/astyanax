@@ -38,7 +38,7 @@ public class CqlRowSlice<K> {
 
 	// Stuff needed for the direct query using the in() clause
 	private Collection<K> keys; 
-	private RowRange<K> range = new RowRange<K>();
+	private RowRange<K> range = new RowRange<>();
 	
 	public static class RowRange<K> {
 		// Stuff needed for the row range query
@@ -90,7 +90,7 @@ public class CqlRowSlice<K> {
 	}
 	
 	public boolean isCollectionQuery() {
-		return this.keys != null && keys.size() > 0;
+		return this.keys != null && !keys.isEmpty();
 	}
 	
 	public boolean isRangeQuery() {

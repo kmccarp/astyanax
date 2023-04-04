@@ -32,7 +32,7 @@ import com.netflix.astyanax.connectionpool.HostStats;
 
 public class JavaDriverConnectionPoolMonitorImpl implements ConnectionPoolMonitor {
 
-	private final AtomicReference<Cluster> cluster = new AtomicReference<Cluster>();
+	private final AtomicReference<Cluster> cluster = new AtomicReference<>();
 	
 	private MetricRegistryListener metricsRegListener = new MetricRegistryListener(){
 

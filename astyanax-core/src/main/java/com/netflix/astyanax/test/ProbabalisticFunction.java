@@ -23,12 +23,12 @@ import com.google.common.collect.Lists;
 
 public class ProbabalisticFunction<T, R> implements Function<T,R> {
     public static class Builder<T, R> {
-        private ProbabalisticFunction<T, R> function = new ProbabalisticFunction<T,R>();
+        private final ProbabalisticFunction<T, R> function = new ProbabalisticFunction<>();
         private double counter = 0;
 
         public Builder<T, R> withProbability(double probability, Function<T, R> func) {
             counter += probability;
-            function.functions.add(new Entry<T, R>(counter, func));
+            function.functions.add(new Entry<>(counter, func));
             return this;
         }
         

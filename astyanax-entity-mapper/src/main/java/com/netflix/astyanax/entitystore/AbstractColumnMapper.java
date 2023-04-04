@@ -30,10 +30,11 @@ public abstract class AbstractColumnMapper implements ColumnMapper {
         
 		// use field name if annotation name is not set
 		String name = columnAnnotation.name().isEmpty() ? field.getName() : columnAnnotation.name();
-		
-		// dot is a reserved char as separator
-		if(name.indexOf(".") >= 0)
-			throw new IllegalArgumentException("illegal column name containing reserved dot (.) char: " + name);
+
+        // dot is a reserved char as separator
+        if (name.contains(".")) {
+            throw new IllegalArgumentException("illegal column name containing reserved dot (.) char: " + name);
+        }
 		
         this.columnName       = name;
 	}

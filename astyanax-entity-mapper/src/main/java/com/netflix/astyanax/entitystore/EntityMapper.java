@@ -68,8 +68,9 @@ public class EntityMapper<T, K> {
 		
 		// clazz should be annotated with @Entity
 		Entity entityAnnotation = clazz.getAnnotation(Entity.class);
-		if(entityAnnotation == null)
-			throw new IllegalArgumentException("class is NOT annotated with @javax.persistence.Entity: " + clazz.getName());
+        if (entityAnnotation == null) {
+            throw new IllegalArgumentException("class is NOT annotated with @javax.persistence.Entity: " + clazz.getName());
+        }
 		
 		entityName = MappingUtils.getEntityName(entityAnnotation, clazz);
 		
@@ -190,8 +191,9 @@ public class EntityMapper<T, K> {
 	void setField(T entity, Iterator<String> name, com.netflix.astyanax.model.Column<String> column) throws Exception {
 	    String fieldName = name.next();
 	    ColumnMapper mapper = this.columnList.get(fieldName);
-        if (mapper != null)
+        if (mapper != null) {
             mapper.setField(entity, name, column);
+        }
 	}
 	
 	@SuppressWarnings("unchecked")
