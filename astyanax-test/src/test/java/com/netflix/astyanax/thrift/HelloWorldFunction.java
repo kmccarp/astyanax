@@ -5,7 +5,7 @@ import com.google.common.base.Function;
 import com.netflix.astyanax.recipes.queue.MessageContext;
 
 public class HelloWorldFunction implements Function<MessageContext, Boolean>{
-    private final static long startTime = System.currentTimeMillis();
+    private static final long startTime = System.currentTimeMillis();
 
     @Override
     public Boolean apply(MessageContext input) {

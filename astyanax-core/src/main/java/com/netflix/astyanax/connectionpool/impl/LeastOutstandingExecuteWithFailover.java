@@ -58,10 +58,12 @@ public class LeastOutstandingExecuteWithFailover<CL, R> extends AbstractExecuteW
 
         int size = this.pools.size();
         retryCountdown = Math.min(config.getMaxFailoverCount(), size);
-        if (retryCountdown < 0)
+        if (retryCountdown < 0) {
             retryCountdown = size;
-        else if (retryCountdown == 0)
+        }
+        else if (retryCountdown == 0) {
             retryCountdown = 1;
+        }
 
         waitDelta = config.getMaxTimeoutWhenExhausted() / retryCountdown;
     }

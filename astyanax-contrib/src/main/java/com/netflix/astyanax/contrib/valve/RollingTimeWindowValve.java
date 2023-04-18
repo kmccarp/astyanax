@@ -25,7 +25,7 @@ import com.netflix.astyanax.contrib.valve.TimeWindowValve.RequestStatus;
 
 public class RollingTimeWindowValve {
 
-    private final AtomicReference<InnerState> currentRef = new AtomicReference<InnerState>(null);
+    private final AtomicReference<InnerState> currentRef = new AtomicReference<>(null);
     
     
     private final AtomicLong ratePerSecond = new AtomicLong(0L);
@@ -83,13 +83,13 @@ public class RollingTimeWindowValve {
                 //System.out.println("FLIP");
             }
             // Try one more time before giving up
-            return (currentRef.get().window.decrementAndCheckQuota() == RequestStatus.Permitted);
+            return currentRef.get().window.decrementAndCheckQuota() == RequestStatus.Permitted;
         }
         
         return false;
     }
-    
-    private class InnerState {
+
+    private final class InnerState {
         
         private final String id = UUID.randomUUID().toString();
         private final Long startTime;
@@ -118,11 +118,17 @@ public class RollingTimeWindowValve {
 
         @Override
         public boolean equals(Object obj) {
-            
-            if (this == obj) return true;
-            if (obj == null) return false;
-            
-            if (getClass() != obj.getClass()) return false;
+
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
             
             InnerState other = (InnerState) obj;
             boolean equals = true; 
@@ -133,7 +139,7 @@ public class RollingTimeWindowValve {
 
         @Override
         public String toString() {
-            return id.toString();
+            return id;
         }
     }
 }

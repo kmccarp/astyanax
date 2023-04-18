@@ -42,9 +42,9 @@ import com.netflix.astyanax.connectionpool.exceptions.SerializationException;
 public class JaxbSerializer extends AbstractSerializer<Object> {
 
     /** The cached per-thread marshaller. */
-    private ThreadLocal<Marshaller> marshaller;
+    private final ThreadLocal<Marshaller> marshaller;
     /** The cached per-thread unmarshaller. */
-    private ThreadLocal<Unmarshaller> unmarshaller;
+    private final ThreadLocal<Unmarshaller> unmarshaller;
 
     /**
      * Lazily initialized singleton factory for producing default

@@ -36,14 +36,14 @@ import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class ThriftKeyspaceAllRowsTest {
-    
-    private static Logger LOG = LoggerFactory.getLogger(ThriftKeyspaceAllRowsTest.class);
+
+    private static final Logger LOG = LoggerFactory.getLogger(ThriftKeyspaceAllRowsTest.class);
 
     private static Keyspace                  keyspace;
     private static AstyanaxContext<Keyspace> keyspaceContext;
 
-    private static String TEST_CLUSTER_NAME  = "cass_sandbox";
-    private static String TEST_KEYSPACE_NAME = "AstyanaxUnitTests";
+    private static final String TEST_CLUSTER_NAME = "cass_sandbox";
+    private static final String TEST_KEYSPACE_NAME = "AstyanaxUnitTests";
     private static final String SEEDS = "localhost:9160";
     private static final long   CASSANDRA_WAIT_TIME = 3000;
     private static final long   LOTS_OF_ROWS_COUNT = 1000;
@@ -55,10 +55,10 @@ public class ThriftKeyspaceAllRowsTest {
             ColumnFamily.newColumnFamily("AllRowsTombstone1",       LongSerializer.get(), StringSerializer.get());
 
     public static ColumnFamily<Long, String> CF_LOTS_OF_ROWS = 
-            new ColumnFamily<Long, String>("LotsOfRows1",       LongSerializer.get(), StringSerializer.get());
+            new ColumnFamily<>("LotsOfRows1",       LongSerializer.get(), StringSerializer.get());
 
     public static ColumnFamily<Long, String> CF_CHECKPOINTS = 
-            new ColumnFamily<Long, String>("Checkpoints",       LongSerializer.get(), StringSerializer.get());
+            new ColumnFamily<>("Checkpoints",       LongSerializer.get(), StringSerializer.get());
 
     @BeforeClass
     public static void setup() throws Exception {
@@ -73,8 +73,9 @@ public class ThriftKeyspaceAllRowsTest {
 
     @AfterClass
     public static void teardown() throws Exception {
-        if (keyspaceContext != null)
+        if (keyspaceContext != null) {
             keyspaceContext.shutdown();
+        }
         
         Thread.sleep(CASSANDRA_WAIT_TIME);
     }
@@ -190,10 +191,11 @@ public class ThriftKeyspaceAllRowsTest {
     }
     
     public static <K, C> Set<K> getKeySet(Rows<K, C> rows) {
-        Set<K> set = new TreeSet<K>();
+        Set<K> set = new TreeSet<>();
         for (Row<K, C> row : rows) {
-            if (set.contains(row.getKey())) 
+            if (set.contains(row.getKey())) {
                 Assert.fail("Duplicate key found : " + row.getKey());
+            }
             LOG.info("Row: " + row.getKey());
             set.add(row.getKey());
         }
@@ -385,7 +387,7 @@ public class ThriftKeyspaceAllRowsTest {
     }
     
     public static class ToKeySetCallback<K,C> implements RowCallback<K, C> {
-        private Set<K> set = new TreeSet<K>();
+        private final Set<K> set = new TreeSet<>();
         
         @Override
         public synchronized void success(Rows<K, C> rows) {

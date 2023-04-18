@@ -30,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Supplier;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.netflix.astyanax.util.BlockingConcurrentWindowCounter;
 
@@ -103,13 +102,13 @@ public class ObjectWriter implements Callable<ObjectMetadata> {
 
         final AtomicLong nBytesWritten = new AtomicLong(0);
         final AtomicInteger nChunksWritten = new AtomicInteger(0);
-        final AtomicReference<Exception> exception = new AtomicReference<Exception>();
+        final AtomicReference<Exception> exception = new AtomicReference<>();
 
         try {
             final ExecutorService executor = Executors.newFixedThreadPool(concurrencyLevel, new ThreadFactoryBuilder()
                     .setDaemon(true).setNameFormat("ChunkWriter-" + objectName + "-%d").build());
             final BlockingConcurrentWindowCounter chunkCounter = new BlockingConcurrentWindowCounter(concurrencyLevel);
-            final AutoAllocatingLinkedBlockingQueue<ByteBuffer> blocks = new AutoAllocatingLinkedBlockingQueue<ByteBuffer>(
+            final AutoAllocatingLinkedBlockingQueue<ByteBuffer> blocks = new AutoAllocatingLinkedBlockingQueue<>(
                     concurrencyLevel);
             try {
                 // Write file data one block at a time
@@ -120,12 +119,7 @@ public class ObjectWriter implements Callable<ObjectMetadata> {
                     final int chunkNumber = chunkCounter.incrementAndGet();
 
                     // Get a block or allocate a new one
-                    final ByteBuffer bb = blocks.poll(new Supplier<ByteBuffer>() {
-                        @Override
-                        public ByteBuffer get() {
-                            return ByteBuffer.allocate(chunkSize);
-                        }
-                    });
+                    final ByteBuffer bb = blocks.poll(() -> ByteBuffer.allocate(chunkSize));
 
                     // Reset the array and copy some data
                     bb.position(0);
@@ -218,8 +212,9 @@ public class ObjectWriter implements Callable<ObjectMetadata> {
             }
             else {
                 total += got;
-                if (total == len)
+                if (total == len) {
                     return total;
+                }
             }
         }
     }

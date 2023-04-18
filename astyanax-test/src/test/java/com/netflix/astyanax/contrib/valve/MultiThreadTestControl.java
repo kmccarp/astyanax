@@ -40,20 +40,16 @@ public class MultiThreadTestControl {
         
         for (int i=0; i<numThreads; i++) {
             
-            threadPool.submit(new Callable<Void>() {
+            threadPool.submit(() -> {
 
-                @Override
-                public Void call() throws Exception {
-                    
-                    barrier.await();
-                    
-                    while (!stop.get()) {
-                        perThreadIterationCall.call();
-                    }
-                    // stopping test thread
-                    latch.countDown();
-                    return null;
+                barrier.await();
+
+                while (!stop.get()) {
+                    perThreadIterationCall.call();
                 }
+                // stopping test thread
+                latch.countDown();
+                return null;
             });
         }
      

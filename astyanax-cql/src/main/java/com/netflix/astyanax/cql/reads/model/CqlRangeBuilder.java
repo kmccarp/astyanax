@@ -27,7 +27,7 @@ public class CqlRangeBuilder<T> {
     private T start = null;
     private T end = null;
     private int limit = -1;
-    private boolean reversed = false;
+    private boolean reversed;
     private int fetchSize = -1;
 
     private String columnName = "column1";
@@ -98,6 +98,6 @@ public class CqlRangeBuilder<T> {
     }
 
     public CqlRangeImpl<T> build() {
-    	return new CqlRangeImpl<T>(columnName, start, end, limit, reversed, fetchSize);
+    	return new CqlRangeImpl<>(columnName, start, end, limit, reversed, fetchSize);
     }
 }

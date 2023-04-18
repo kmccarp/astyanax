@@ -24,7 +24,7 @@ public class MicrosecondsAsyncClock implements Clock {
     private static final long serialVersionUID = -4671061000963496156L;
     private static final long ONE_THOUSAND = 1000L;
 
-    private static AtomicInteger counter = new AtomicInteger(0);
+    private static final AtomicInteger counter = new AtomicInteger(0);
 
     public MicrosecondsAsyncClock() {
 

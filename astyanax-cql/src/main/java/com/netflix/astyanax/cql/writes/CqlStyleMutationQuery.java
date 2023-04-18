@@ -76,14 +76,14 @@ public class CqlStyleMutationQuery {
 		}
 		
 		if (ttl != null) {
-			sb.append(TTL + ttl);
+			sb.append(TTL).append(ttl);
 		}
 		
 		if (timestamp != null) {
 			if (ttl != null) {
 				sb.append(AND);
 			}
-			sb.append(TIMESTAMP + timestamp);
+			sb.append(TIMESTAMP).append(timestamp);
 		}
 	}
 	

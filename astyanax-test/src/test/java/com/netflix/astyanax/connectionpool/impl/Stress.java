@@ -35,19 +35,9 @@ import com.netflix.astyanax.connectionpool.Host;
 import com.netflix.astyanax.connectionpool.HostConnectionPool;
 import com.netflix.astyanax.connectionpool.LatencyScoreStrategy.Instance;
 import com.netflix.astyanax.connectionpool.LatencyScoreStrategy.Listener;
-import com.netflix.astyanax.connectionpool.exceptions.BadRequestException;
-import com.netflix.astyanax.connectionpool.exceptions.ConnectionAbortedException;
 import com.netflix.astyanax.connectionpool.exceptions.ConnectionException;
-import com.netflix.astyanax.connectionpool.exceptions.HostDownException;
 import com.netflix.astyanax.connectionpool.exceptions.OperationException;
-import com.netflix.astyanax.connectionpool.exceptions.OperationTimeoutException;
 import com.netflix.astyanax.connectionpool.exceptions.PoolTimeoutException;
-import com.netflix.astyanax.connectionpool.exceptions.TimeoutException;
-import com.netflix.astyanax.connectionpool.exceptions.TokenRangeOfflineException;
-import com.netflix.astyanax.connectionpool.exceptions.TransportException;
-import com.netflix.astyanax.connectionpool.exceptions.UnknownException;
-import com.netflix.astyanax.connectionpool.impl.ConnectionPoolConfigurationImpl;
-import com.netflix.astyanax.connectionpool.impl.RoundRobinConnectionPoolImpl;
 import com.netflix.astyanax.retry.RunOnce;
 import com.netflix.astyanax.test.ProbabalisticFunction;
 import com.netflix.astyanax.test.TestClient;
@@ -58,7 +48,7 @@ import com.netflix.astyanax.test.TestHostType;
 import com.netflix.astyanax.test.TestOperation;
 
 public class Stress {
-    private static Logger LOG = LoggerFactory.getLogger(Stress.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Stress.class);
 
     /**
      * @param args
@@ -81,7 +71,7 @@ public class Stress {
 
         final ConnectionPoolMonitor monitor   = new CountingConnectionPoolMonitor();
         TestConnectionFactory factory         = new TestConnectionFactory(config, monitor);
-        final ConnectionPool<TestClient> pool = new RoundRobinConnectionPoolImpl<TestClient>(config, factory, monitor);
+        final ConnectionPool<TestClient> pool = new RoundRobinConnectionPoolImpl<>(config, factory, monitor);
         pool.start();
 
         final List<Host> hosts = Lists.newArrayList(
@@ -104,7 +94,7 @@ public class Stress {
             pool.addHost(host, true);
         }
                 
-        final Map<Host, AtomicLong> counts = new TreeMap<Host, AtomicLong>();
+        final Map<Host, AtomicLong> counts = new TreeMap<>();
         for (HostConnectionPool<TestClient> p : pool.getActivePools()) {
             counts.put(p.getHost(), new AtomicLong());
         }
@@ -129,11 +119,9 @@ public class Stress {
                     return null;
                 }
             })
-            .withAlways(new Runnable() {
-                public void run() {
-                    think(10, 30); 
-                }
-            })
+            .withAlways(() -> {
+            think(10, 30);
+        })
 //            .withProbability(0.0001, new Function<TestDriver, Void>() {
 //                public Void apply(@Nullable TestDriver arg0) {
 //                    if (timeoutsEnabled.get()) {
@@ -200,8 +188,9 @@ public class Stress {
                                     return null;
                                 }
                                 catch (RuntimeException e) {
-                                    if (e.getCause() instanceof ConnectionException)
-                                        throw (ConnectionException)e.getCause();
+                                    if (e.getCause() instanceof ConnectionException) {
+                                        throw (ConnectionException) e.getCause();
+                                    }
                                     throw e;
                                 }
                             }

@@ -67,11 +67,11 @@ public class Mapping<T> {
      * @return mapper
      */
     public static <T> Mapping<T> make(Class<T> clazz, boolean includeParentFields) {
-        return new Mapping<T>(clazz, new DefaultAnnotationSet(), includeParentFields);
+        return new Mapping<>(clazz, new DefaultAnnotationSet(), includeParentFields);
     }
 
     public static <T> Mapping<T> make(Class<T> clazz) {
-        return new Mapping<T>(clazz, new DefaultAnnotationSet(), false);
+        return new Mapping<>(clazz, new DefaultAnnotationSet(), false);
 	}
 
     /**
@@ -84,7 +84,7 @@ public class Mapping<T> {
      * @return mapper
      */
     public static <T> Mapping<T> make(Class<T> clazz, AnnotationSet<?, ?> annotationSet, boolean includeParentFields) {
-        return new Mapping<T>(clazz, annotationSet, includeParentFields);
+        return new Mapping<>(clazz, annotationSet, includeParentFields);
     }
 
     public static <T> Mapping<T> make(Class<T> clazz, AnnotationSet<?, ?> annotationSet) {
@@ -138,7 +138,7 @@ public class Mapping<T> {
 	}
 
 	private List<Field> getFields(Class clazz, boolean recursuvely) {
-		List<Field> allFields = new ArrayList<Field>();
+		List<Field> allFields = new ArrayList<>();
 		if (clazz.getDeclaredFields() != null && clazz.getDeclaredFields().length > 0) {
 			for (Field field : clazz.getDeclaredFields()) {
 				allFields.add(field);
@@ -340,7 +340,7 @@ public class Mapping<T> {
             isKey.set(false);
         }
 
-        if ((columnAnnotation != null)) {
+        if (columnAnnotation != null) {
             mappingName = annotationSet.getColumnName(field, columnAnnotation);
         }
 

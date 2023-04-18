@@ -60,7 +60,7 @@ import com.netflix.astyanax.shallows.EmptyCheckpointManager;
 import com.netflix.astyanax.thrift.model.ThriftRowsSliceImpl;
 
 public class ThriftAllRowsQueryImpl<K, C> implements AllRowsQuery<K, C> {
-    private final static Logger LOG = LoggerFactory.getLogger(ThriftAllRowsQueryImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ThriftAllRowsQueryImpl.class);
     
     private final ThriftColumnFamilyQueryImpl<K,C> query;
     protected SlicePredicate predicate = new SlicePredicate().setSlice_range(ThriftUtils.createAllInclusiveSliceRange());
@@ -93,17 +93,16 @@ public class ThriftAllRowsQueryImpl<K, C> implements AllRowsQuery<K, C> {
                             public List<org.apache.cassandra.thrift.KeySlice> internalExecute(Client client, ConnectionContext context)
                                     throws Exception {
                                 
-                                List<KeySlice> slice = client.get_range_slices(
+                                return client.get_range_slices(
                                         new ColumnParent().setColumn_family(columnFamily.getName()), predicate,
                                         range, ThriftConverter.ToThriftConsistencyLevel(query.consistencyLevel));
-                                
-                                return slice;
                             }
 
                             @Override
                             public ByteBuffer getRowKey() {
-                                if (range.getStart_key() != null)
+                                if (range.getStart_key() != null) {
                                     return range.start_key;
+                                }
                                 return null;
                             }
                         }, query.retry).getResult();
@@ -121,7 +120,7 @@ public class ThriftAllRowsQueryImpl<K, C> implements AllRowsQuery<K, C> {
                 }
                 else {
                     if (!this.getExceptionCallback().onException(e)) {
-                        return new ArrayList<org.apache.cassandra.thrift.KeySlice>();
+                        return new ArrayList<>();
                     }
                 }
             }
@@ -130,7 +129,7 @@ public class ThriftAllRowsQueryImpl<K, C> implements AllRowsQuery<K, C> {
 
     @Override
     public OperationResult<Rows<K, C>> execute() throws ConnectionException {
-        return new OperationResultImpl<Rows<K, C>>(Host.NO_HOST, 
+        return new OperationResultImpl<>(Host.NO_HOST, 
                 new ThriftAllRowsImpl<K, C>(query.keyspace.getPartitioner(), this, columnFamily), 0);
     }
 
@@ -156,7 +155,7 @@ public class ThriftAllRowsQueryImpl<K, C> implements AllRowsQuery<K, C> {
     public void executeWithCallback(final RowCallback<K, C> callback) throws ConnectionException {
         final ThriftKeyspaceImpl keyspace = query.keyspace;
         final Partitioner partitioner = keyspace.getPartitioner();
-        final AtomicReference<ConnectionException> error = new AtomicReference<ConnectionException>();
+        final AtomicReference<ConnectionException> error = new AtomicReference<>();
         final boolean bIgnoreTombstones = shouldIgnoreEmptyRows();
 
         List<Pair<String, String>> ranges;
@@ -232,8 +231,9 @@ public class ThriftAllRowsQueryImpl<K, C> implements AllRowsQuery<K, C> {
 
                                     @Override
                                     public ByteBuffer getRowKey() {
-                                        if (range.getStart_key() != null)
+                                        if (range.getStart_key() != null) {
                                             return ByteBuffer.wrap(range.getStart_key());
+                                        }
                                         return null;
                                     }
                                 }, query.retry.duplicate()).getResult();
@@ -241,7 +241,7 @@ public class ThriftAllRowsQueryImpl<K, C> implements AllRowsQuery<K, C> {
                         // Notify the callback
                         if (!ks.isEmpty()) {
                             KeySlice lastRow = Iterables.getLast(ks);
-                            boolean bContinue = (ks.size() == getBlockSize());
+                            boolean bContinue = ks.size() == getBlockSize();
 
                             if (getRepeatLastToken()) {
                                 if (firstBlock) {
@@ -255,11 +255,12 @@ public class ThriftAllRowsQueryImpl<K, C> implements AllRowsQuery<K, C> {
                             if (bIgnoreTombstones) {
                                 Iterator<KeySlice> iter = ks.iterator();
                                 while (iter.hasNext()) {
-                                    if (iter.next().getColumnsSize() == 0)
+                                    if (iter.next().getColumnsSize() == 0) {
                                         iter.remove();
+                                    }
                                 }
                             }
-                            Rows<K, C> rows = new ThriftRowsSliceImpl<K, C>(ks, columnFamily
+                            Rows<K, C> rows = new ThriftRowsSliceImpl<>(ks, columnFamily
                                     .getKeySerializer(), columnFamily.getColumnSerializer());
                             try {
                                 callback.success(rows);
@@ -272,7 +273,7 @@ public class ThriftAllRowsQueryImpl<K, C> implements AllRowsQuery<K, C> {
                             
                             if (bContinue) {
                                 // Determine the start token for the next page
-                                String token = partitioner.getTokenForKey(lastRow.bufferForKey()).toString();
+                                String token = partitioner.getTokenForKey(lastRow.bufferForKey());
                                 checkpointManager.trackCheckpoint(tokenPair.left, token);
                                 if (getRepeatLastToken()) {
                                     range.setStart_token(partitioner.getTokenMinusOne(token));
@@ -346,17 +347,19 @@ public class ThriftAllRowsQueryImpl<K, C> implements AllRowsQuery<K, C> {
 
     @Override
     public AllRowsQuery<K, C> withColumnSlice(C... columns) {
-        if (columns != null)
+        if (columns != null) {
             predicate.setColumn_names(columnFamily.getColumnSerializer().toBytesList(Arrays.asList(columns)))
                     .setSlice_rangeIsSet(false);
+        }
         return this;
     }
 
     @Override
     public AllRowsQuery<K, C> withColumnSlice(Collection<C> columns) {
-        if (columns != null)
+        if (columns != null) {
             predicate.setColumn_names(columnFamily.getColumnSerializer().toBytesList(columns)).setSlice_rangeIsSet(
                     false);
+        }
         return this;
     }
 

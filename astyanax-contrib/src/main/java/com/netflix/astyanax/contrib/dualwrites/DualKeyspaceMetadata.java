@@ -59,9 +59,9 @@ public class DualKeyspaceMetadata {
 
     public boolean isReverse(DualKeyspaceMetadata newDualKeyspaceSetup) {
         
-        return (!this.equals(newDualKeyspaceSetup) && 
+        return !this.equals(newDualKeyspaceSetup) && 
                 this.primaryCluster.equals(newDualKeyspaceSetup.getSecondaryCluster()) &&
-                this.secondaryCluster.equals(newDualKeyspaceSetup.getPrimaryCluster()));
+                this.secondaryCluster.equals(newDualKeyspaceSetup.getPrimaryCluster());
     }
     
     @Override
@@ -77,10 +77,16 @@ public class DualKeyspaceMetadata {
 
     @Override
     public boolean equals(Object obj) {
-        
-        if (this == obj) return true;
-        if (obj == null) return false;
-        if (getClass() != obj.getClass()) return false;
+
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
         
         DualKeyspaceMetadata other = (DualKeyspaceMetadata) obj;
         boolean equals = true; 

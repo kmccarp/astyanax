@@ -54,7 +54,7 @@ public class RoundRobinConnectionPoolImpl<CL> extends AbstractHostPartitionConne
                 if (pool == null) {
                     throw new NoAvailableHostsException("Host " + operation.getPinnedHost() + " not active");
                 }
-                return new RoundRobinExecuteWithFailover<CL, R>(config, monitor,
+                return new RoundRobinExecuteWithFailover<>(config, monitor,
                         Arrays.<HostConnectionPool<CL>> asList(pool), 0);
             }
             
@@ -63,7 +63,7 @@ public class RoundRobinConnectionPoolImpl<CL> extends AbstractHostPartitionConne
                 roundRobinCounter.set(0);
             }
             
-            return new RoundRobinExecuteWithFailover<CL, R>(config, monitor, topology.getAllPools().getPools(), index);
+            return new RoundRobinExecuteWithFailover<>(config, monitor, topology.getAllPools().getPools(), index);
         }
         catch (ConnectionException e) {
             monitor.incOperationFailure(e.getHost(), e);

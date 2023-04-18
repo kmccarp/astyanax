@@ -33,7 +33,7 @@ import com.netflix.astyanax.serializers.StringSerializer;
 import com.netflix.astyanax.thrift.ThriftTypes;
 
 public class ThriftColumnDefinitionImpl implements ColumnDefinition {
-    private final static Map<String, FieldMetadata> fieldsMetadata = Maps.newHashMap();
+    private static final Map<String, FieldMetadata> fieldsMetadata = Maps.newHashMap();
     
     private final ColumnDef columnDef;
 
@@ -66,8 +66,8 @@ public class ThriftColumnDefinitionImpl implements ColumnDefinition {
     }
     
     @Override
-    public ColumnDefinition setOptions(Map<String, String> index_options ) {
-        columnDef.setIndex_options(index_options);
+    public ColumnDefinition setOptions(Map<String, String> indexOptions ) {
+        columnDef.setIndex_options(indexOptions);
         return this;
     }
     
@@ -155,8 +155,9 @@ public class ThriftColumnDefinitionImpl implements ColumnDefinition {
     public String getOption(String name, String defaultValue) {
         if (this.columnDef != null && this.columnDef.getIndex_options() != null) {
             String value = this.columnDef.getIndex_options().get(name);
-            if (value != null)
+            if (value != null) {
                 return value;
+            }
         }
         return defaultValue;
     }
@@ -164,7 +165,7 @@ public class ThriftColumnDefinitionImpl implements ColumnDefinition {
     @Override
     public String setOption(String name, String value) {
         if (this.columnDef.getIndex_options() == null) {
-            this.columnDef.setIndex_options(new HashMap<String, String>());
+            this.columnDef.setIndex_options(new HashMap<>());
         }
         return this.columnDef.getIndex_options().put(name, value);
     }

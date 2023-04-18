@@ -59,7 +59,7 @@ public class HostConnectionPoolPartitionTest {
         int nHosts = 6;
         int nReplicationFactor = 3;
 
-        TokenPartitionedTopology<TestClient> topology = new TokenPartitionedTopology<TestClient>(LongBOPPartitioner.get(), strategy);
+        TokenPartitionedTopology<TestClient> topology = new TokenPartitionedTopology<>(LongBOPPartitioner.get(), strategy);
 
         // Make the set of pools
         List<HostConnectionPool<TestClient>> pools = Lists.newArrayList();
