@@ -30,7 +30,6 @@ import com.netflix.astyanax.impl.AstyanaxConfigurationImpl;
 import com.netflix.astyanax.model.Column;
 import com.netflix.astyanax.model.ColumnFamily;
 import com.netflix.astyanax.model.Row;
-import com.netflix.astyanax.recipes.ReverseIndexQuery.IndexEntryCallback;
 import com.netflix.astyanax.serializers.AnnotatedCompositeSerializer;
 import com.netflix.astyanax.serializers.LongSerializer;
 import com.netflix.astyanax.serializers.StringSerializer;
@@ -38,7 +37,7 @@ import com.netflix.astyanax.thrift.ThriftFamilyFactory;
 
 public class ReverseIndexQueryTest {
 
-    private static Logger LOG = LoggerFactory.getLogger(ReverseIndexQueryTest.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ReverseIndexQueryTest.class);
 
     private static AstyanaxContext<Cluster> clusterContext;
 
@@ -53,7 +52,7 @@ public class ReverseIndexQueryTest {
 
     public static final String SEEDS = "localhost:7102";
 
-    private static ColumnFamily<Long, String> CF_DATA = ColumnFamily
+    private static final ColumnFamily<Long, String> CF_DATA = ColumnFamily
             .newColumnFamily(TEST_DATA_CF, LongSerializer.get(),
                     StringSerializer.get());
 
@@ -69,10 +68,10 @@ public class ReverseIndexQueryTest {
         }
     }
 
-    private static Serializer<IndexEntry> indexEntitySerializer = new AnnotatedCompositeSerializer<IndexEntry>(
+    private static final Serializer<IndexEntry> indexEntitySerializer = new AnnotatedCompositeSerializer<>(
             IndexEntry.class);
 
-    private static ColumnFamily<String, IndexEntry> CF_INDEX = ColumnFamily
+    private static final ColumnFamily<String, IndexEntry> CF_INDEX = ColumnFamily
             .newColumnFamily(TEST_INDEX_CF, StringSerializer.get(),
                     indexEntitySerializer);
 
@@ -101,7 +100,7 @@ public class ReverseIndexQueryTest {
                 LOG.warn(e.getMessage());
             }
 
-            Map<String, String> stratOptions = new HashMap<String, String>();
+            Map<String, String> stratOptions = new HashMap<>();
             stratOptions.put("replication_factor", "3");
 
             try {
@@ -136,8 +135,9 @@ public class ReverseIndexQueryTest {
 
     @AfterClass
     public static void teardown() {
-        if (clusterContext != null)
+        if (clusterContext != null) {
             clusterContext.shutdown();
+        }
     }
 
     public static void populateKeyspace() throws Exception {
@@ -203,18 +203,12 @@ public class ReverseIndexQueryTest {
                                 + sb.toString());
                         return null;
                     }
-                }).forEachIndexEntry(new IndexEntryCallback<Long, Long>() {
-                    @Override
-                    public boolean handleEntry(Long key, Long value,
-                            ByteBuffer meta) {
-                        LOG.info("Row : " + key + " IndexValue: " + value
-                                + " Meta: "
-                                + LongSerializer.get().fromByteBuffer(meta));
-                        if (key % 2 == 1)
-                            return false;
-                        return true;
-                    }
-                }).execute();
+                }).forEachIndexEntry((key, value, meta) -> {
+            LOG.info("Row : " + key + " IndexValue: " + value
+                    + " Meta: "
+                    + LongSerializer.get().fromByteBuffer(meta));
+            return key % 2 != 1;
+        }).execute();
 
         LOG.info("Read " + counter.get() + " rows");
     }

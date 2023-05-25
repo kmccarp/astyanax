@@ -91,7 +91,7 @@ public class SerializerPackageTests extends KeyspaceTests {
 		Composite dc = new Composite(ss1);
 
 		List<AbstractType<?>> types =
-				new ArrayList<AbstractType<?>>();
+				new ArrayList<>();
 		types.add(UTF8Type.instance);
 
 		CompositeType c1 = CompositeType.getInstance(types);

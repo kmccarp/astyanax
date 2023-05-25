@@ -192,7 +192,6 @@ public class ShadedTypeParser extends TypeParser {
 
                     int j;
                     for (j = i; !isEOS(str, i) && isIdentifierChar(str.charAt(i)); ++i) {
-                        ;
                     }
 
                     if (i == j) {

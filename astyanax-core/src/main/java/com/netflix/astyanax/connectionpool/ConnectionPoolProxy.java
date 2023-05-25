@@ -31,9 +31,9 @@ import com.netflix.astyanax.retry.RetryPolicy;
 public class ConnectionPoolProxy<T> implements ConnectionPool<T> {
 
 	private static final Logger Logger = LoggerFactory.getLogger(ConnectionPoolProxy.class);
-	
-	private AtomicReference<SeedHostListener> listener = new AtomicReference<SeedHostListener>(null);
-	private AtomicReference<Collection<Host>> lastHostList = new AtomicReference<Collection<Host>>(null);
+
+    private final AtomicReference<SeedHostListener> listener = new AtomicReference<>(null);
+    private final AtomicReference<Collection<Host>> lastHostList = new AtomicReference<>(null);
 	
 	private final ConnectionPoolConfiguration cpConfig;
 	private final ConnectionPoolMonitor monitor;

@@ -17,9 +17,9 @@ package com.netflix.astyanax.shallows;
 
 import com.netflix.astyanax.connectionpool.BadHostDetector;
 
-public class EmptyBadHostDetectorImpl implements BadHostDetector {
+public final class EmptyBadHostDetectorImpl implements BadHostDetector {
 
-    private static EmptyBadHostDetectorImpl instance = new EmptyBadHostDetectorImpl();
+    private static final EmptyBadHostDetectorImpl instance = new EmptyBadHostDetectorImpl();
 
     public static EmptyBadHostDetectorImpl getInstance() {
         return instance;
@@ -31,12 +31,7 @@ public class EmptyBadHostDetectorImpl implements BadHostDetector {
 
     @Override
     public Instance createInstance() {
-        return new Instance() {
-            @Override
-            public boolean addTimeoutSample() {
-                return false;
-            }
-        };
+        return () -> false;
     }
 
     @Override

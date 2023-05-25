@@ -29,7 +29,7 @@ import com.netflix.astyanax.recipes.queue.MessageQueueMetadata;
 import com.netflix.astyanax.recipes.queue.MessageQueueShard;
 import com.netflix.astyanax.recipes.queue.MessageQueueShardStats;
 
-public class TimePartitionedShardReaderPolicy implements ShardReaderPolicy {
+public final class TimePartitionedShardReaderPolicy implements ShardReaderPolicy {
     public static final long DEFAULT_POLLING_INTERVAL  = 1000;
     public static final long NO_CATCHUP_POLLING_INTERVAL = 0;
     
@@ -105,8 +105,9 @@ public class TimePartitionedShardReaderPolicy implements ShardReaderPolicy {
     }
 
     private int getCurrentPartitionIndex() {
-        if (settings.getPartitionCount() <= 1) 
+        if (settings.getPartitionCount() <= 1) {
             return 0;
+        }
         return    (int) ((TimeUnit.MICROSECONDS.convert(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
                         / settings.getPartitionDuration())%settings.getPartitionCount());
     }

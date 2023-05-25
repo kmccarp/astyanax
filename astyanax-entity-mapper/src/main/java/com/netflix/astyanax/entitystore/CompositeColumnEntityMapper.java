@@ -52,26 +52,26 @@ public class CompositeColumnEntityMapper {
      * Class of embedded entity
      */
     private final Class<?>          clazz;
-    
+
     /**
      * List of serializers for the composite parts
      */
-    private List<FieldMapper<?>>    components = Lists.newArrayList();
-    
+    private final List<FieldMapper<?>>    components = Lists.newArrayList();
+
     /**
      * List of valid (i.e. existing) column names
      */
-    private Set<String>             validNames = Sets.newHashSet();
-    
+    private final Set<String>             validNames = Sets.newHashSet();
+
     /**
      * Mapper for the value part of the entity
      */
-    private FieldMapper<?>          valueMapper;
-    
+    private final FieldMapper<?>          valueMapper;
+
     /**
      * Largest buffer size
      */
-    private int                     bufferSize = 64;
+    private final int                     bufferSize = 64;
     
     /**
      * Parent field
@@ -89,7 +89,7 @@ public class CompositeColumnEntityMapper {
         for (Field f : declaredFields) {
             // The value
             Column columnAnnotation = f.getAnnotation(Column.class);
-            if ((columnAnnotation != null)) {
+            if (columnAnnotation != null) {
                 f.setAccessible(true);
                 FieldMapper fieldMapper = new FieldMapper(f);
                 components.add(fieldMapper);
@@ -261,8 +261,8 @@ public class CompositeColumnEntityMapper {
                 if (data.remaining() > 0) {
                     component.setField(entity, data);
                 }
-                byte end_of_component = columnName.get();
-                if (end_of_component != Equality.EQUAL.toByte()) {
+                byte endOfComponent = columnName.get();
+                if (endOfComponent != Equality.EQUAL.toByte()) {
                     throw new RuntimeException("Invalid composite column.  Expected END_OF_COMPONENT.");
                 }
             }
@@ -343,17 +343,21 @@ public class CompositeColumnEntityMapper {
             break;
         case GREATER_THAN:
         case GREATER_THAN_EQUALS:
-            if (mapper.isAscending())
+            if (mapper.isAscending()) {
                 start.add(bb, predicate.getOp());
-            else 
+            }
+            else {
                 end.add(bb, predicate.getOp());
+            }
             break;
         case LESS_THAN:
         case LESS_THAN_EQUALS:
-            if (mapper.isAscending())
+            if (mapper.isAscending()) {
                 end.add(bb, predicate.getOp());
-            else 
+            }
+            else {
                 start.add(bb, predicate.getOp());
+            }
             break;
         }
     }
