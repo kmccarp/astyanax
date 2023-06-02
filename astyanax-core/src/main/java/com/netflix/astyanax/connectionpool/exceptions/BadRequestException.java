@@ -17,7 +17,7 @@ package com.netflix.astyanax.connectionpool.exceptions;
 
 public class BadRequestException extends OperationException {
     private static final long serialVersionUID = -6046784540431794568L;
-    
+
     private static final String WHY_UNCONFIGURED_COLUMNFAMILY = "unconfigured columnfamily";
 
     private static final String KEYSPACE = "Keyspace";
@@ -34,13 +34,13 @@ public class BadRequestException extends OperationException {
     public BadRequestException(String message, Throwable cause) {
         super(message, cause);
     }
-    
+
     public boolean isUnconfiguredColumnFamilyError() {
         return getMessage().contains(WHY_UNCONFIGURED_COLUMNFAMILY);
     }
 
     public boolean isKeyspaceDoestNotExist() {
-    	String message = getMessage();
+        String message = getMessage();
         return message.contains(KEYSPACE) && message.contains(DOES_NOT_EXIST);
     }
 }

@@ -21,7 +21,7 @@ public class SimpleMessageHandlerFactory implements MessageHandlerFactory {
 
     @Override
     public Function<MessageContext, Boolean> createInstance(String className) throws Exception {
-        return (Function<MessageContext, Boolean>)Class.forName(className).newInstance();
+        return (Function<MessageContext, Boolean>) Class.forName(className).newInstance();
     }
 
 }

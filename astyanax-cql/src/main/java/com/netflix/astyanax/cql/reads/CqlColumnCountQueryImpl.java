@@ -49,50 +49,51 @@ import com.netflix.astyanax.query.RowQuery;
  */
 public class CqlColumnCountQueryImpl implements ColumnCountQuery {
 
-	private final KeyspaceContext ksContext;
-	private final CFQueryContext<?, ?> cfContext;
-	private final Statement query;
-	
-	public CqlColumnCountQueryImpl(KeyspaceContext ksCtx, CFQueryContext<?,?> cfCtx, Statement query) {
-		this.ksContext = ksCtx;
-		this.cfContext = cfCtx;
-		this.query = query;
-	}
-	
-	@Override
-	public OperationResult<Integer> execute() throws ConnectionException {
-		return new InternalColumnCountExecutionImpl(query).execute();
-	}
+    private final KeyspaceContext ksContext;
+    private final CFQueryContext<?, ?> cfContext;
+    private final Statement query;
 
-	@Override
-	public ListenableFuture<OperationResult<Integer>> executeAsync() throws ConnectionException {
-		return new InternalColumnCountExecutionImpl(query).executeAsync();
-	}
+    public CqlColumnCountQueryImpl(KeyspaceContext ksCtx, CFQueryContext<?, ?> cfCtx, Statement query) {
+        this.ksContext = ksCtx;
+        this.cfContext = cfCtx;
+        this.query = query;
+    }
 
-	private class InternalColumnCountExecutionImpl extends CqlAbstractExecutionImpl<Integer> {
+    @Override
+    public OperationResult<Integer> execute() throws ConnectionException {
+        return new InternalColumnCountExecutionImpl(query).execute();
+    }
 
-		public InternalColumnCountExecutionImpl(Statement query) {
-			super(ksContext, cfContext);
-		}
+    @Override
+    public ListenableFuture<OperationResult<Integer>> executeAsync() throws ConnectionException {
+        return new InternalColumnCountExecutionImpl(query).executeAsync();
+    }
 
-		@Override
-		public CassandraOperationType getOperationType() {
-			return CassandraOperationType.GET_COLUMN_COUNT;
-		}
+    private class InternalColumnCountExecutionImpl extends CqlAbstractExecutionImpl<Integer> {
 
-		@Override
-		public Statement getQuery() {
-			return query;
-		}
+        public InternalColumnCountExecutionImpl(Statement query) {
+            super(ksContext, cfContext);
+        }
 
-		@Override
-		public Integer parseResultSet(ResultSet resultSet) {
-			List<Row> rows = resultSet.all();
-			if (rows != null) {
-				return rows.size();
-			} else {
-				return 0;
-			}
-		}
-	}
+        @Override
+        public CassandraOperationType getOperationType() {
+            return CassandraOperationType.GET_COLUMN_COUNT;
+        }
+
+        @Override
+        public Statement getQuery() {
+            return query;
+        }
+
+        @Override
+        public Integer parseResultSet(ResultSet resultSet) {
+            List<Row> rows = resultSet.all();
+            if (rows != null) {
+                return rows.size();
+            }
+            else {
+                return 0;
+            }
+        }
+    }
 }

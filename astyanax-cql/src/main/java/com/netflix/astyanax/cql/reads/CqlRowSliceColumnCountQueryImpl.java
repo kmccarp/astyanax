@@ -47,60 +47,60 @@ import com.netflix.astyanax.query.RowSliceColumnCountQuery;
  */
 public class CqlRowSliceColumnCountQueryImpl<K> implements RowSliceColumnCountQuery<K> {
 
-	private final KeyspaceContext ksContext;
-	private final CFQueryContext<?,?> cfContext;
-	private final Statement query;
-	
-	public CqlRowSliceColumnCountQueryImpl(KeyspaceContext ksCtx, CFQueryContext<?,?> cfCtx, Statement query) {
-		this.ksContext = ksCtx;
-		this.cfContext = cfCtx;
-		this.query = query;
-		
-	}
+    private final KeyspaceContext ksContext;
+    private final CFQueryContext<?, ?> cfContext;
+    private final Statement query;
 
-	@Override
-	public OperationResult<Map<K, Integer>> execute() throws ConnectionException {
-		return new InternalQueryExecutionImpl().execute();
-	}
+    public CqlRowSliceColumnCountQueryImpl(KeyspaceContext ksCtx, CFQueryContext<?, ?> cfCtx, Statement query) {
+        this.ksContext = ksCtx;
+        this.cfContext = cfCtx;
+        this.query = query;
 
-	@Override
-	public ListenableFuture<OperationResult<Map<K, Integer>>> executeAsync() throws ConnectionException {
-		return new InternalQueryExecutionImpl().executeAsync();
-	}
-	
-	private class InternalQueryExecutionImpl extends CqlAbstractExecutionImpl<Map<K, Integer>> {
+    }
 
-		public InternalQueryExecutionImpl() {
-			super(ksContext, cfContext);
-		}
+    @Override
+    public OperationResult<Map<K, Integer>> execute() throws ConnectionException {
+        return new InternalQueryExecutionImpl().execute();
+    }
 
-		@Override
-		public CassandraOperationType getOperationType() {
-			return CassandraOperationType.GET_ROWS_SLICE;
-		}
+    @Override
+    public ListenableFuture<OperationResult<Map<K, Integer>>> executeAsync() throws ConnectionException {
+        return new InternalQueryExecutionImpl().executeAsync();
+    }
 
-		@Override
-		public Statement getQuery() {
-			return query;
-		}
+    private class InternalQueryExecutionImpl extends CqlAbstractExecutionImpl<Map<K, Integer>> {
 
-		@SuppressWarnings("unchecked")
-		@Override
-		public Map<K, Integer> parseResultSet(ResultSet resultSet) {
-			
-			Map<K, Integer> columnCountPerRow = new HashMap<K, Integer>();
-			
-			for (Row row : resultSet.all()) {
-				K key = (K) CqlTypeMapping.getDynamicColumn(row, cf.getKeySerializer(), 0, cf);
-				Integer colCount = columnCountPerRow.get(key);
-				if (colCount == null) {
-					colCount = new Integer(0);
-				}	
-				colCount = colCount.intValue() + 1;
-				columnCountPerRow.put(key, colCount);
-			}
-			
-			return columnCountPerRow;
-		}
-	}
+        public InternalQueryExecutionImpl() {
+            super(ksContext, cfContext);
+        }
+
+        @Override
+        public CassandraOperationType getOperationType() {
+            return CassandraOperationType.GET_ROWS_SLICE;
+        }
+
+        @Override
+        public Statement getQuery() {
+            return query;
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public Map<K, Integer> parseResultSet(ResultSet resultSet) {
+
+            Map<K, Integer> columnCountPerRow = new HashMap<K, Integer>();
+
+            for (Row row : resultSet.all()) {
+                K key = (K) CqlTypeMapping.getDynamicColumn(row, cf.getKeySerializer(), 0, cf);
+                Integer colCount = columnCountPerRow.get(key);
+                if (colCount == null) {
+                    colCount = new Integer(0);
+                }
+                colCount = colCount.intValue() + 1;
+                columnCountPerRow.put(key, colCount);
+            }
+
+            return columnCountPerRow;
+        }
+    }
 }

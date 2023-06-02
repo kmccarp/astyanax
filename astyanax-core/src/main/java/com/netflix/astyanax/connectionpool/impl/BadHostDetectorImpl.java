@@ -28,49 +28,49 @@ import com.netflix.astyanax.connectionpool.ConnectionPoolConfiguration;
  *
  */
 public class BadHostDetectorImpl implements BadHostDetector {
-	
-	private final LinkedBlockingQueue<Long> timeouts;
-	private final ConnectionPoolConfiguration config;
-	
-	public BadHostDetectorImpl(ConnectionPoolConfiguration config) {
-		this.timeouts = new LinkedBlockingQueue<Long>();
-		this.config = config;
-	}
-	
-	public String toString() {
-        return new StringBuilder()
-             .append("BadHostDetectorImpl[")
-             .append("count=").append(config.getMaxTimeoutCount())
-             .append(",window=").append(config.getTimeoutWindow())
-             .append("]")
-             .toString();
-	}
-	
-	@Override
-	public Instance createInstance() {
-		return new Instance() {
-			@Override
-			public boolean addTimeoutSample() {
-				long currentTimeMillis = System.currentTimeMillis();
-				
-				timeouts.add(currentTimeMillis);
-				
-				// Determine if the host exceeded timeoutCounter exceptions in
-				// the timeoutWindow, in which case this is determined to be a
-				// failure
-				if (timeouts.size() > config.getMaxTimeoutCount()) {
-					Long last = timeouts.remove();
-					if ((currentTimeMillis - last.longValue()) < config.getTimeoutWindow()) {
-						return true;
-					}
-				}
-				return false;
-			}
-		};
-	}
 
-	@Override
-	public void removeInstance(Instance instance) {
-		// NOOP
-	}
+    private final LinkedBlockingQueue<Long> timeouts;
+    private final ConnectionPoolConfiguration config;
+
+    public BadHostDetectorImpl(ConnectionPoolConfiguration config) {
+        this.timeouts = new LinkedBlockingQueue<Long>();
+        this.config = config;
+    }
+
+    public String toString() {
+        return new StringBuilder()
+                .append("BadHostDetectorImpl[")
+                .append("count=").append(config.getMaxTimeoutCount())
+                .append(",window=").append(config.getTimeoutWindow())
+                .append("]")
+                .toString();
+    }
+
+    @Override
+    public Instance createInstance() {
+        return new Instance() {
+            @Override
+            public boolean addTimeoutSample() {
+                long currentTimeMillis = System.currentTimeMillis();
+
+                timeouts.add(currentTimeMillis);
+
+                // Determine if the host exceeded timeoutCounter exceptions in
+                // the timeoutWindow, in which case this is determined to be a
+                // failure
+                if (timeouts.size() > config.getMaxTimeoutCount()) {
+                    Long last = timeouts.remove();
+                    if ((currentTimeMillis - last.longValue()) < config.getTimeoutWindow()) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        };
+    }
+
+    @Override
+    public void removeInstance(Instance instance) {
+        // NOOP
+    }
 }

@@ -39,55 +39,55 @@ import com.netflix.astyanax.serializers.StringSerializer;
  */
 public class AstyanaxCheckpointManager implements CheckpointManager {
 
-	private final ByteBuffer bbKey;
-	private final Keyspace keyspace;
-	private final ColumnFamily<ByteBuffer, String> columnFamily;
-	
+    private final ByteBuffer bbKey;
+    private final Keyspace keyspace;
+    private final ColumnFamily<ByteBuffer, String> columnFamily;
+
     @SuppressWarnings("rawtypes")
     private final static Comparator tokenComparator = new Comparator() {
         @Override
         public int compare(Object arg0, Object arg1) {
-        	return new BigInteger((String)arg0).compareTo(new BigInteger((String)arg1));
+            return new BigInteger((String) arg0).compareTo(new BigInteger((String) arg1));
         }
     };
 
-	public AstyanaxCheckpointManager(Keyspace keyspace, String columnFamily, String id) {
-		this(keyspace, columnFamily, StringSerializer.get().toByteBuffer(id));
-	}
-	
-	public AstyanaxCheckpointManager(Keyspace keyspace, String columnFamily, Long id) {
-		this(keyspace, columnFamily, LongSerializer.get().toByteBuffer(id));
-	}
-	
-	public AstyanaxCheckpointManager(Keyspace keyspace, String columnFamily, ByteBuffer bbKey) {
-		this.keyspace = keyspace;
-		this.bbKey = bbKey;
-		this.columnFamily = ColumnFamily.newColumnFamily(columnFamily, ByteBufferSerializer.get(), StringSerializer.get());
-	}
-	
-	@Override
-	public void trackCheckpoint(String startToken, String checkpointToken) throws ConnectionException {
-		keyspace.prepareColumnMutation(columnFamily,  bbKey,  startToken).putValue(checkpointToken, null).execute();
-	}
+    public AstyanaxCheckpointManager(Keyspace keyspace, String columnFamily, String id) {
+        this(keyspace, columnFamily, StringSerializer.get().toByteBuffer(id));
+    }
 
-	@Override
-	public String getCheckpoint(String startToken) throws ConnectionException {
-		try {
-			return keyspace.prepareQuery(columnFamily).getKey(bbKey).getColumn(startToken).execute().getResult().getStringValue();
-		}
-		catch (NotFoundException e) {
-			return startToken;
-		}
-	}
+    public AstyanaxCheckpointManager(Keyspace keyspace, String columnFamily, Long id) {
+        this(keyspace, columnFamily, LongSerializer.get().toByteBuffer(id));
+    }
 
-	@Override
-	public SortedMap<String, String> getCheckpoints() throws ConnectionException {
-		SortedMap<String, String> checkpoints = Maps.newTreeMap(tokenComparator);
-		for (Column<String> column : keyspace.prepareQuery(columnFamily).getKey(bbKey).execute().getResult()) {
-			checkpoints.put(column.getName(), column.getStringValue());
-		}
-		
-		return checkpoints;
-	}
+    public AstyanaxCheckpointManager(Keyspace keyspace, String columnFamily, ByteBuffer bbKey) {
+        this.keyspace = keyspace;
+        this.bbKey = bbKey;
+        this.columnFamily = ColumnFamily.newColumnFamily(columnFamily, ByteBufferSerializer.get(), StringSerializer.get());
+    }
+
+    @Override
+    public void trackCheckpoint(String startToken, String checkpointToken) throws ConnectionException {
+        keyspace.prepareColumnMutation(columnFamily, bbKey, startToken).putValue(checkpointToken, null).execute();
+    }
+
+    @Override
+    public String getCheckpoint(String startToken) throws ConnectionException {
+        try {
+            return keyspace.prepareQuery(columnFamily).getKey(bbKey).getColumn(startToken).execute().getResult().getStringValue();
+        }
+        catch (NotFoundException e) {
+            return startToken;
+        }
+    }
+
+    @Override
+    public SortedMap<String, String> getCheckpoints() throws ConnectionException {
+        SortedMap<String, String> checkpoints = Maps.newTreeMap(tokenComparator);
+        for (Column<String> column : keyspace.prepareQuery(columnFamily).getKey(bbKey).execute().getResult()) {
+            checkpoints.put(column.getName(), column.getStringValue());
+        }
+
+        return checkpoints;
+    }
 
 }

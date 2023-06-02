@@ -33,6 +33,7 @@ public class TokenHostConnectionPoolPartition<CL> extends HostConnectionPoolPart
         super(strategy);
         this.token = id;
     }
+
     /**
      * Token or shard identifying this partition.
      * 

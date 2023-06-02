@@ -24,7 +24,7 @@ public class NoModShardingPolicy implements ModShardPolicy {
     public static NoModShardingPolicy getInstance() {
         return instance;
     }
-    
+
     @Override
     public int getMessageShard(Message message, MessageQueueMetadata settings) {
         return 0;

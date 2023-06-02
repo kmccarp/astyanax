@@ -46,31 +46,31 @@ public interface PreparedCqlQuery<K, C> extends Execution<CqlResult<K, C>> {
      * @param value
      */
     PreparedCqlQuery<K, C> withValue(ByteBuffer value);
-    
+
     /**
      * Add a list of ByteBuffer values
      * @param value
      */
     PreparedCqlQuery<K, C> withValues(List<ByteBuffer> value);
-    
+
     /**
      * Set the next parameter value to this String
      * @param value
      */
     PreparedCqlQuery<K, C> withStringValue(String value);
-    
+
     /**
      * Set the next parameter value to this Integer
      * @param value
      */
     PreparedCqlQuery<K, C> withIntegerValue(Integer value);
-    
+
     /**
      * Set the next parameter value to this Boolean
      * @param value
      */
     PreparedCqlQuery<K, C> withBooleanValue(Boolean value);
-    
+
     /**
      * Set the next parameter value to this Double
      * @param value
@@ -94,7 +94,7 @@ public interface PreparedCqlQuery<K, C> extends Execution<CqlResult<K, C>> {
      * @param value
      */
     PreparedCqlQuery<K, C> withShortValue(Short value);
-    
+
     /**
      * Set the next parameter value to this Short
      * @param value

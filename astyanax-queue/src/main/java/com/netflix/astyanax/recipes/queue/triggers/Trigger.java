@@ -30,7 +30,7 @@ public interface Trigger {
      * @return  New trigger or null to stop executing the trigger
      */
     Trigger nextTrigger();
-    
+
     /**
      * Get the current trigger time for this trigger.  This is the time
      * for the next execution of the Task

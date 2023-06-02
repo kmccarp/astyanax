@@ -83,14 +83,14 @@ public abstract class ConnectionException extends Exception {
     @Override
     public String getMessage() {
         return new StringBuilder()
-            .append(getClass().getSimpleName())
-            .append(": [")
-            .append(  "host="    ).append(host.toString())
-            .append(", latency=" ).append(latency).append("(").append(latencyWithPool).append(")")
-            .append(", attempts=").append(attemptCount)
-            .append("]")
-            .append(super.getMessage())
-            .toString();
+                .append(getClass().getSimpleName())
+                .append(": [")
+                .append("host=").append(host.toString())
+                .append(", latency=").append(latency).append("(").append(latencyWithPool).append(")")
+                .append(", attempts=").append(attemptCount)
+                .append("]")
+                .append(super.getMessage())
+                .toString();
     }
 
     public String getOriginalMessage() {

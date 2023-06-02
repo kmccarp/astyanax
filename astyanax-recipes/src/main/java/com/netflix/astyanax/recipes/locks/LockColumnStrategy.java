@@ -32,14 +32,14 @@ public interface LockColumnStrategy<C> {
      * @return
      */
     boolean isLockColumn(C c);
-    
+
     /**
      * Return the ByteBuffer range to use when querying all lock
      * columns in a row
      * @return
      */
     ByteBufferRange getLockColumnRange();
-    
+
     /**
      * Generate a unique lock column
      * @return

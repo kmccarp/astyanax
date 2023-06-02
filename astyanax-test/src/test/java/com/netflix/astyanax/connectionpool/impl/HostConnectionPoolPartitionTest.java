@@ -29,13 +29,13 @@ public class HostConnectionPoolPartitionTest {
 
         List<TestHostConnectionPool> pools = Arrays.asList(
                 makePool(1),
-                makePool(2), 
-                makePool(3), 
+                makePool(2),
+                makePool(3),
                 makePool(4));
 
         List<TestHostConnectionPool> pool1 = Arrays.asList(
                 pools.get(0),
-                pools.get(1), 
+                pools.get(1),
                 pools.get(2));
         List<TestHostConnectionPool> pool2 = Arrays.asList(
                 pools.get(0),
@@ -54,7 +54,7 @@ public class HostConnectionPoolPartitionTest {
     // a new TokenParitionedTopologyTest?
     @Test
     public void testTopology() {
-        LatencyScoreStrategy strategy = new SmaLatencyScoreStrategyImpl(10000,60000, 100, 4.0);
+        LatencyScoreStrategy strategy = new SmaLatencyScoreStrategyImpl(10000, 60000, 100, 4.0);
 
         int nHosts = 6;
         int nReplicationFactor = 3;

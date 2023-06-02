@@ -79,40 +79,40 @@ public class Stress {
         // config.setRetryBackoffStrategy(new
         // ExponentialRetryBackoffStrategy(20, 1000, 2000));
 
-        final ConnectionPoolMonitor monitor   = new CountingConnectionPoolMonitor();
-        TestConnectionFactory factory         = new TestConnectionFactory(config, monitor);
+        final ConnectionPoolMonitor monitor = new CountingConnectionPoolMonitor();
+        TestConnectionFactory factory = new TestConnectionFactory(config, monitor);
         final ConnectionPool<TestClient> pool = new RoundRobinConnectionPoolImpl<TestClient>(config, factory, monitor);
         pool.start();
 
         final List<Host> hosts = Lists.newArrayList(
-                new Host("127.0.0.1",  TestHostType.GOOD_FAST.ordinal()),
-                new Host("127.0.0.2",  TestHostType.GOOD_FAST.ordinal()),
-                new Host("127.0.0.3",  TestHostType.GOOD_FAST.ordinal()),
-                new Host("127.0.0.4",  TestHostType.GOOD_FAST.ordinal()),
-                new Host("127.0.0.5",  TestHostType.GOOD_FAST.ordinal()),
-                new Host("127.0.0.6",  TestHostType.GOOD_FAST.ordinal()),
-                new Host("127.0.0.7",  TestHostType.GOOD_FAST.ordinal()),
-                new Host("127.0.0.8",  TestHostType.GOOD_FAST.ordinal()),
+                new Host("127.0.0.1", TestHostType.GOOD_FAST.ordinal()),
+                new Host("127.0.0.2", TestHostType.GOOD_FAST.ordinal()),
+                new Host("127.0.0.3", TestHostType.GOOD_FAST.ordinal()),
+                new Host("127.0.0.4", TestHostType.GOOD_FAST.ordinal()),
+                new Host("127.0.0.5", TestHostType.GOOD_FAST.ordinal()),
+                new Host("127.0.0.6", TestHostType.GOOD_FAST.ordinal()),
+                new Host("127.0.0.7", TestHostType.GOOD_FAST.ordinal()),
+                new Host("127.0.0.8", TestHostType.GOOD_FAST.ordinal()),
 //                new Host("127.0.0.9",  TestHostType.GOOD_SLOW.ordinal()),
-                new Host("127.0.0.10",  TestHostType.SWAP_EVERY_200.ordinal()),
+                new Host("127.0.0.10", TestHostType.SWAP_EVERY_200.ordinal()),
                 new Host("127.0.0.11", TestHostType.ALTERNATING_SOCKET_TIMEOUT_200.ordinal())
 //                new Host("127.0.0.12", TestHostType.ALTERNATING_SOCKET_TIMEOUT_200.ordinal()),
 //                new Host("127.0.0.13",  TestHostType.CONNECT_FAIL_FIRST_TWO.ordinal())
-                );
-        
+        );
+
         for (Host host : hosts) {
             pool.addHost(host, true);
         }
-                
+
         final Map<Host, AtomicLong> counts = new TreeMap<Host, AtomicLong>();
         for (HostConnectionPool<TestClient> p : pool.getActivePools()) {
             counts.put(p.getHost(), new AtomicLong());
         }
         System.out.println(monitor.toString());
-        
+
         final AtomicBoolean timeoutsEnabled = new AtomicBoolean(false);
         final AtomicLong lastOperationCount = new AtomicLong();
-        
+
         EmaLatencyScoreStrategyImpl latency = new EmaLatencyScoreStrategyImpl(1000, 0, 10);
         final Instance sampler = latency.createInstance();
         latency.start(new Listener() {
@@ -124,16 +124,16 @@ public class Stress {
             }
         });
         final Function<TestDriver, Void> function = new ProbabalisticFunction.Builder<TestDriver, Void>()
-            .withDefault(new Function<TestDriver, Void>() {
-                public Void apply(TestDriver arg0) {
-                    return null;
-                }
-            })
-            .withAlways(new Runnable() {
-                public void run() {
-                    think(10, 30); 
-                }
-            })
+                .withDefault(new Function<TestDriver, Void>() {
+                    public Void apply(TestDriver arg0) {
+                        return null;
+                    }
+                })
+                .withAlways(new Runnable() {
+                    public void run() {
+                        think(10, 30);
+                    }
+                })
 //            .withProbability(0.0001, new Function<TestDriver, Void>() {
 //                public Void apply(@Nullable TestDriver arg0) {
 //                    if (timeoutsEnabled.get()) {
@@ -179,81 +179,81 @@ public class Stress {
 //                    throw new RuntimeException(new TransportException("TransportException"));
 //                }
 //            })
-        .build();
-        
+                .build();
+
         final List<HostConnectionPool<TestClient>> hostPools = Lists.newArrayList(pool.getActivePools());
-        
+
         final TestDriver driver = new TestDriver.Builder()
-            .withIterationCount(0)
-            .withThreadCount(200)
+                .withIterationCount(0)
+                .withThreadCount(200)
 //            .withFutures(100,  TimeUnit.MILLISECONDS)
-            .withCallsPerSecondSupplier(Suppliers.ofInstance(200))
+                .withCallsPerSecondSupplier(Suppliers.ofInstance(200))
 //            .withFutures(100, TimeUnit.MILLISECONDS)
-            .withCallback(new Function<TestDriver, Void>() {
-                public Void apply(final TestDriver driver) {
-                    long startTime = System.nanoTime();
-                    try {
-                        pool.executeWithFailover(new TestOperation() {
-                            public String execute(TestClient client) throws ConnectionException, OperationException {
-                                try {
-                                    function.apply(driver);
-                                    return null;
+                .withCallback(new Function<TestDriver, Void>() {
+                    public Void apply(final TestDriver driver) {
+                        long startTime = System.nanoTime();
+                        try {
+                            pool.executeWithFailover(new TestOperation() {
+                                public String execute(TestClient client) throws ConnectionException, OperationException {
+                                    try {
+                                        function.apply(driver);
+                                        return null;
+                                    }
+                                    catch (RuntimeException e) {
+                                        if (e.getCause() instanceof ConnectionException)
+                                            throw (ConnectionException) e.getCause();
+                                        throw e;
+                                    }
                                 }
-                                catch (RuntimeException e) {
-                                    if (e.getCause() instanceof ConnectionException)
-                                        throw (ConnectionException)e.getCause();
-                                    throw e;
-                                }
-                            }
-                        }, new RunOnce());
-                    } catch (PoolTimeoutException e) {
-                        LOG.info(e.getMessage());
-                    } catch (ConnectionException e) {
-                    } finally {
-                        sampler.addSample((System.nanoTime() - startTime)/1000000);
+                            }, new RunOnce());
+                        } catch (PoolTimeoutException e) {
+                            LOG.info(e.getMessage());
+                        } catch (ConnectionException e) {
+                        } finally {
+                            sampler.addSample((System.nanoTime() - startTime) / 1000000);
+                        }
+
+                        return null;
                     }
-                    
-                    return null;
-                }
-            })
-            
-            // 
-            //  Event to turn timeouts on/off
-            //
-            .withRecurringEvent(10,  TimeUnit.SECONDS,  new Function<TestDriver, Void>() {
-                @Override
-                public Void apply(TestDriver driver) {
-                    timeoutsEnabled.getAndSet(!timeoutsEnabled.get());
+                })
+
+                // 
+                //  Event to turn timeouts on/off
+                //
+                .withRecurringEvent(10, TimeUnit.SECONDS, new Function<TestDriver, Void>() {
+                    @Override
+                    public Void apply(TestDriver driver) {
+                        timeoutsEnabled.getAndSet(!timeoutsEnabled.get());
 //                    LOG.info("Toggle timeouts " + timeoutsEnabled.get());
-                    return null;
-                }
-            })
-            
-            //
-            //  Print status information
-            //
-            .withRecurringEvent(1,  TimeUnit.SECONDS,  new Function<TestDriver, Void>() {
-                @Override
-                public Void apply(TestDriver driver) {
-                    long opCount = lastOperationCount.get();
-                    lastOperationCount.set(driver.getOperationCount());
-                    
-                    System.out.println("" + driver.getRuntime() + "," + sampler.getScore() + "," + (lastOperationCount.get() - opCount));
-                    System.out.println(monitor.toString());
-                    System.out.println(monitor.toString());
-                    for (HostConnectionPool<TestClient> host : pool.getPools()) {
-                        System.out.println("   " + host.toString());
+                        return null;
                     }
-                    return null;
-                }
-            })
-            
-            //
-            //  Remove a random host
-            //
-            .withRecurringEvent(10,  TimeUnit.SECONDS,  new Function<TestDriver, Void>() {
-                @Override
-                public Void apply(TestDriver driver) {
+                })
+
+                //
+                //  Print status information
+                //
+                .withRecurringEvent(1, TimeUnit.SECONDS, new Function<TestDriver, Void>() {
+                    @Override
+                    public Void apply(TestDriver driver) {
+                        long opCount = lastOperationCount.get();
+                        lastOperationCount.set(driver.getOperationCount());
+
+                        System.out.println("" + driver.getRuntime() + "," + sampler.getScore() + "," + (lastOperationCount.get() - opCount));
+                        System.out.println(monitor.toString());
+                        System.out.println(monitor.toString());
+                        for (HostConnectionPool<TestClient> host : pool.getPools()) {
+                            System.out.println("   " + host.toString());
+                        }
+                        return null;
+                    }
+                })
+
+                //
+                //  Remove a random host
+                //
+                .withRecurringEvent(10, TimeUnit.SECONDS, new Function<TestDriver, Void>() {
+                    @Override
+                    public Void apply(TestDriver driver) {
 //                    System.out.println("Latency: " + sampler.getScore());
 //                    
 //                    List<Host> newHosts = Lists.newArrayList(hosts);
@@ -264,11 +264,11 @@ public class Stress {
 //                    for (HostConnectionPool<TestClient> host : pool.getPools()) {
 //                        System.out.println("   " + host.toString());
 //                    }
-                    return null;
-                }
-            })
-            .build();
-        
+                        return null;
+                    }
+                })
+                .build();
+
         driver.start();
         try {
             driver.await();
@@ -280,7 +280,8 @@ public class Stress {
         try {
             if (max > min) {
                 Thread.sleep(min + new Random().nextInt(max - min));
-            } else {
+            }
+            else {
                 Thread.sleep(min);
             }
         } catch (InterruptedException e) {

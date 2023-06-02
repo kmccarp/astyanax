@@ -73,21 +73,21 @@ public interface ColumnFamilyDefinition {
     public String getCompactionStrategy();
 
     public ColumnFamilyDefinition setCompactionStrategyOptions(Map<String, String>  options);
-    
+
     public Map<String, String> getCompactionStrategyOptions();
 
     public ColumnFamilyDefinition setCompressionOptions(Map<String, String>  options);
-    
+
     public Map<String, String> getCompressionOptions();
-    
+
     ColumnFamilyDefinition setBloomFilterFpChance(Double chance);
-    
+
     Double getBloomFilterFpChance();
-    
+
     ColumnFamilyDefinition setCaching(String caching);
-    
+
     String getCaching();
-    
+
     ColumnFamilyDefinition setName(String name);
 
     String getName();
@@ -157,17 +157,17 @@ public interface ColumnFamilyDefinition {
     Object getFieldValue(String name);
 
     ColumnFamilyDefinition setFieldValue(String name, Object value);
-    
+
     ColumnFamilyDefinition setGcGraceSeconds(Integer seconds);
-    
+
     Integer getGcGraceSeconds();
-    
+
     /**
      * Get metadata for all fields
      * @return
      */
     Collection<FieldMetadata> getFieldsMetadata();
-    
+
     public void setFields(Map<String, Object> options);
 
     /**
@@ -176,7 +176,7 @@ public interface ColumnFamilyDefinition {
      * @return
      */
     Properties getProperties() throws Exception;
-    
+
     /**
      * Set the column family definition from a properties file
      * @param properties

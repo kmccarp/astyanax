@@ -61,18 +61,18 @@ import com.netflix.astyanax.shallows.EmptyCheckpointManager;
  */
 public class AllRowsReader<K, C> implements Callable<Boolean> {
     private static final Logger LOG = LoggerFactory.getLogger(AllRowsReader.class);
-    
+
     private static final Partitioner DEFAULT_PARTITIONER = BigInteger127Partitioner.get();
     private final static int DEFAULT_PAGE_SIZE = 100;
-    
+
     private final Keyspace      keyspace;
     private final ColumnFamily<K, C> columnFamily;
-    
+
     private final   int                 pageSize;
     private final   Integer             concurrencyLevel;   // Default to null will force ring describe
     private final   ExecutorService     executor;
     private final   CheckpointManager   checkpointManager;
-    private final   Function<Row<K,C>, Boolean> rowFunction;
+    private final   Function<Row<K, C>, Boolean> rowFunction;
     private final   Function<Rows<K, C>, Boolean> rowsFunction;
     private final   boolean             repeatLastToken;
     private final   ColumnSlice<C>      columnSlice;
@@ -86,20 +86,20 @@ public class AllRowsReader<K, C> implements Callable<Boolean> {
     private final   RetryPolicy         retryPolicy;
     private AtomicReference<Exception>  error = new AtomicReference<Exception>();
 
-	private String dc;
+    private String dc;
 
-	private String rack;
-    
+    private String rack;
+
     public static class Builder<K, C> {
         private final Keyspace      keyspace;
         private final ColumnFamily<K, C> columnFamily;
-        
+
         private Partitioner         partitioner = DEFAULT_PARTITIONER;
         private int                 pageSize = DEFAULT_PAGE_SIZE;
         private Integer             concurrencyLevel;   // Default to null will force ring describe
         private ExecutorService     executor;
         private CheckpointManager   checkpointManager = new EmptyCheckpointManager();
-        private Function<Row<K,C>, Boolean>   rowFunction;
+        private Function<Row<K, C>, Boolean>   rowFunction;
         private Function<Rows<K, C>, Boolean> rowsFunction;
         private boolean             repeatLastToken = true;
         private ColumnSlice<C>      columnSlice;
@@ -110,12 +110,12 @@ public class AllRowsReader<K, C> implements Callable<Boolean> {
         private String				rack;
         private ConsistencyLevel	consistencyLevel = null;
         private RetryPolicy         retryPolicy;
-        
+
         public Builder(Keyspace ks, ColumnFamily<K, C> columnFamily) {
-            this.keyspace     = ks;
+            this.keyspace = ks;
             this.columnFamily = columnFamily;
         }
-        
+
         /**
          * Maximum number of rows to return for each incremental query to Cassandra.
          * This limit also represents the page size when paginating.
@@ -137,7 +137,7 @@ public class AllRowsReader<K, C> implements Callable<Boolean> {
             this.checkpointManager = checkpointManager;
             return this;
         }
-        
+
         /**
          * If true will repeat the last token in the previous block when calling cassandra.  This 
          * feature is off by default and is used to handle situations where different row keys map
@@ -218,7 +218,7 @@ public class AllRowsReader<K, C> implements Callable<Boolean> {
             this.concurrencyLevel = concurrencyLevel;
             return this;
         }
-        
+
         /**
          * Use the specific executor for executing the tasks. Note that this should be used with care 
          * when specifying the withConcurrencyLevel. 
@@ -233,7 +233,7 @@ public class AllRowsReader<K, C> implements Callable<Boolean> {
             this.executor = executor;
             return this;
         }
-        
+
         /**
          * Execute the operation on a specific token range, instead of the entire range.
          * Use this only is combination with setConcurrencyLevel being called otherwise
@@ -247,16 +247,16 @@ public class AllRowsReader<K, C> implements Callable<Boolean> {
          */
         public Builder<K, C> withTokenRange(BigInteger startToken, BigInteger endToken) {
             this.startToken = startToken.toString();
-            this.endToken   = endToken.toString();
+            this.endToken = endToken.toString();
             return this;
         }
-        
+
         public Builder<K, C> withTokenRange(String startToken, String endToken) {
             this.startToken = startToken;
-            this.endToken   = endToken;
+            this.endToken = endToken;
             return this;
         }
-        
+
         /**
          * Partitioner used to determine token ranges and how to break token ranges
          * into sub parts.  The default is BigInteger127Partitioner which is the
@@ -269,7 +269,7 @@ public class AllRowsReader<K, C> implements Callable<Boolean> {
             this.partitioner = partitioner;
             return this;
         }
-        
+
         /**
          * The default behavior is to exclude empty rows, other than when specifically asking
          * for no columns back.  Setting this to true will result in the row callback function
@@ -281,7 +281,7 @@ public class AllRowsReader<K, C> implements Callable<Boolean> {
             this.includeEmptyRows = flag;
             return this;
         }
-        
+
         /**
          * Specify the callback function for each row being read.  This callback must
          * be implemented in a thread safe manner since it will be called by multiple
@@ -289,20 +289,21 @@ public class AllRowsReader<K, C> implements Callable<Boolean> {
          * @param rowFunction
          * @return
          */
-        public Builder<K, C> forEachRow(Function<Row<K,C>, Boolean> rowFunction) {
+        public Builder<K, C> forEachRow(Function<Row<K, C>, Boolean> rowFunction) {
             this.rowFunction = rowFunction;
             return this;
         }
-        
+
         public Builder<K, C> forEachPage(Function<Rows<K, C>, Boolean> rowsFunction) {
             this.rowsFunction = rowsFunction;
             return this;
         }
-        
+
         public Builder<K, C> withConsistencyLevel(ConsistencyLevel consistencyLevel) {
-        	this.consistencyLevel = consistencyLevel;
-        	return this;
+            this.consistencyLevel = consistencyLevel;
+            return this;
         }
+
         /**
          * Specify dc to use when auto determining the token ranges to ensure that only ranges
          * in the current dc are used.
@@ -310,27 +311,27 @@ public class AllRowsReader<K, C> implements Callable<Boolean> {
          * @return
          */
         public Builder<K, C> withDc(String dc) {
-        	this.dc = dc;
-        	return this;
+            this.dc = dc;
+            return this;
         }
-        
+
         /**
          * Specify rack to use when auto determining the token ranges to ensure that only ranges
          * in the current rack are used.
          * @param rack
          * @return
          */
-        public Builder<K,C> withRack(String rack) {
-        	this.rack = rack;
-        	return this;
+        public Builder<K, C> withRack(String rack) {
+            this.rack = rack;
+            return this;
         }
-        
-        public Builder<K,C> withRetryPolicy(RetryPolicy policy) {
+
+        public Builder<K, C> withRetryPolicy(RetryPolicy policy) {
             this.retryPolicy = policy;
             return this;
         }
-        
-        public AllRowsReader<K,C> build() {
+
+        public AllRowsReader<K, C> build() {
             if (partitioner == null) {
                 try {
                     partitioner = keyspace.getPartitioner();
@@ -338,36 +339,36 @@ public class AllRowsReader<K, C> implements Callable<Boolean> {
                     throw new RuntimeException("Unable to determine partitioner", e);
                 }
             }
-            return new AllRowsReader<K,C>(keyspace, 
-                    columnFamily, 
-                    concurrencyLevel, 
+            return new AllRowsReader<K, C>(keyspace,
+                    columnFamily,
+                    concurrencyLevel,
                     executor,
-                    checkpointManager, 
-                    rowFunction, 
-                    rowsFunction, 
-                    columnSlice, 
-                    startToken, 
-                    endToken, 
-                    includeEmptyRows, 
+                    checkpointManager,
+                    rowFunction,
+                    rowsFunction,
+                    columnSlice,
+                    startToken,
+                    endToken,
+                    includeEmptyRows,
                     pageSize,
                     repeatLastToken,
                     partitioner,
                     dc,
                     rack,
-                    consistencyLevel, 
+                    consistencyLevel,
                     retryPolicy);
         }
     }
-    
-    public AllRowsReader(Keyspace keyspace, ColumnFamily<K, C> columnFamily, 
-            Integer concurrencyLevel, 
+
+    public AllRowsReader(Keyspace keyspace, ColumnFamily<K, C> columnFamily,
+            Integer concurrencyLevel,
             ExecutorService executor,
-            CheckpointManager checkpointManager, 
-            Function<Row<K, C>, Boolean> rowFunction, 
-            Function<Rows<K, C>, Boolean> rowsFunction, 
+            CheckpointManager checkpointManager,
+            Function<Row<K, C>, Boolean> rowFunction,
+            Function<Rows<K, C>, Boolean> rowsFunction,
             ColumnSlice<C> columnSlice,
-            String startToken, 
-            String endToken, 
+            String startToken,
+            String endToken,
             Boolean includeEmptyRows,
             int pageSize,
             boolean repeatLastToken,
@@ -377,42 +378,42 @@ public class AllRowsReader<K, C> implements Callable<Boolean> {
             ConsistencyLevel consistencyLevel,
             RetryPolicy retryPolicy) {
         super();
-        this.keyspace           = keyspace;
-        this.columnFamily       = columnFamily;
-        this.concurrencyLevel   = concurrencyLevel;
-        this.executor           = executor;
-        this.checkpointManager  = checkpointManager;
-        this.rowFunction        = rowFunction;
-        this.rowsFunction       = rowsFunction;
-        this.columnSlice        = columnSlice;
-        this.startToken         = startToken;
-        this.endToken           = endToken;
-        this.pageSize           = pageSize;
-        this.repeatLastToken    = repeatLastToken;
-        this.partitioner        = partitioner;
-        this.dc					= dc;
-        this.rack				= rack;
-        this.consistencyLevel   = consistencyLevel;
-        this.retryPolicy        = retryPolicy;
-        
+        this.keyspace = keyspace;
+        this.columnFamily = columnFamily;
+        this.concurrencyLevel = concurrencyLevel;
+        this.executor = executor;
+        this.checkpointManager = checkpointManager;
+        this.rowFunction = rowFunction;
+        this.rowsFunction = rowsFunction;
+        this.columnSlice = columnSlice;
+        this.startToken = startToken;
+        this.endToken = endToken;
+        this.pageSize = pageSize;
+        this.repeatLastToken = repeatLastToken;
+        this.partitioner = partitioner;
+        this.dc = dc;
+        this.rack = rack;
+        this.consistencyLevel = consistencyLevel;
+        this.retryPolicy = retryPolicy;
+
         // Flag explicitly set
-        if (includeEmptyRows != null) 
+        if (includeEmptyRows != null)
             this.includeEmptyRows = includeEmptyRows;
         // Asking for a column range of size 0
         else if (columnSlice != null && columnSlice.getColumns() == null && columnSlice.getLimit() == 0)
             this.includeEmptyRows = true;
         // Default to false
-        else 
+        else
             this.includeEmptyRows = false;
     }
-    
+
     private ColumnFamilyQuery<K, C> prepareQuery() {
-    	ColumnFamilyQuery<K, C> query = keyspace.prepareQuery(columnFamily);
-    	if (consistencyLevel != null)
-    		query.setConsistencyLevel(consistencyLevel);
-    	if (retryPolicy != null)
-    	    query.withRetryPolicy(retryPolicy);
-    	return query;
+        ColumnFamilyQuery<K, C> query = keyspace.prepareQuery(columnFamily);
+        if (consistencyLevel != null)
+            query.setConsistencyLevel(consistencyLevel);
+        if (retryPolicy != null)
+            query.withRetryPolicy(retryPolicy);
+        return query;
     }
 
     private Callable<Boolean> makeTokenRangeTask(final String startToken, final String endToken) {
@@ -435,15 +436,15 @@ public class AllRowsReader<K, C> implements Callable<Boolean> {
                         cancel();
                         throw new RuntimeException("Failed to get checkpoint for startToken " + startToken, e);
                     }
-                    
+
                     int localPageSize = pageSize;
                     int rowsToSkip = 0;
                     while (!cancelling.get()) {
                         RowSliceQuery<K, C> query = prepareQuery().getKeyRange(null, null, currentToken, endToken, localPageSize);
-                        
+
                         if (columnSlice != null)
                             query.withColumnSlice(columnSlice);
-                        
+
                         Rows<K, C> rows = query.execute().getResult();
                         if (!rows.isEmpty()) {
                             try {
@@ -455,7 +456,7 @@ public class AllRowsReader<K, C> implements Callable<Boolean> {
                                 }
                                 else {
                                     // Iterate through all the rows and notify the callback function
-                                    for (Row<K,C> row : rows) {
+                                    for (Row<K, C> row : rows) {
                                         if (cancelling.get())
                                             break;
                                         // When repeating the last row, rows to skip will be > 0 
@@ -479,7 +480,7 @@ public class AllRowsReader<K, C> implements Callable<Boolean> {
                                 cancel();
                                 throw new RuntimeException("Error processing row", e);
                             }
-                                
+
                             // Get the next block
                             if (rows.size() == localPageSize) {
                                 Row<K, C> lastRow = rows.getRowByIndex(rows.size() - 1);
@@ -488,7 +489,7 @@ public class AllRowsReader<K, C> implements Callable<Boolean> {
                                 if (repeatLastToken) {
                                     // Start token is non-inclusive
                                     currentToken = partitioner.getTokenMinusOne(lastToken);
-                                    
+
                                     // Determine the number of rows to skip in the response.  Since we are repeating the
                                     // last token it's possible (although unlikely) that there is more than one key mapping to the
                                     // token.  We therefore count backwards the number of keys that have the same token and skip 
@@ -508,11 +509,11 @@ public class AllRowsReader<K, C> implements Callable<Boolean> {
                                 else {
                                     currentToken = lastToken;
                                 }
-                                
+
                                 continue;
                             }
                         }
-                        
+
                         // We're done!
                         checkpointManager.trackCheckpoint(startToken, endToken);
                         return true;
@@ -528,23 +529,23 @@ public class AllRowsReader<K, C> implements Callable<Boolean> {
             }
         };
     }
-    
+
     /**
      * Main execution block for the all rows query.  
      */
     @Override
     public Boolean call() throws Exception {
         error.set(null);
-        
+
         List<Callable<Boolean>> subtasks = Lists.newArrayList();
-        
+
         // We are iterating the entire ring using an arbitrary number of threads
-        if (this.concurrencyLevel != null || startToken != null|| endToken != null) {
+        if (this.concurrencyLevel != null || startToken != null || endToken != null) {
             List<TokenRange> tokens = partitioner.splitTokenRange(
-                    startToken == null ? partitioner.getMinToken() : startToken, 
-                    endToken == null   ? partitioner.getMinToken() : endToken, 
+                    startToken == null ? partitioner.getMinToken() : startToken,
+                    endToken == null ? partitioner.getMinToken() : endToken,
                     this.concurrencyLevel == null ? 1 : this.concurrencyLevel);
-            
+
             for (TokenRange range : tokens) {
                 subtasks.add(makeTokenRangeTask(range.getStartToken(), range.getEndToken()));
             }
@@ -553,22 +554,22 @@ public class AllRowsReader<K, C> implements Callable<Boolean> {
         else {
             List<TokenRange> ranges = keyspace.describeRing(dc, rack);
             for (TokenRange range : ranges) {
-                if (range.getStartToken().equals(range.getEndToken())) 
+                if (range.getStartToken().equals(range.getEndToken()))
                     subtasks.add(makeTokenRangeTask(range.getStartToken(), range.getEndToken()));
                 else
                     subtasks.add(makeTokenRangeTask(partitioner.getTokenMinusOne(range.getStartToken()), range.getEndToken()));
             }
         }
-        
+
         try {
             // Use a local executor
             if (executor == null) {
                 ExecutorService localExecutor = Executors
                         .newFixedThreadPool(subtasks.size(),
-                            new ThreadFactoryBuilder().setDaemon(true)
-                                .setNameFormat("AstyanaxAllRowsReader-%d")
-                                .build());
-                
+                                new ThreadFactoryBuilder().setDaemon(true)
+                                        .setNameFormat("AstyanaxAllRowsReader-%d")
+                                        .build());
+
                 try {
                     futures.addAll(startTasks(localExecutor, subtasks));
                     return waitForTasksToFinish();
@@ -587,11 +588,11 @@ public class AllRowsReader<K, C> implements Callable<Boolean> {
             error.compareAndSet(null, e);
             LOG.warn("AllRowsReader terminated. " + e.getMessage(), e);
             cancel();
-            
+
             throw error.get();
         }
     }
-    
+
     /**
      * Wait for all tasks to finish.
      * 
@@ -599,14 +600,14 @@ public class AllRowsReader<K, C> implements Callable<Boolean> {
      * @return true if all tasks returned true or false otherwise.  
      */
     private boolean waitForTasksToFinish() throws Exception {
-        
+
         Boolean succeeded = true;
-        
+
         // Tracking state for multiple exceptions, if any
         List<StackTraceElement> stackTraces = new ArrayList<StackTraceElement>();
         StringBuilder sb = new StringBuilder();
         int exCount = 0;
-        
+
         for (Future<Boolean> future : futures) {
             try {
                 if (!future.get()) {
@@ -618,7 +619,7 @@ public class AllRowsReader<K, C> implements Callable<Boolean> {
                 error.compareAndSet(null, e);
                 cancel();
                 succeeded = false;
-                
+
                 exCount++;
                 sb.append("ex" + exCount + ": ").append(e.getMessage()).append("\n");
                 StackTraceElement[] stackTrace = e.getStackTrace();
@@ -631,11 +632,11 @@ public class AllRowsReader<K, C> implements Callable<Boolean> {
                 }
             }
         }
-        
+
         if (this.rowFunction instanceof Flushable) {
-            ((Flushable)rowFunction).flush();
+            ((Flushable) rowFunction).flush();
         }
-        
+
         if (exCount > 0) {
             String exMessage = sb.toString();
             StackTraceElement[] seArray = stackTraces.toArray(new StackTraceElement[stackTraces.size()]);
@@ -660,7 +661,7 @@ public class AllRowsReader<K, C> implements Callable<Boolean> {
         }
         return tasks;
     }
-    
+
     /**
      * Cancel all pending range iteration tasks.  This will cause all internal threads to exit and
      * call() to return false.

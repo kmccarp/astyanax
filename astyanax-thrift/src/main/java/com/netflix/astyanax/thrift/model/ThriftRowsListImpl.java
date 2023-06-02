@@ -35,12 +35,12 @@ public class ThriftRowsListImpl<K, C> implements Rows<K, C> {
     private Map<K, Row<K, C>> lookup;
 
     public ThriftRowsListImpl(Map<ByteBuffer, List<ColumnOrSuperColumn>> rows, Serializer<K> keySer, Serializer<C> colSer) {
-        this.rows   = Lists.newArrayListWithCapacity(rows.size());
+        this.rows = Lists.newArrayListWithCapacity(rows.size());
         this.lookup = Maps.newLinkedHashMap();
-        
+
         for (Entry<ByteBuffer, List<ColumnOrSuperColumn>> row : rows.entrySet()) {
-            Row<K,C> thriftRow = new ThriftRowImpl<K, C>(
-                    keySer.fromByteBuffer(row.getKey().duplicate()), 
+            Row<K, C> thriftRow = new ThriftRowImpl<K, C>(
+                    keySer.fromByteBuffer(row.getKey().duplicate()),
                     row.getKey(),
                     new ThriftColumnOrSuperColumnListImpl<C>(row.getValue(), colSer));
 

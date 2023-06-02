@@ -52,7 +52,7 @@ public interface RetryBackoffStrategy {
          * @return Number of failed attempts
          */
         int getAttemptCount();
-    };
+    }
 
     /**
      * Create an instance of the strategy for a single host

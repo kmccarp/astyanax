@@ -33,29 +33,29 @@ import com.netflix.astyanax.model.ConsistencyLevel;
  */
 public class MultiMutationBatchManager implements MutationBatchManager {
     private final String DEFAULT_BATCH_NAME = "default";
-    
+
     private final ThreadLocal<Map<String, MutationBatch>> batches = new ThreadLocal<Map<String, MutationBatch>>();
-    
+
     private final Keyspace keyspace;
     private final ConsistencyLevel cl;
-    
+
     public MultiMutationBatchManager(Keyspace keyspace, ConsistencyLevel cl) {
         this.keyspace = keyspace;
         this.cl = cl;
     }
-    
+
     @Override
     public MutationBatch getSharedMutationBatch() {
         return getNamedMutationBatch(DEFAULT_BATCH_NAME);
     }
-    
+
     public MutationBatch getNamedMutationBatch(String name) {
         Map<String, MutationBatch> mbs = batches.get();
         if (mbs == null) {
             mbs = Maps.newLinkedHashMap();
             batches.set(mbs);
         }
-        
+
         MutationBatch mb = mbs.get(name);
         if (mb == null) {
             mb = getNewMutationBatch();

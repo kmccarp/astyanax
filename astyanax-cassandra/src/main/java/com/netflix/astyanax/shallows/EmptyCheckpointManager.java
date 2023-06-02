@@ -24,27 +24,27 @@ import com.netflix.astyanax.query.CheckpointManager;
 
 public class EmptyCheckpointManager implements CheckpointManager {
     private ConcurrentMap<String, String> tokenMap = Maps.newConcurrentMap();
-    
-	/**
-	 * Do nothing since checkpoints aren't being persisted.
-	 */
-	@Override
-	public void trackCheckpoint(String startToken, String checkpointToken) {
-	    tokenMap.put(startToken, checkpointToken);
-	}
 
-	/**
-	 * Since no checkpoint management is done here simply use the startToken as the 
-	 * start checkpoint for the range
-	 */
-	@Override
-	public String getCheckpoint(String startToken) {
-	    return tokenMap.get(startToken);
-	}
+    /**
+     * Do nothing since checkpoints aren't being persisted.
+     */
+    @Override
+    public void trackCheckpoint(String startToken, String checkpointToken) {
+        tokenMap.put(startToken, checkpointToken);
+    }
 
-	@Override
-	public SortedMap<String, String> getCheckpoints() throws ConnectionException {
-		return Maps.newTreeMap();
-	}
+    /**
+     * Since no checkpoint management is done here simply use the startToken as the 
+     * start checkpoint for the range
+     */
+    @Override
+    public String getCheckpoint(String startToken) {
+        return tokenMap.get(startToken);
+    }
+
+    @Override
+    public SortedMap<String, String> getCheckpoints() throws ConnectionException {
+        return Maps.newTreeMap();
+    }
 
 }

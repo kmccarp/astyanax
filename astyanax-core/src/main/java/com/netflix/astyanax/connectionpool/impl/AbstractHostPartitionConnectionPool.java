@@ -85,7 +85,7 @@ import com.netflix.astyanax.tracing.OperationTracer;
 public abstract class AbstractHostPartitionConnectionPool<CL> implements ConnectionPool<CL>,
         SimpleHostConnectionPool.Listener<CL> {
     private static Logger LOG = LoggerFactory.getLogger(AbstractHostPartitionConnectionPool.class);
-	
+
     protected final NonBlockingHashMap<Host, HostConnectionPool<CL>> hosts;
     protected final ConnectionPoolConfiguration                      config;
     protected final ConnectionFactory<CL>                            factory;
@@ -100,11 +100,11 @@ public abstract class AbstractHostPartitionConnectionPool<CL> implements Connect
      */
     public AbstractHostPartitionConnectionPool(ConnectionPoolConfiguration config, ConnectionFactory<CL> factory,
             ConnectionPoolMonitor monitor) {
-        this.config     = config;
-        this.factory    = factory;
-        this.monitor    = monitor;
-        this.hosts      = new NonBlockingHashMap<Host, HostConnectionPool<CL>>();
-        this.topology   = new TokenPartitionedTopology<CL>(config.getPartitioner(), config.getLatencyScoreStrategy());
+        this.config = config;
+        this.factory = factory;
+        this.monitor = monitor;
+        this.hosts = new NonBlockingHashMap<Host, HostConnectionPool<CL>>();
+        this.topology = new TokenPartitionedTopology<CL>(config.getPartitioner(), config.getLatencyScoreStrategy());
         this.partitioner = config.getPartitioner();
     }
 
@@ -194,18 +194,18 @@ public abstract class AbstractHostPartitionConnectionPool<CL> implements Connect
                 existingHost.setTokenRanges(host.getTokenRanges());
                 return true;
             }
-            
+
             ArrayList<TokenRange> currentTokens = Lists.newArrayList(existingHost.getTokenRanges());
-            ArrayList<TokenRange> newTokens     = Lists.newArrayList(host.getTokenRanges());
+            ArrayList<TokenRange> newTokens = Lists.newArrayList(host.getTokenRanges());
             Collections.sort(currentTokens, compareByStartToken);
-            Collections.sort(newTokens,     compareByStartToken);
+            Collections.sort(newTokens, compareByStartToken);
             for (int i = 0; i < currentTokens.size(); i++) {
                 if (!currentTokens.get(i).getStartToken().equals(newTokens.get(i).getStartToken()) ||
-                    !currentTokens.get(i).getEndToken().equals(newTokens.get(i).getEndToken())) {
+                        !currentTokens.get(i).getEndToken().equals(newTokens.get(i).getEndToken())) {
                     return false;
                 }
             }
-            
+
             existingHost.setTokenRanges(host.getTokenRanges());
             return true;
         }
@@ -231,7 +231,7 @@ public abstract class AbstractHostPartitionConnectionPool<CL> implements Connect
         }
     }
 
-    
+
     /**
      * @return boolean
      */
@@ -303,7 +303,7 @@ public abstract class AbstractHostPartitionConnectionPool<CL> implements Connect
      */
     @Override
     public synchronized void setHosts(Collection<Host> ring) {
-        
+
         // Temporary list of hosts to remove. Any host not in the new ring will
         // be removed
         Set<Host> hostsToRemove = Sets.newHashSet(hosts.keySet());
@@ -327,7 +327,7 @@ public abstract class AbstractHostPartitionConnectionPool<CL> implements Connect
             rebuildPartitions();
         }
     }
-    
+
     /**
      * Executes the operation using failover and retry strategy
      * @param op
@@ -337,45 +337,45 @@ public abstract class AbstractHostPartitionConnectionPool<CL> implements Connect
     @Override
     public <R> OperationResult<R> executeWithFailover(Operation<CL, R> op, RetryPolicy retry)
             throws ConnectionException {
-    	
-    	//Tracing operation
-    	OperationTracer opsTracer = config.getOperationTracer();
-    	final AstyanaxContext context = opsTracer.getAstyanaxContext();
-        if(context != null) {
-        	opsTracer.onCall(context, op);
+
+        //Tracing operation
+        OperationTracer opsTracer = config.getOperationTracer();
+        final AstyanaxContext context = opsTracer.getAstyanaxContext();
+        if (context != null) {
+            opsTracer.onCall(context, op);
         }
-    	
+
         retry.begin();
         ConnectionException lastException = null;
         do {
             try {
                 OperationResult<R> result = newExecuteWithFailover(op).tryOperation(op);
                 retry.success();
-                if(context != null)  
-                	opsTracer.onSuccess(context, op);
-                
+                if (context != null)
+                    opsTracer.onSuccess(context, op);
+
                 return result;
             }
             catch (OperationException e) {
-            	if(context != null)  
-            		opsTracer.onException(context, op, e);
-            	
+                if (context != null)
+                    opsTracer.onException(context, op, e);
+
                 retry.failure(e);
                 throw e;
             }
             catch (ConnectionException e) {
                 lastException = e;
-            } 
-            
+            }
+
             if (retry.allowRetry()) {
-            	LOG.debug("Retry policy[" + retry.toString() + "] will allow a subsequent retry for operation [" + op.getClass() + 
-            			  "] on keyspace [" + op.getKeyspace() + "] on pinned host[" + op.getPinnedHost() + "]");
+                LOG.debug("Retry policy[" + retry.toString() + "] will allow a subsequent retry for operation [" + op.getClass() +
+                        "] on keyspace [" + op.getKeyspace() + "] on pinned host[" + op.getPinnedHost() + "]");
             }
         } while (retry.allowRetry());
-        
-        if(context != null && lastException != null)  
-        	opsTracer.onException(context, op, lastException);
-        
+
+        if (context != null && lastException != null)
+            opsTracer.onException(context, op, lastException);
+
         retry.failure(lastException);
         throw lastException;
     }
@@ -397,14 +397,14 @@ public abstract class AbstractHostPartitionConnectionPool<CL> implements Connect
     protected void rebuildPartitions() {
         topology.refresh();
     }
-    
+
     /**
      * @return {@link Topology}
      */
     public Topology<CL> getTopology() {
         return topology;
     }
-    
+
     /**
      * @return {@link Partitioner}
      */

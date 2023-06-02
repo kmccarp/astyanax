@@ -29,7 +29,7 @@ import com.netflix.astyanax.connectionpool.OperationFilterFactory;
 public class OperationFilterFactoryList implements OperationFilterFactory {
 
     private final List<OperationFilterFactory> filters = Lists.newArrayList();
-    
+
     @Override
     public <R, CL> Operation<R, CL> attachFilter(Operation<R, CL> operation) {
         for (OperationFilterFactory factory : filters) {
@@ -37,7 +37,7 @@ public class OperationFilterFactoryList implements OperationFilterFactory {
         }
         return operation;
     }
-    
+
     public OperationFilterFactoryList addFilterFactory(OperationFilterFactory factory) {
         filters.add(factory);
         return this;

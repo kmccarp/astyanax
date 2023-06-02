@@ -116,22 +116,22 @@ public interface ConnectionPoolMonitor {
      * @return Count of socket timeouts trying to execute an operation
      */
     long getSocketTimeoutCount();
-    
+
     /**
      * @return Get number of unknown errors
      */
     long getUnknownErrorCount();
-    
+
     /**
      * @return Get number of invalid requests (i.e. bad argument values)
      */
     long getBadRequestCount();
-    
+
     /**
      * @return Count of times no hosts at all were available to execute an operation.
      */
     long getNoHostCount();
-    
+
     /**
      * @return  Tracks the number of column not found error
      */
@@ -151,7 +151,7 @@ public interface ConnectionPoolMonitor {
      * @return Return the number of hosts in the pool
      */
     long getHostCount();
-    
+
     /**
      * Return the number of times a host was added to the pool.  This
      * number will be incremented multiple times if the same hosts is 
@@ -160,7 +160,7 @@ public interface ConnectionPoolMonitor {
      * may indicate a problem with the host discovery service
      */
     long getHostAddedCount();
-    
+
     /**
      * Return the number of times any host was removed to the pool.  This
      * number will be incremented multiple times if the same hosts is 
@@ -169,7 +169,7 @@ public interface ConnectionPoolMonitor {
      * may indicate a problem with the host discovery service
      */
     long getHostRemovedCount();
-    
+
     /**
      * @return Return the number of times any host was marked as down.
      */

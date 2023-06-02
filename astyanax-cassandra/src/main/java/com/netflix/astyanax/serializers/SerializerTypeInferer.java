@@ -32,7 +32,7 @@ import com.netflix.astyanax.Serializer;
  */
 public class SerializerTypeInferer {
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public static <T> Serializer<T> getSerializer(Object value) {
         Serializer serializer = null;
         if (value == null) {
@@ -80,7 +80,7 @@ public class SerializerTypeInferer {
         else if (value instanceof Date) {
             serializer = DateSerializer.get();
         }
-		// TODO: need what to select StringCoercibleSerilizer here?
+        // TODO: need what to select StringCoercibleSerilizer here?
         else {
             serializer = ObjectSerializer.get();
         }
@@ -89,7 +89,7 @@ public class SerializerTypeInferer {
         return serializer;
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public static <T> Serializer<T> getSerializer(Class<?> valueClass) {
         Serializer serializer = null;
         if (valueClass.equals(UUID.class)) {
@@ -134,9 +134,9 @@ public class SerializerTypeInferer {
         else if (valueClass.equals(Date.class)) {
             serializer = DateSerializer.get();
         }
-		if (serializer == null) {
-           	serializer = ObjectSerializer.get();
-		}
+        if (serializer == null) {
+            serializer = ObjectSerializer.get();
+        }
         // Add other serializers here
         return serializer;
     }

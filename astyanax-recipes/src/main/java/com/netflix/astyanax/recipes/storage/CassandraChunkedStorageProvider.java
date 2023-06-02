@@ -55,7 +55,7 @@ public class CassandraChunkedStorageProvider implements ChunkedStorageProvider {
 
     private RetryPolicy retryPolicy = DEFAULT_RETRY_POLICY;
     private String rowKeyFormat = DEFAULT_ROW_KEY_FORMAT;
-    
+
     private ConsistencyLevel readConsistencyLevel = ConsistencyLevel.CL_ONE;  // for backwards compatibility.
     private ConsistencyLevel writeConsistencyLevel = DEFAULT_CONSISTENCY_LEVEL;
 
@@ -114,14 +114,14 @@ public class CassandraChunkedStorageProvider implements ChunkedStorageProvider {
 
 
     public CassandraChunkedStorageProvider setReadConsistencyLevel(ConsistencyLevel consistencyLevel) {
-      this.readConsistencyLevel = consistencyLevel;
-      return this;
+        this.readConsistencyLevel = consistencyLevel;
+        return this;
     }
 
     public ConsistencyLevel getReadConsistencyLevel() {
-      return this.readConsistencyLevel;
+        return this.readConsistencyLevel;
     }
-    
+
     public CassandraChunkedStorageProvider setWriteConsistencyLevel(ConsistencyLevel consistencyLevel) {
         this.writeConsistencyLevel = consistencyLevel;
         return this;
@@ -138,9 +138,9 @@ public class CassandraChunkedStorageProvider implements ChunkedStorageProvider {
      */
     @Deprecated
     public CassandraChunkedStorageProvider setConsistencyLevel(ConsistencyLevel consistencyLevel) {
-      this.writeConsistencyLevel = consistencyLevel;
-      this.readConsistencyLevel = consistencyLevel;
-      return this;
+        this.writeConsistencyLevel = consistencyLevel;
+        this.readConsistencyLevel = consistencyLevel;
+        return this;
     }
 
     /**
@@ -149,9 +149,9 @@ public class CassandraChunkedStorageProvider implements ChunkedStorageProvider {
      */
     @Deprecated
     public ConsistencyLevel getConsistencyLevel() {
-      return this.writeConsistencyLevel;
+        return this.writeConsistencyLevel;
     }
-    
+
     @Override
     public void writeMetadata(String objectName, ObjectMetadata objMetaData) throws Exception {
         MutationBatch m = keyspace.prepareMutationBatch().withRetryPolicy(retryPolicy);

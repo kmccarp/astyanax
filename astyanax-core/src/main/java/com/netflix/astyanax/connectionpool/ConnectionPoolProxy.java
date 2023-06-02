@@ -30,127 +30,128 @@ import com.netflix.astyanax.retry.RetryPolicy;
 
 public class ConnectionPoolProxy<T> implements ConnectionPool<T> {
 
-	private static final Logger Logger = LoggerFactory.getLogger(ConnectionPoolProxy.class);
-	
-	private AtomicReference<SeedHostListener> listener = new AtomicReference<SeedHostListener>(null);
-	private AtomicReference<Collection<Host>> lastHostList = new AtomicReference<Collection<Host>>(null);
-	
-	private final ConnectionPoolConfiguration cpConfig;
-	private final ConnectionPoolMonitor monitor;
-	
-	public ConnectionPoolProxy(ConnectionPoolConfiguration cpConfig, ConnectionFactory<T> connectionFactory, ConnectionPoolMonitor monitor) {
-		this.cpConfig = cpConfig;
-		this.monitor = monitor;
-	}
+    private static final Logger Logger = LoggerFactory.getLogger(ConnectionPoolProxy.class);
 
-	public ConnectionPoolConfiguration getConnectionPoolConfiguration() {
-		return cpConfig;
-	}
+    private AtomicReference<SeedHostListener> listener = new AtomicReference<SeedHostListener>(null);
+    private AtomicReference<Collection<Host>> lastHostList = new AtomicReference<Collection<Host>>(null);
 
-	public ConnectionPoolMonitor getConnectionPoolMonitor() {
-		return monitor;
-	}
+    private final ConnectionPoolConfiguration cpConfig;
+    private final ConnectionPoolMonitor monitor;
 
-	@Override
-	public void setHosts(Collection<Host> hosts) {
-		
-		if (hosts != null) {
-			Logger.info("Setting hosts for listener here: " + listener.getClass().getName() +  "   " + hosts);
-			lastHostList.set(hosts);
-		}
-		
-		if (listener.get() != null) {
-			Logger.info("Setting hosts for listener: " + listener.getClass().getName() +  "   " + hosts);
-			listener.get().setHosts(hosts, cpConfig.getPort());
-		}
-	}
-	
-	public Collection<Host> getHosts() {
-		return lastHostList.get();
-	}
+    public ConnectionPoolProxy(ConnectionPoolConfiguration cpConfig, ConnectionFactory<T> connectionFactory, ConnectionPoolMonitor monitor) {
+        this.cpConfig = cpConfig;
+        this.monitor = monitor;
+    }
 
-	public interface SeedHostListener {
-		public void setHosts(Collection<Host> hosts, int port);
-		public void shutdown();
-	}
-	
-	public void addListener(SeedHostListener listener) {
-		this.listener.set(listener);
-		if (this.lastHostList.get() != null) {
-			this.listener.get().setHosts(lastHostList.get(), cpConfig.getPort());
-		}
-	}
+    public ConnectionPoolConfiguration getConnectionPoolConfiguration() {
+        return cpConfig;
+    }
 
-	@Override
-	public boolean addHost(Host host, boolean refresh) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+    public ConnectionPoolMonitor getConnectionPoolMonitor() {
+        return monitor;
+    }
 
-	@Override
-	public boolean removeHost(Host host, boolean refresh) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+    @Override
+    public void setHosts(Collection<Host> hosts) {
 
-	@Override
-	public boolean isHostUp(Host host) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+        if (hosts != null) {
+            Logger.info("Setting hosts for listener here: " + listener.getClass().getName() +  "   " + hosts);
+            lastHostList.set(hosts);
+        }
 
-	@Override
-	public boolean hasHost(Host host) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+        if (listener.get() != null) {
+            Logger.info("Setting hosts for listener: " + listener.getClass().getName() +  "   " + hosts);
+            listener.get().setHosts(hosts, cpConfig.getPort());
+        }
+    }
 
-	@Override
-	public List<HostConnectionPool<T>> getActivePools() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    public Collection<Host> getHosts() {
+        return lastHostList.get();
+    }
 
-	@Override
-	public List<HostConnectionPool<T>> getPools() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    public interface SeedHostListener {
+        public void setHosts(Collection<Host> hosts, int port);
 
-	@Override
-	public HostConnectionPool<T> getHostPool(Host host) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+        public void shutdown();
+    }
 
-	@Override
-	public <R> OperationResult<R> executeWithFailover(Operation<T, R> op, RetryPolicy retry) throws ConnectionException, OperationException {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    public void addListener(SeedHostListener listener) {
+        this.listener.set(listener);
+        if (this.lastHostList.get() != null) {
+            this.listener.get().setHosts(lastHostList.get(), cpConfig.getPort());
+        }
+    }
 
-	@Override
-	public void shutdown() {
-		if (this.lastHostList.get() != null) {
-			this.listener.get().shutdown();
-		}
-	}
+    @Override
+    public boolean addHost(Host host, boolean refresh) {
+        // TODO Auto-generated method stub
+        return false;
+    }
 
-	@Override
-	public void start() {
-		// TODO Auto-generated method stub
-	}
+    @Override
+    public boolean removeHost(Host host, boolean refresh) {
+        // TODO Auto-generated method stub
+        return false;
+    }
 
-	@Override
-	public Topology<T> getTopology() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public boolean isHostUp(Host host) {
+        // TODO Auto-generated method stub
+        return false;
+    }
 
-	@Override
-	public Partitioner getPartitioner() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public boolean hasHost(Host host) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public List<HostConnectionPool<T>> getActivePools() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public List<HostConnectionPool<T>> getPools() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public HostConnectionPool<T> getHostPool(Host host) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public <R> OperationResult<R> executeWithFailover(Operation<T, R> op, RetryPolicy retry) throws ConnectionException, OperationException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public void shutdown() {
+        if (this.lastHostList.get() != null) {
+            this.listener.get().shutdown();
+        }
+    }
+
+    @Override
+    public void start() {
+        // TODO Auto-generated method stub
+    }
+
+    @Override
+    public Topology<T> getTopology() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Partitioner getPartitioner() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
 }

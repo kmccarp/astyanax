@@ -48,7 +48,7 @@ public class SerializersTest {
         T deSerVal1 = ser.fromByteBuffer(bb);
         Assert.assertEquals(val, deSerVal1);
     }
-    
+
     @Test
     public void testMultiLongs() {
         try {
@@ -66,29 +66,34 @@ public class SerializersTest {
             e.printStackTrace();
         }
     }
+
     static class LongLong {
         @Component
         Long comp1;
         @Component
         Long comp2;
+
         public LongLong() {
-            
+
         }
+
         public LongLong(long c1, long c2) {
             this.comp1 = c1;
-            this.comp2 = c2; 
+            this.comp2 = c2;
         }
+
         @Override
         public boolean equals(Object c2) {
             if (!(c2 instanceof LongLong)) return false;
-            if (this.comp1 == ((LongLong)c2).comp1 && this.comp2 == ((LongLong)c2).comp2) return true;
+            if (this.comp1 == ((LongLong) c2).comp1 && this.comp2 == ((LongLong) c2).comp2) return true;
             return false;
         }
-    };
+    }
+
     @Test
     public void testMultiLongsComposite() {
-    try {
-            
+        try {
+
             AnnotatedCompositeSerializer<LongLong> ser = new AnnotatedCompositeSerializer<LongLong>(LongLong.class);
             LongLong comp = new LongLong(1L, 2L);
             ByteBuffer bb = ser.toByteBuffer(comp);
@@ -108,7 +113,7 @@ public class SerializersTest {
         Assert.assertEquals("54657374", hexSerializer.getString(byteBuffer));
         testSerializer(ser, value);
     }
-    
+
     @Test
     public void testAsciiSerializerIdempotent() {
         AsciiSerializer ser = new AsciiSerializer();
@@ -132,7 +137,7 @@ public class SerializersTest {
         Assert.assertEquals(1, bi2.intValue() - bi1.intValue());
         Assert.assertEquals(bb2.capacity(), bb1.capacity() + 1);
     }
-    
+
     @Test
     public void testBigIntegerSerializerIdempotent() {
         BigIntegerSerializer ser = new BigIntegerSerializer();
@@ -146,7 +151,7 @@ public class SerializersTest {
         Boolean value = new Boolean(true);
         testSerializer(ser, value);
     }
-    
+
     @Test
     public void testBooleanSerializerIdempotent() {
         BooleanSerializer ser = new BooleanSerializer();
@@ -160,7 +165,7 @@ public class SerializersTest {
         ByteBuffer value = ByteBufferUtil.bytes("Hello, World");
         testSerializer(ser, value);
     }
-    
+
     @Test
     public void testByteBufferSerializerIdempotent() {
         ByteBufferSerializer ser = new ByteBufferSerializer();
@@ -216,7 +221,7 @@ public class SerializersTest {
         Character value = new Character('A');
         testSerializer(ser, value);
     }
-    
+
     @Test
     public void testCharSerializerIdempotent() {
         CharSerializer ser = new CharSerializer();
@@ -230,7 +235,7 @@ public class SerializersTest {
         Date value = new Date();
         testSerializer(ser, value);
     }
-    
+
     @Test
     public void testDateSerializerIdempotent() {
         DateSerializer ser = new DateSerializer();
@@ -262,7 +267,7 @@ public class SerializersTest {
             LOG.info(e.getMessage());
         }
     }
-    
+
     @Test
     public void testDoubleSerializerIdempotent() {
         DoubleSerializer ser = new DoubleSerializer();
@@ -294,7 +299,7 @@ public class SerializersTest {
             LOG.info(e.getMessage());
         }
     }
-    
+
     @Test
     public void testFloatSerializerIdempotent() {
         FloatSerializer ser = new FloatSerializer();
@@ -326,7 +331,7 @@ public class SerializersTest {
             LOG.info(e.getMessage());
         }
     }
-    
+
     @Test
     public void testIntegerSerializerIdmepotent() {
         IntegerSerializer ser = new IntegerSerializer();
@@ -358,7 +363,7 @@ public class SerializersTest {
             LOG.info(e.getMessage());
         }
     }
-    
+
     @Test
     public void testLongSerializerIdempotent() {
         LongSerializer ser = new LongSerializer();
@@ -390,6 +395,7 @@ public class SerializersTest {
             LOG.info(e.getMessage());
         }
     }
+
     @Test
     public void testByteSerializerIdmepotent() {
         ByteSerializer ser = new ByteSerializer();
@@ -421,7 +427,7 @@ public class SerializersTest {
             LOG.info(e.getMessage());
         }
     }
-    
+
     @Test
     public void testShortSerializerIdempotent() {
         ShortSerializer ser = new ShortSerializer();
@@ -444,21 +450,20 @@ public class SerializersTest {
     }
 
 
-
     @Test
     public void testUUIDSerializer() {
         UUIDSerializer ser = new UUIDSerializer();
         UUID uuid = UUID.randomUUID();
         testSerializer(ser, uuid);
     }
-    
+
     @Test
     public void testUUIDSerializerIdempotent() {
         UUIDSerializer ser = new UUIDSerializer();
         UUID uuid = UUID.randomUUID();
         testSerializerIdempotent(ser, uuid);
     }
-    
+
     @Test
     public void intVsBigInt() {
         IntegerSerializer intSer = new IntegerSerializer();
@@ -514,11 +519,11 @@ public class SerializersTest {
             return (String.valueOf(firstName).equals(
                     String.valueOf(other.firstName))
                     && String.valueOf(lastName).equals(
-                            String.valueOf(other.lastName))
+                    String.valueOf(other.lastName))
                     && String.valueOf(decimal).equals(
-                            String.valueOf(other.decimal))
+                    String.valueOf(other.decimal))
                     && String.valueOf(integer).equals(
-                            String.valueOf(other.integer)) && age == other.age);
+                    String.valueOf(other.integer)) && age == other.age);
         }
     }
 
@@ -539,7 +544,7 @@ public class SerializersTest {
             Assert.fail();
         }
     }
-    
+
     @Test
     public void testAnnotatedCompositeSerializerIdempotent() {
         try {
@@ -549,7 +554,7 @@ public class SerializersTest {
             Composite1 c1 = new Composite1("Arielle", "Landau", 6,
                     new BigInteger("1"), new BigDecimal(1));
 
-           testSerializerIdempotent(ser, c1);
+            testSerializerIdempotent(ser, c1);
         } catch (Exception e) {
             LOG.error(e.getMessage());
             Assert.fail();
@@ -721,7 +726,8 @@ public class SerializersTest {
                 ByteBuffer data = ctype.fromString(columnName);
                 String columnName2 = ctype.getString(data);
                 Assert.assertEquals(columnName, columnName2);
-            } else {
+            }
+            else {
                 Assert.fail();
             }
         } catch (Exception e) {

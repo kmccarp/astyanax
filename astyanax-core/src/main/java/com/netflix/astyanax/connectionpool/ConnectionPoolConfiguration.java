@@ -149,14 +149,14 @@ public interface ConnectionPoolConfiguration {
      * and free up connections.
      */
     int getBlockedThreadThreshold();
-    
+
     /**
      * @return Return the ratio for keeping a minimum number of hosts in the pool even if they are slow
      * or are blocked.  For example, a ratio of 0.75 with a connection pool of 12 hosts will 
      * ensure that no more than 4 hosts can be quaratined.
      */
     float getMinHostInPoolRatio();
-    
+
     /**
      * TODO
      */
@@ -212,19 +212,19 @@ public interface ConnectionPoolConfiguration {
      * @return Can return null if no login required
      */
     AuthenticationCredentials getAuthenticationCredentials();
-    
+
     /**
      * @return Return factory that will wrap an operation with filters, such as logging filters
      * and simulation filters
      */
     OperationFilterFactory getOperationFilterFactory();
-    
-    
+
+
     /**
      * @return Return tracing factory that helps to trace a request
      */
     OperationTracer getOperationTracer();
-    
+
     /**
      * @return Get the partitioner used to convert row keys to TOKEN
      */

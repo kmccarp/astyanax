@@ -72,16 +72,16 @@ import com.netflix.astyanax.shallows.EmptyCheckpointManager;
  * @param <K>
  * @param <C>
  */
-public class CqlAllRowsQueryImpl<K,C> implements AllRowsQuery<K,C> {
+public class CqlAllRowsQueryImpl<K, C> implements AllRowsQuery<K, C> {
 
     private static final Logger LOG = LoggerFactory.getLogger(CqlAllRowsQueryImpl.class);
-    
+
     private static final Partitioner DEFAULT_PARTITIONER = Murmur3Partitioner.get();
     private final static int DEFAULT_PAGE_SIZE = 100;
-    
+
     private final Keyspace      keyspace;
     private final ColumnFamily<K, C> columnFamily;
-    
+
     private    Integer                 rowLimit = DEFAULT_PAGE_SIZE;
     private    Integer             concurrencyLevel;   // Default to null will force ring describe
     private    ExecutorService     executor;
@@ -99,183 +99,186 @@ public class CqlAllRowsQueryImpl<K,C> implements AllRowsQuery<K,C> {
     private    ExceptionCallback   exceptionCallback;
     private AtomicReference<Exception>  error = new AtomicReference<Exception>();
 
-    public CqlAllRowsQueryImpl(Keyspace ks, ColumnFamily<K,C> cf) {
-    	this.keyspace = ks;
-    	this.columnFamily = cf;
-    	
+    public CqlAllRowsQueryImpl(Keyspace ks, ColumnFamily<K, C> cf) {
+        this.keyspace = ks;
+        this.columnFamily = cf;
+
     }
-	@Override
-	public AllRowsQuery<K, C> setBlockSize(int blockSize) {
-		setRowLimit(blockSize);
-		return this;
-	}
 
-	@Override
-	public AllRowsQuery<K, C> setRowLimit(int rowLimit) {
-		this.rowLimit = rowLimit;
-		return this;
-	}
+    @Override
+    public AllRowsQuery<K, C> setBlockSize(int blockSize) {
+        setRowLimit(blockSize);
+        return this;
+    }
 
-	@Override
-	public AllRowsQuery<K, C> setExceptionCallback(ExceptionCallback cb) {
-		this.exceptionCallback = cb;
-		return this;
-	}
+    @Override
+    public AllRowsQuery<K, C> setRowLimit(int rowLimit) {
+        this.rowLimit = rowLimit;
+        return this;
+    }
 
-	@Override
-	public AllRowsQuery<K, C> setCheckpointManager(CheckpointManager manager) {
-		this.checkpointManager = manager;
-		return this;
-	}
+    @Override
+    public AllRowsQuery<K, C> setExceptionCallback(ExceptionCallback cb) {
+        this.exceptionCallback = cb;
+        return this;
+    }
 
-	@Override
-	public AllRowsQuery<K, C> setRepeatLastToken(boolean condition) {
-		this.repeatLastToken = condition;
-		return this;
-	}
+    @Override
+    public AllRowsQuery<K, C> setCheckpointManager(CheckpointManager manager) {
+        this.checkpointManager = manager;
+        return this;
+    }
 
-	@Override
-	public AllRowsQuery<K, C> setIncludeEmptyRows(boolean flag) {
-		this.includeEmptyRows = flag;
-		return this;
-	}
-	@Override
-	public AllRowsQuery<K, C>  withColumnSlice(C... columns) {
-		return withColumnSlice(Arrays.asList(columns));
-	}
+    @Override
+    public AllRowsQuery<K, C> setRepeatLastToken(boolean condition) {
+        this.repeatLastToken = condition;
+        return this;
+    }
 
-	@Override
-	public AllRowsQuery<K, C>  withColumnSlice(Collection<C> columns) {
-		this.columnSlice = new CqlColumnSlice<C>(columns);
-		return this;
-	}
+    @Override
+    public AllRowsQuery<K, C> setIncludeEmptyRows(boolean flag) {
+        this.includeEmptyRows = flag;
+        return this;
+    }
 
-	@Override
-	public AllRowsQuery<K, C>  withColumnSlice(ColumnSlice<C> columns) {
-		this.columnSlice = new CqlColumnSlice<C>(columns);
-		return this;
-	}
+    @Override
+    public AllRowsQuery<K, C>  withColumnSlice(C... columns) {
+        return withColumnSlice(Arrays.asList(columns));
+    }
 
-	@Override
-	public AllRowsQuery<K, C>  withColumnRange(C startColumn, C endColumn, boolean reversed, int count) {
-		
-		CqlColumnFamilyDefinitionImpl cfDef = (CqlColumnFamilyDefinitionImpl) columnFamily.getColumnFamilyDefinition();
-		String pkColName = cfDef.getPartitionKeyColumnDefinitionList().get(1).getName();
-		
-		this.columnSlice = new CqlColumnSlice<C>(new CqlRangeBuilder<C>()
-				.setColumn(pkColName)
-				.setStart(startColumn)
-				.setEnd(endColumn)
-				.setReversed(reversed)
-				.setLimit(count)
-				.build());
-		return this;
-	}
+    @Override
+    public AllRowsQuery<K, C>  withColumnSlice(Collection<C> columns) {
+        this.columnSlice = new CqlColumnSlice<C>(columns);
+        return this;
+    }
 
-	@Override
-	public AllRowsQuery<K, C>  withColumnRange(ByteBuffer startColumn, ByteBuffer endColumn, boolean reversed, int limit) {
-		Serializer<C> colSerializer = columnFamily.getColumnSerializer();
-		C start = (startColumn != null && startColumn.capacity() > 0) ? colSerializer.fromByteBuffer(startColumn) : null;
-		C end = (endColumn != null && endColumn.capacity() > 0) ? colSerializer.fromByteBuffer(endColumn) : null;
-		return this.withColumnRange(start, end, reversed, limit);
-	}
+    @Override
+    public AllRowsQuery<K, C>  withColumnSlice(ColumnSlice<C> columns) {
+        this.columnSlice = new CqlColumnSlice<C>(columns);
+        return this;
+    }
 
-	@Override
-	public AllRowsQuery<K, C> withColumnRange(ByteBufferRange range) {
-		if (range instanceof CqlRangeImpl) {
-			this.columnSlice = new CqlColumnSlice<C>();
-			((CqlColumnSlice<C>) this.columnSlice).setCqlRange((CqlRangeImpl<C>) range);
-			return this;
-		} else {
-			return this.withColumnRange(range.getStart(), range.getEnd(), range.isReversed(), range.getLimit());
-		}
-	}
+    @Override
+    public AllRowsQuery<K, C>  withColumnRange(C startColumn, C endColumn, boolean reversed, int count) {
 
-	@Override
-	public AllRowsQuery<K, C> setConcurrencyLevel(int numberOfThreads) {
-		this.concurrencyLevel = numberOfThreads;
-		return this;
-	}
+        CqlColumnFamilyDefinitionImpl cfDef = (CqlColumnFamilyDefinitionImpl) columnFamily.getColumnFamilyDefinition();
+        String pkColName = cfDef.getPartitionKeyColumnDefinitionList().get(1).getName();
 
-	@Override
-	@Deprecated
-	public AllRowsQuery<K, C> setThreadCount(int numberOfThreads) {
-		this.concurrencyLevel = numberOfThreads;
-		return this;
-	}
+        this.columnSlice = new CqlColumnSlice<C>(new CqlRangeBuilder<C>()
+                .setColumn(pkColName)
+                .setStart(startColumn)
+                .setEnd(endColumn)
+                .setReversed(reversed)
+                .setLimit(count)
+                .build());
+        return this;
+    }
 
-	@Override
-	public void executeWithCallback(RowCallback<K, C> callback) throws ConnectionException {
-		this.rowCallback = callback;
-		executeTasks();
-	}
+    @Override
+    public AllRowsQuery<K, C>  withColumnRange(ByteBuffer startColumn, ByteBuffer endColumn, boolean reversed, int limit) {
+        Serializer<C> colSerializer = columnFamily.getColumnSerializer();
+        C start = (startColumn != null && startColumn.capacity() > 0) ? colSerializer.fromByteBuffer(startColumn) : null;
+        C end = (endColumn != null && endColumn.capacity() > 0) ? colSerializer.fromByteBuffer(endColumn) : null;
+        return this.withColumnRange(start, end, reversed, limit);
+    }
 
-	@Override
-	public AllRowsQuery<K, C> forTokenRange(BigInteger start, BigInteger end) {
-		return forTokenRange(start.toString(), end.toString());
-	}
+    @Override
+    public AllRowsQuery<K, C> withColumnRange(ByteBufferRange range) {
+        if (range instanceof CqlRangeImpl) {
+            this.columnSlice = new CqlColumnSlice<C>();
+            ((CqlColumnSlice<C>) this.columnSlice).setCqlRange((CqlRangeImpl<C>) range);
+            return this;
+        }
+        else {
+            return this.withColumnRange(range.getStart(), range.getEnd(), range.isReversed(), range.getLimit());
+        }
+    }
 
-	@Override
-	public AllRowsQuery<K, C> forTokenRange(String start, String end) {
-		this.startToken = start;
-		this.endToken = end;
-		return this;
-	}
-	
-	@Override
-	public OperationResult<Rows<K, C>> execute() throws ConnectionException {
-		
-		final AtomicReference<ConnectionException> reference = new AtomicReference<ConnectionException>(null);
-		
-		final List<Row<K,C>> list = Collections.synchronizedList(new LinkedList<Row<K,C>>());
-		
-		RowCallback<K,C> rowCallback = new RowCallback<K,C>() {
+    @Override
+    public AllRowsQuery<K, C> setConcurrencyLevel(int numberOfThreads) {
+        this.concurrencyLevel = numberOfThreads;
+        return this;
+    }
 
-			@Override
-			public void success(Rows<K,C> rows) {
-				if (rows != null && !rows.isEmpty()) {
-					for (Row<K,C> row : rows) {
-						list.add(row);
-					}
-				}
-			}
+    @Override
+    @Deprecated
+    public AllRowsQuery<K, C> setThreadCount(int numberOfThreads) {
+        this.concurrencyLevel = numberOfThreads;
+        return this;
+    }
 
-			@Override
-			public boolean failure(ConnectionException e) {
-				reference.set(e);
-				return false;
-			}
-		};
-		
-		executeWithCallback(rowCallback);
-		
-		if (reference.get() != null) {
-			throw reference.get();
-		}
-		
-		CqlRowListImpl<K,C> allRows = new CqlRowListImpl<K,C>(list);
-		return new CqlOperationResultImpl<Rows<K,C>>(null, allRows);
-	}
+    @Override
+    public void executeWithCallback(RowCallback<K, C> callback) throws ConnectionException {
+        this.rowCallback = callback;
+        executeTasks();
+    }
 
-	@Override
-	public ListenableFuture<OperationResult<Rows<K, C>>> executeAsync() throws ConnectionException {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public AllRowsQuery<K, C> forTokenRange(BigInteger start, BigInteger end) {
+        return forTokenRange(start.toString(), end.toString());
+    }
+
+    @Override
+    public AllRowsQuery<K, C> forTokenRange(String start, String end) {
+        this.startToken = start;
+        this.endToken = end;
+        return this;
+    }
+
+    @Override
+    public OperationResult<Rows<K, C>> execute() throws ConnectionException {
+
+        final AtomicReference<ConnectionException> reference = new AtomicReference<ConnectionException>(null);
+
+        final List<Row<K, C>> list = Collections.synchronizedList(new LinkedList<Row<K, C>>());
+
+        RowCallback<K, C> rowCallback = new RowCallback<K, C>() {
+
+            @Override
+            public void success(Rows<K, C> rows) {
+                if (rows != null && !rows.isEmpty()) {
+                    for (Row<K, C> row : rows) {
+                        list.add(row);
+                    }
+                }
+            }
+
+            @Override
+            public boolean failure(ConnectionException e) {
+                reference.set(e);
+                return false;
+            }
+        };
+
+        executeWithCallback(rowCallback);
+
+        if (reference.get() != null) {
+            throw reference.get();
+        }
+
+        CqlRowListImpl<K, C> allRows = new CqlRowListImpl<K, C>(list);
+        return new CqlOperationResultImpl<Rows<K, C>>(null, allRows);
+    }
+
+    @Override
+    public ListenableFuture<OperationResult<Rows<K, C>>> executeAsync() throws ConnectionException {
+        throw new UnsupportedOperationException();
+    }
 
 
-	private Boolean executeTasks() throws ConnectionException {
+    private Boolean executeTasks() throws ConnectionException {
         error.set(null);
-        
+
         List<Callable<Boolean>> subtasks = Lists.newArrayList();
-        
+
         // We are iterating the entire ring using an arbitrary number of threads
         if (this.concurrencyLevel != null || startToken != null || endToken != null) {
 
-    		List<TokenRange> tokens = partitioner.splitTokenRange(
-                    startToken == null ? partitioner.getMinToken() : startToken, 
-                    endToken == null   ? partitioner.getMinToken() : endToken, 
+            List<TokenRange> tokens = partitioner.splitTokenRange(
+                    startToken == null ? partitioner.getMinToken() : startToken,
+                    endToken == null ? partitioner.getMinToken() : endToken,
                     this.concurrencyLevel == null ? 1 : this.concurrencyLevel);
-            
+
             for (TokenRange range : tokens) {
                 subtasks.add(makeTokenRangeTask(range.getStartToken(), range.getEndToken()));
             }
@@ -286,23 +289,24 @@ public class CqlAllRowsQueryImpl<K,C> implements AllRowsQuery<K,C> {
             for (TokenRange range : ranges) {
                 if (range.getStartToken().equals(range.getEndToken())) {
                     subtasks.add(makeTokenRangeTask(range.getStartToken(), range.getEndToken()));
-                } else {
+                }
+                else {
                     subtasks.add(makeTokenRangeTask(partitioner.getTokenMinusOne(range.getStartToken()), range.getEndToken()));
                 }
             }
         }
-        
+
         try {
             // Use a local executor
             if (executor == null) {
                 ExecutorService localExecutor = Executors
                         .newFixedThreadPool(subtasks.size(),
-                            new ThreadFactoryBuilder().setDaemon(true)
-                                .setNameFormat("AstyanaxAllRowsQuery-%d")
-                                .build());
-                
+                                new ThreadFactoryBuilder().setDaemon(true)
+                                        .setNameFormat("AstyanaxAllRowsQuery-%d")
+                                        .build());
+
                 try {
-                	futures.addAll(startTasks(localExecutor, subtasks));
+                    futures.addAll(startTasks(localExecutor, subtasks));
                     return waitForTasksToFinish();
                 }
                 finally {
@@ -319,7 +323,7 @@ public class CqlAllRowsQueryImpl<K,C> implements AllRowsQuery<K,C> {
             error.compareAndSet(null, e);
             LOG.warn("AllRowsReader terminated. " + e.getMessage(), e);
             cancel();
-            
+
             throw new RuntimeException(error.get());
         }
     }
@@ -345,28 +349,29 @@ public class CqlAllRowsQueryImpl<K,C> implements AllRowsQuery<K,C> {
                         cancel();
                         throw new RuntimeException("Failed to get checkpoint for startToken " + startToken, e);
                     }
-                    
+
                     int localPageSize = rowLimit;
                     int rowsToSkip = 0;
                     while (!cancelling.get()) {
                         RowSliceQuery<K, C> query = prepareQuery().getKeyRange(null, null, currentToken, endToken, -1);
-                        
+
                         if (columnSlice != null)
                             query.withColumnSlice(columnSlice);
-                        
+
                         Rows<K, C> rows = query.execute().getResult();
                         if (!rows.isEmpty()) {
-                           try {
+                            try {
                                 if (rowCallback != null) {
-                                    try { 
-                                    	rowCallback.success(rows);
+                                    try {
+                                        rowCallback.success(rows);
                                     } catch (Exception e) {
-                                    	LOG.error("Failed to process rows", e);
+                                        LOG.error("Failed to process rows", e);
                                         cancel();
                                         return false;
                                     }
-                                } else {
-                                	LOG.error("Row function is empty");
+                                }
+                                else {
+                                    LOG.error("Row function is empty");
                                 }
                             } catch (Exception e) {
                                 error.compareAndSet(null, e);
@@ -374,7 +379,7 @@ public class CqlAllRowsQueryImpl<K,C> implements AllRowsQuery<K,C> {
                                 cancel();
                                 throw new RuntimeException("Error processing row", e);
                             }
-                                
+
                             // Get the next block
                             if (rows.size() == rowLimit) {
                                 Row<K, C> lastRow = rows.getRowByIndex(rows.size() - 1);
@@ -383,11 +388,11 @@ public class CqlAllRowsQueryImpl<K,C> implements AllRowsQuery<K,C> {
                                 if (repeatLastToken) {
                                     // Start token is non-inclusive
                                     currentToken = partitioner.getTokenMinusOne(lastToken);
-                                    
-                                 // Determine the number of rows to skip in the response.  Since we are repeating the
-                                 // last token it's possible (although unlikely) that there is more than one key mapping to the
-                                 // token.  We therefore count backwards the number of keys that have the same token and skip 
-                                 // that number in the next iteration of the loop.  If, for example, 3 keys matched but only 2 were
+
+                                    // Determine the number of rows to skip in the response.  Since we are repeating the
+                                    // last token it's possible (although unlikely) that there is more than one key mapping to the
+                                    // token.  We therefore count backwards the number of keys that have the same token and skip 
+                                    // that number in the next iteration of the loop.  If, for example, 3 keys matched but only 2 were
                                     // returned in this iteration then the first 2 keys will be skipped from the next response.
                                     rowsToSkip = 1;
                                     for (int i = rows.size() - 2; i >= 0; i--, rowsToSkip++) {
@@ -399,14 +404,15 @@ public class CqlAllRowsQueryImpl<K,C> implements AllRowsQuery<K,C> {
                                     if (rowsToSkip == localPageSize) {
                                         localPageSize++;
                                     }
-                                } else {
+                                }
+                                else {
                                     currentToken = lastToken;
                                 }
-                                
+
                                 continue;
                             }
                         }
-                        
+
                         // We're done!
                         checkpointManager.trackCheckpoint(startToken, endToken);
                         return true;
@@ -438,7 +444,7 @@ public class CqlAllRowsQueryImpl<K,C> implements AllRowsQuery<K,C> {
         }
         return tasks;
     }
-    
+
     /**
      * Wait for all tasks to finish.
      * 
@@ -460,17 +466,16 @@ public class CqlAllRowsQueryImpl<K,C> implements AllRowsQuery<K,C> {
         }
         return true;
     }
-    
 
-    
+
     private ColumnFamilyQuery<K, C> prepareQuery() {
-    	ColumnFamilyQuery<K, C> query = keyspace.prepareQuery(columnFamily);
-    	if (consistencyLevel != null)
-    		query.setConsistencyLevel(consistencyLevel);
-    	return query;
+        ColumnFamilyQuery<K, C> query = keyspace.prepareQuery(columnFamily);
+        if (consistencyLevel != null)
+            query.setConsistencyLevel(consistencyLevel);
+        return query;
     }
-    
-    
+
+
     /**
      * Cancel all pending range iteration tasks.  This will cause all internal threads to exit and
      * call() to return false.

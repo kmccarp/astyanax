@@ -63,22 +63,22 @@ public class CompositeEntityMapper<T, K> {
      * Entity class
      */
     private final Class<T>          clazz;
-    
+
     /**
      * Default ttl
      */
     private final Integer           ttl;
-    
+
     /**
      * TTL supplier method
      */
     private final Method            ttlMethod;
-    
+
     /**
      * ID Field (same as row key)
      */
     final FieldMapper<?>            idMapper;
-    
+
     /**
      * TODO
      */
@@ -88,7 +88,7 @@ public class CompositeEntityMapper<T, K> {
      * List of serializers for the composite parts
      */
     private List<FieldMapper<?>>    components = Lists.newArrayList();
-    
+
     /**
      * List of valid (i.e. existing) column names
      */
@@ -98,7 +98,7 @@ public class CompositeEntityMapper<T, K> {
      * Mapper for the value part of the entity
      */
     private FieldMapper<?>          valueMapper;
-    
+
     /**
      * Largest buffer size
      */
@@ -114,22 +114,22 @@ public class CompositeEntityMapper<T, K> {
      */
     public CompositeEntityMapper(Class<T> clazz, Integer ttl, ByteBuffer prefix) {
         this.clazz = clazz;
-        
+
         // clazz should be annotated with @Entity
         Entity entityAnnotation = clazz.getAnnotation(Entity.class);
-        if(entityAnnotation == null)
+        if (entityAnnotation == null)
             throw new IllegalArgumentException("class is NOT annotated with @javax.persistence.Entity: " + clazz.getName());
-        
+
         entityName = MappingUtils.getEntityName(entityAnnotation, clazz);
-        
+
         // TTL value from constructor or class-level annotation
         Integer tmpTtlValue = ttl;
-        if(tmpTtlValue == null) {
+        if (tmpTtlValue == null) {
             // constructor value has higher priority
             // try @TTL annotation at entity/class level.
             // it doesn't make sense to support @TTL annotation at individual column level.
             TTL ttlAnnotation = clazz.getAnnotation(TTL.class);
-            if(ttlAnnotation != null) {
+            if (ttlAnnotation != null) {
                 int ttlAnnotationValue = ttlAnnotation.value();
                 Preconditions.checkState(ttlAnnotationValue > 0, "cannot define non-positive value for TTL annotation at class level: " + ttlAnnotationValue);
                 tmpTtlValue = ttlAnnotationValue;
@@ -154,12 +154,12 @@ public class CompositeEntityMapper<T, K> {
         for (Field field : declaredFields) {
             // Should only have one id field and it should map to the row key
             Id idAnnotation = field.getAnnotation(Id.class);
-            if(idAnnotation != null) {
+            if (idAnnotation != null) {
                 Preconditions.checkArgument(tempIdMapper == null, "there are multiple fields with @Id annotation");
                 field.setAccessible(true);
                 tempIdMapper = new FieldMapper(field, prefix);
             }
-            
+
             // Composite part or the value
             Column columnAnnotation = field.getAnnotation(Column.class);
             if (columnAnnotation != null) {
@@ -169,12 +169,12 @@ public class CompositeEntityMapper<T, K> {
                 validNames.add(fieldMapper.getName());
             }
         }
-        
+
         Preconditions.checkNotNull(tempIdMapper, "there are no field with @Id annotation");
-        idMapper    = tempIdMapper;
-        
+        idMapper = tempIdMapper;
+
         Preconditions.checkNotNull(components.size() > 2, "there should be at least 2 component columns and a value");
-        
+
         // Last one is always treated as the 'value'
         valueMapper = components.remove(components.size() - 1);
     }
@@ -182,41 +182,41 @@ public class CompositeEntityMapper<T, K> {
     void fillMutationBatch(MutationBatch mb, ColumnFamily<K, ByteBuffer> columnFamily, T entity) {
         try {
             @SuppressWarnings("unchecked")
-            ColumnListMutation<ByteBuffer> clm = mb.withRow(columnFamily, (K)idMapper.getValue(entity));
+            ColumnListMutation<ByteBuffer> clm = mb.withRow(columnFamily, (K) idMapper.getValue(entity));
             clm.setDefaultTtl(getTtl(entity));
             try {
                 ByteBuffer columnName = toColumnName(entity);
-                ByteBuffer value      = valueMapper.toByteBuffer(entity);
+                ByteBuffer value = valueMapper.toByteBuffer(entity);
                 clm.putColumn(columnName, value);
-            } catch(Exception e) {
+            } catch (Exception e) {
                 throw new PersistenceException("failed to fill mutation batch", e);
             }
 
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new PersistenceException("failed to fill mutation batch", e);
         }
     }
-    
+
     void fillMutationBatchForDelete(MutationBatch mb, ColumnFamily<K, ByteBuffer> columnFamily, T entity) {
         try {
             @SuppressWarnings("unchecked")
-            ColumnListMutation<ByteBuffer> clm = mb.withRow(columnFamily, (K)idMapper.getValue(entity));
+            ColumnListMutation<ByteBuffer> clm = mb.withRow(columnFamily, (K) idMapper.getValue(entity));
             clm.deleteColumn(toColumnName(entity));
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new PersistenceException("failed to fill mutation batch", e);
         }
     }
-    
+
     private Integer getTtl(T entity) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
         Integer retTtl = this.ttl;
         // TTL method has higher priority
-        if(ttlMethod != null) {
+        if (ttlMethod != null) {
             Object retobj = ttlMethod.invoke(entity);
             retTtl = (Integer) retobj;
         }
         return retTtl;
     }
-    
+
     /**
      * Return the column name byte buffer for this entity
      * 
@@ -237,7 +237,7 @@ public class CompositeEntityMapper<T, K> {
         }
         return composite.get();
     }
-    
+
     /**
      * Construct an entity object from a row key and column list.
      * 
@@ -253,47 +253,47 @@ public class CompositeEntityMapper<T, K> {
             setEntityFieldsFromColumnName(entity, column.getRawName().duplicate());
             valueMapper.setField(entity, column.getByteBufferValue().duplicate());
             return entity;
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new PersistenceException("failed to construct entity", e);
         }
     }
-    
+
     T constructEntityFromCql(ColumnList<ByteBuffer> cl) {
         try {
             T entity = clazz.newInstance();
-            
+
             // First, construct the parent class and give it an id
             K id = (K) idMapper.fromByteBuffer(Iterables.getFirst(cl, null).getByteBufferValue());
             idMapper.setValue(entity, id);
-            
+
             Iterator<com.netflix.astyanax.model.Column<ByteBuffer>> columnIter = cl.iterator();
             columnIter.next();
-            
+
             for (FieldMapper<?> component : components) {
                 component.setField(entity, columnIter.next().getByteBufferValue());
             }
-                    
+
             valueMapper.setField(entity, columnIter.next().getByteBufferValue());
             return entity;
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new PersistenceException("failed to construct entity", e);
         }
     }
-    
+
     @SuppressWarnings("unchecked")
     public K getEntityId(T entity) throws Exception {
-        return (K)idMapper.getValue(entity);
+        return (K) idMapper.getValue(entity);
     }
-    
+
     @VisibleForTesting
     Field getId() {
         return idMapper.field;
     }
-    
+
     public String getEntityName() {
         return entityName;
     }
-    
+
     @Override
     public String toString() {
         return String.format("EntityMapper(%s)", clazz);
@@ -312,17 +312,17 @@ public class CompositeEntityMapper<T, K> {
     Object fromColumn(K id, com.netflix.astyanax.model.Column<ByteBuffer> c) {
         try {
             // Allocate a new entity
-            Object entity         = clazz.newInstance();
-            
+            Object entity = clazz.newInstance();
+
             idMapper.setValue(entity, id);
             setEntityFieldsFromColumnName(entity, c.getRawName().duplicate());
             valueMapper.setField(entity, c.getByteBufferValue().duplicate());
             return entity;
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new PersistenceException("failed to construct entity", e);
         }
     }
-    
+
     /**
      * 
      * @param entity
@@ -357,17 +357,17 @@ public class CompositeEntityMapper<T, K> {
         StringBuilder sb = new StringBuilder();
         sb.append("CompositeType(");
         sb.append(StringUtils.join(
-            Collections2.transform(components, new Function<FieldMapper<?>, String>() {
-                public String apply(FieldMapper<?> input) {
-                    return input.serializer.getComparatorType().getTypeName();
-                }
-            }),
-            ","));
+                Collections2.transform(components, new Function<FieldMapper<?>, String>() {
+                    public String apply(FieldMapper<?> input) {
+                        return input.serializer.getComparatorType().getTypeName();
+                    }
+                }),
+                ","));
         sb.append(")");
         return sb.toString();
     }
 
-    
+
     public static int getShortLength(ByteBuffer bb) {
         int length = (bb.get() & 0xFF) << 8;
         return length | (bb.get() & 0xFF);
@@ -396,9 +396,9 @@ public class CompositeEntityMapper<T, K> {
             Preconditions.checkArgument(validNames.contains(predicate.getName()), "Field '" + predicate.getName() + "' does not exist in the entity " + clazz.getCanonicalName());
             lookup.put(predicate.getName(), predicate);
         }
-        
+
         SimpleCompositeBuilder start = new SimpleCompositeBuilder(bufferSize, Equality.GREATER_THAN_EQUALS);
-        SimpleCompositeBuilder end   = new SimpleCompositeBuilder(bufferSize, Equality.LESS_THAN_EQUALS);
+        SimpleCompositeBuilder end = new SimpleCompositeBuilder(bufferSize, Equality.LESS_THAN_EQUALS);
 
         // Iterate through components in order while applying predicate to 'start' and 'end'
         for (FieldMapper<?> mapper : components) {
@@ -411,32 +411,32 @@ public class CompositeEntityMapper<T, K> {
                 }
             }
         }
-        
+
         return new ByteBuffer[]{start.get(), end.get()};
     }
-    
+
     void applyPredicate(FieldMapper<?> mapper, SimpleCompositeBuilder start, SimpleCompositeBuilder end, ColumnPredicate predicate) {
         ByteBuffer bb = mapper.valueToByteBuffer(predicate.getValue());
-        
+
         switch (predicate.getOp()) {
-        case EQUAL:
-            start.addWithoutControl(bb);
-            end.addWithoutControl(bb);
-            break;
-        case GREATER_THAN:
-        case GREATER_THAN_EQUALS:
-            if (mapper.isAscending())
-                start.add(bb, predicate.getOp());
-            else 
-                end.add(bb, predicate.getOp());
-            break;
-        case LESS_THAN:
-        case LESS_THAN_EQUALS:
-            if (mapper.isAscending())
-                end.add(bb, predicate.getOp());
-            else 
-                start.add(bb, predicate.getOp());
-            break;
+            case EQUAL:
+                start.addWithoutControl(bb);
+                end.addWithoutControl(bb);
+                break;
+            case GREATER_THAN:
+            case GREATER_THAN_EQUALS:
+                if (mapper.isAscending())
+                    start.add(bb, predicate.getOp());
+                else
+                    end.add(bb, predicate.getOp());
+                break;
+            case LESS_THAN:
+            case LESS_THAN_EQUALS:
+                if (mapper.isAscending())
+                    end.add(bb, predicate.getOp());
+                else
+                    start.add(bb, predicate.getOp());
+                break;
         }
     }
 }

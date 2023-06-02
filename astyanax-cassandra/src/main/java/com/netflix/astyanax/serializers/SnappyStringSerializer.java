@@ -38,7 +38,7 @@ public class SnappyStringSerializer extends AbstractSerializer<String> {
         if (obj == null) {
             return null;
         }
-        
+
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         SnappyOutputStream snappy;
         try {
@@ -48,7 +48,7 @@ public class SnappyStringSerializer extends AbstractSerializer<String> {
             return ByteBuffer.wrap(out.toByteArray());
         } catch (IOException e) {
             throw new RuntimeException("Error compressing column data", e);
-        }        
+        }
     }
 
     @Override
@@ -56,7 +56,7 @@ public class SnappyStringSerializer extends AbstractSerializer<String> {
         if (byteBuffer == null) {
             return null;
         }
-        
+
         SnappyInputStream snappy = null;
         ByteArrayOutputStream baos = null;
         try {
@@ -64,9 +64,9 @@ public class SnappyStringSerializer extends AbstractSerializer<String> {
             snappy = new SnappyInputStream(
                     new ByteArrayInputStream(dup.array(), 0,
                             dup.limit()));
-            
+
             baos = new ByteArrayOutputStream();
-            for (int value = 0; value != -1;) {
+            for (int value = 0; value != -1; ) {
                 value = snappy.read();
                 if (value != -1) {
                     baos.write(value);
@@ -105,6 +105,6 @@ public class SnappyStringSerializer extends AbstractSerializer<String> {
 
     @Override
     public String getString(ByteBuffer byteBuffer) {
-            return UTF8Type.instance.getString(byteBuffer);
-            }
+        return UTF8Type.instance.getString(byteBuffer);
+    }
 }

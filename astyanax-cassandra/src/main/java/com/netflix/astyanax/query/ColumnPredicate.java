@@ -21,7 +21,7 @@ public class ColumnPredicate {
     private String   name;
     private Equality op;
     private Object   value;
-    
+
     public String getName() {
         return name;
     }
@@ -48,12 +48,12 @@ public class ColumnPredicate {
         this.value = value;
         return this;
     }
-    
+
     @Override
     public String toString() {
         return "ColumnPredicate [name=" + name + ", op=" + op + ", value="
                 + value + "]";
     }
 
-    
+
 }

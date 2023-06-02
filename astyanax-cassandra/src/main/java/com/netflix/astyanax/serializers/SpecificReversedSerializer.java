@@ -23,24 +23,24 @@ import com.google.common.base.Preconditions;
 @SuppressWarnings("rawtypes")
 public class SpecificReversedSerializer extends ReversedSerializer {
 
-	private String reversedTypeName;
-	private final ComparatorType reversedComparatorType;
-	
-	public SpecificReversedSerializer(ReversedType type) {
-		Preconditions.checkNotNull(type);
-		AbstractType<?> compType = type.baseType;
-		reversedTypeName = compType.toString();
-		reversedTypeName = ComparatorType.getShadedTypeName(reversedTypeName);
-		this.reversedComparatorType = ComparatorType.getByClassName(reversedTypeName);
-	}
+    private String reversedTypeName;
+    private final ComparatorType reversedComparatorType;
 
-	@Override
-	public ByteBuffer fromString(String string) {
-		return this.reversedComparatorType.getSerializer().fromString(string);
-	}
+    public SpecificReversedSerializer(ReversedType type) {
+        Preconditions.checkNotNull(type);
+        AbstractType<?> compType = type.baseType;
+        reversedTypeName = compType.toString();
+        reversedTypeName = ComparatorType.getShadedTypeName(reversedTypeName);
+        this.reversedComparatorType = ComparatorType.getByClassName(reversedTypeName);
+    }
 
-	@Override
-	public String getString(ByteBuffer byteBuffer) {
-		return this.reversedComparatorType.getSerializer().getString(byteBuffer);
-	}	
+    @Override
+    public ByteBuffer fromString(String string) {
+        return this.reversedComparatorType.getSerializer().fromString(string);
+    }
+
+    @Override
+    public String getString(ByteBuffer byteBuffer) {
+        return this.reversedComparatorType.getSerializer().getString(byteBuffer);
+    }
 }

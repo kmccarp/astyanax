@@ -51,227 +51,228 @@ import com.netflix.astyanax.query.PreparedCqlQuery;
  */
 public class DirectCqlQueryImpl<K, C> implements CqlQuery<K, C> {
 
-	private final KeyspaceContext ksContext;
-	private final CFQueryContext<K,C> cfContext;
-	private final String basicCqlQuery; 
-	
-	public DirectCqlQueryImpl(KeyspaceContext ksCtx, CFQueryContext<K,C> cfCtx, String basicCqlQuery) {
-		this.ksContext = ksCtx;
-		this.cfContext = cfCtx;
-		this.basicCqlQuery = basicCqlQuery;
-	}
-	
-	@Override
-	public OperationResult<CqlResult<K, C>> execute() throws ConnectionException {
-		return new InternalExecutionImpl(new SimpleStatement(basicCqlQuery)).execute();
-	}
+    private final KeyspaceContext ksContext;
+    private final CFQueryContext<K, C> cfContext;
+    private final String basicCqlQuery;
 
-	@Override
-	public ListenableFuture<OperationResult<CqlResult<K, C>>> executeAsync() throws ConnectionException {
-		return new InternalExecutionImpl(new SimpleStatement(basicCqlQuery)).executeAsync();
-	}
-	
-	@Override
-	public CqlQuery<K, C> useCompression() {
-		throw new UnsupportedOperationException("Operation not supported");
-	}
+    public DirectCqlQueryImpl(KeyspaceContext ksCtx, CFQueryContext<K, C> cfCtx, String basicCqlQuery) {
+        this.ksContext = ksCtx;
+        this.cfContext = cfCtx;
+        this.basicCqlQuery = basicCqlQuery;
+    }
 
-	protected class InternalPreparedStatement implements PreparedCqlQuery<K,C> {
-		
-		private final PreparedStatement pStatement;
-		
-		protected InternalPreparedStatement() {
-			pStatement = ksContext.getSession().prepare(basicCqlQuery);
-		}
-		
-		@Override
-		public <V> PreparedCqlQuery<K, C> withByteBufferValue(V value, Serializer<V> serializer) {
-			return new InternalBoundStatement(pStatement).withByteBufferValue(value, serializer);
-		}
+    @Override
+    public OperationResult<CqlResult<K, C>> execute() throws ConnectionException {
+        return new InternalExecutionImpl(new SimpleStatement(basicCqlQuery)).execute();
+    }
 
-		@Override
-		public PreparedCqlQuery<K, C> withValue(ByteBuffer value) {
-			return new InternalBoundStatement(pStatement).withValue(value);
-		}
+    @Override
+    public ListenableFuture<OperationResult<CqlResult<K, C>>> executeAsync() throws ConnectionException {
+        return new InternalExecutionImpl(new SimpleStatement(basicCqlQuery)).executeAsync();
+    }
 
-		@Override
-		public PreparedCqlQuery<K, C> withValues(List<ByteBuffer> values) {
-			return new InternalBoundStatement(pStatement).withValues(values);
-		}
+    @Override
+    public CqlQuery<K, C> useCompression() {
+        throw new UnsupportedOperationException("Operation not supported");
+    }
 
-		@Override
-		public PreparedCqlQuery<K, C> withStringValue(String value) {
-			return new InternalBoundStatement(pStatement).withStringValue(value);
-		}
+    protected class InternalPreparedStatement implements PreparedCqlQuery<K, C> {
 
-		@Override
-		public PreparedCqlQuery<K, C> withIntegerValue(Integer value) {
-			return new InternalBoundStatement(pStatement).withIntegerValue(value);
-		}
+        private final PreparedStatement pStatement;
 
-		@Override
-		public PreparedCqlQuery<K, C> withBooleanValue(Boolean value) {
-			return new InternalBoundStatement(pStatement).withBooleanValue(value);
-		}
+        protected InternalPreparedStatement() {
+            pStatement = ksContext.getSession().prepare(basicCqlQuery);
+        }
 
-		@Override
-		public PreparedCqlQuery<K, C> withDoubleValue(Double value) {
-			return new InternalBoundStatement(pStatement).withDoubleValue(value);
-		}
+        @Override
+        public <V> PreparedCqlQuery<K, C> withByteBufferValue(V value, Serializer<V> serializer) {
+            return new InternalBoundStatement(pStatement).withByteBufferValue(value, serializer);
+        }
 
-		@Override
-		public PreparedCqlQuery<K, C> withLongValue(Long value) {
-			return new InternalBoundStatement(pStatement).withLongValue(value);
-		}
+        @Override
+        public PreparedCqlQuery<K, C> withValue(ByteBuffer value) {
+            return new InternalBoundStatement(pStatement).withValue(value);
+        }
 
-		@Override
-		public PreparedCqlQuery<K, C> withFloatValue(Float value) {
-			return new InternalBoundStatement(pStatement).withFloatValue(value);
-		}
+        @Override
+        public PreparedCqlQuery<K, C> withValues(List<ByteBuffer> values) {
+            return new InternalBoundStatement(pStatement).withValues(values);
+        }
 
-		@Override
-		public PreparedCqlQuery<K, C> withShortValue(Short value) {
-			return new InternalBoundStatement(pStatement).withShortValue(value);
-		}
+        @Override
+        public PreparedCqlQuery<K, C> withStringValue(String value) {
+            return new InternalBoundStatement(pStatement).withStringValue(value);
+        }
 
-		@Override
-		public PreparedCqlQuery<K, C> withUUIDValue(UUID value) {
-			return new InternalBoundStatement(pStatement).withUUIDValue(value);
-		}
+        @Override
+        public PreparedCqlQuery<K, C> withIntegerValue(Integer value) {
+            return new InternalBoundStatement(pStatement).withIntegerValue(value);
+        }
 
-		@Override
-		public OperationResult<CqlResult<K, C>> execute() throws ConnectionException {
-			throw new NotImplementedException();
-		}
+        @Override
+        public PreparedCqlQuery<K, C> withBooleanValue(Boolean value) {
+            return new InternalBoundStatement(pStatement).withBooleanValue(value);
+        }
 
-		@Override
-		public ListenableFuture<OperationResult<CqlResult<K, C>>> executeAsync() throws ConnectionException {
-			throw new NotImplementedException();
-		}
-	}
-	
-	protected class InternalBoundStatement implements PreparedCqlQuery<K,C> {
-		
-		final List<Object> bindList = new ArrayList<Object>();
-		final BoundStatement boundStatement;
-		
-		protected InternalBoundStatement(PreparedStatement pStmt) {
-			 boundStatement = new BoundStatement(pStmt);
-		}
-		
-		@Override
-		public OperationResult<CqlResult<K, C>> execute() throws ConnectionException {
-			boundStatement.bind(bindList.toArray());
-			return new InternalExecutionImpl(boundStatement).execute();
-		}
+        @Override
+        public PreparedCqlQuery<K, C> withDoubleValue(Double value) {
+            return new InternalBoundStatement(pStatement).withDoubleValue(value);
+        }
 
-		@Override
-		public ListenableFuture<OperationResult<CqlResult<K, C>>> executeAsync() throws ConnectionException {
-			boundStatement.bind(bindList.toArray());
-			return new InternalExecutionImpl(boundStatement).executeAsync();
-		}
+        @Override
+        public PreparedCqlQuery<K, C> withLongValue(Long value) {
+            return new InternalBoundStatement(pStatement).withLongValue(value);
+        }
 
-		@Override
-		public <V> PreparedCqlQuery<K, C> withByteBufferValue(V value, Serializer<V> serializer) {
-			bindList.add(value);
-			return this;
-		}
+        @Override
+        public PreparedCqlQuery<K, C> withFloatValue(Float value) {
+            return new InternalBoundStatement(pStatement).withFloatValue(value);
+        }
 
-		@Override
-		public PreparedCqlQuery<K, C> withValue(ByteBuffer value) {
-			bindList.add(value);
-			return this;
-		}
+        @Override
+        public PreparedCqlQuery<K, C> withShortValue(Short value) {
+            return new InternalBoundStatement(pStatement).withShortValue(value);
+        }
 
-		@Override
-		public PreparedCqlQuery<K, C> withValues(List<ByteBuffer> value) {
-			bindList.addAll(value);
-			return this;
-		}
+        @Override
+        public PreparedCqlQuery<K, C> withUUIDValue(UUID value) {
+            return new InternalBoundStatement(pStatement).withUUIDValue(value);
+        }
 
-		@Override
-		public PreparedCqlQuery<K, C> withStringValue(String value) {
-			bindList.add(value);
-			return this;
-		}
+        @Override
+        public OperationResult<CqlResult<K, C>> execute() throws ConnectionException {
+            throw new NotImplementedException();
+        }
 
-		@Override
-		public PreparedCqlQuery<K, C> withIntegerValue(Integer value) {
-			bindList.add(value);
-			return this;
-		}
+        @Override
+        public ListenableFuture<OperationResult<CqlResult<K, C>>> executeAsync() throws ConnectionException {
+            throw new NotImplementedException();
+        }
+    }
 
-		@Override
-		public PreparedCqlQuery<K, C> withBooleanValue(Boolean value) {
-			bindList.add(value);
-			return this;
-		}
+    protected class InternalBoundStatement implements PreparedCqlQuery<K, C> {
 
-		@Override
-		public PreparedCqlQuery<K, C> withDoubleValue(Double value) {
-			bindList.add(value);
-			return this;
-		}
+        final List<Object> bindList = new ArrayList<Object>();
+        final BoundStatement boundStatement;
 
-		@Override
-		public PreparedCqlQuery<K, C> withLongValue(Long value) {
-			bindList.add(value);
-			return this;
-		}
+        protected InternalBoundStatement(PreparedStatement pStmt) {
+            boundStatement = new BoundStatement(pStmt);
+        }
 
-		@Override
-		public PreparedCqlQuery<K, C> withFloatValue(Float value) {
-			bindList.add(value);
-			return this;
-		}
+        @Override
+        public OperationResult<CqlResult<K, C>> execute() throws ConnectionException {
+            boundStatement.bind(bindList.toArray());
+            return new InternalExecutionImpl(boundStatement).execute();
+        }
 
-		@Override
-		public PreparedCqlQuery<K, C> withShortValue(Short value) {
-			bindList.add(value);
-			return this;
-		}
+        @Override
+        public ListenableFuture<OperationResult<CqlResult<K, C>>> executeAsync() throws ConnectionException {
+            boundStatement.bind(bindList.toArray());
+            return new InternalExecutionImpl(boundStatement).executeAsync();
+        }
 
-		@Override
-		public PreparedCqlQuery<K, C> withUUIDValue(UUID value) {
-			bindList.add(value);
-			return this;
-		}
-	}
-	
-	
-	@Override
-	public PreparedCqlQuery<K, C> asPreparedStatement() {
-		return new InternalPreparedStatement();
-	}
-	
-	private class InternalExecutionImpl extends CqlAbstractExecutionImpl<CqlResult<K, C>> {
+        @Override
+        public <V> PreparedCqlQuery<K, C> withByteBufferValue(V value, Serializer<V> serializer) {
+            bindList.add(value);
+            return this;
+        }
 
-		private final Statement query;
-		
-		public InternalExecutionImpl(Statement query) {
-			super(ksContext, cfContext);
-			this.query = query;
-		}
+        @Override
+        public PreparedCqlQuery<K, C> withValue(ByteBuffer value) {
+            bindList.add(value);
+            return this;
+        }
 
-		@Override
-		public CassandraOperationType getOperationType() {
-			return CassandraOperationType.CQL;
-		}
+        @Override
+        public PreparedCqlQuery<K, C> withValues(List<ByteBuffer> value) {
+            bindList.addAll(value);
+            return this;
+        }
 
-		@Override
-		public Statement getQuery() {
-			return query;
-		}
+        @Override
+        public PreparedCqlQuery<K, C> withStringValue(String value) {
+            bindList.add(value);
+            return this;
+        }
 
-		@Override
-		public CqlResult<K, C> parseResultSet(ResultSet resultSet) {
-			
-			boolean isCountQuery = basicCqlQuery.contains(" count(");
-			if (isCountQuery) {
-				return new DirectCqlResult<K,C>(new Long(resultSet.one().getLong(0)));
-			} else {
-				return new DirectCqlResult<K,C>(resultSet.all(), (ColumnFamily<K, C>) cf);
-			}
-		}
-	}
+        @Override
+        public PreparedCqlQuery<K, C> withIntegerValue(Integer value) {
+            bindList.add(value);
+            return this;
+        }
+
+        @Override
+        public PreparedCqlQuery<K, C> withBooleanValue(Boolean value) {
+            bindList.add(value);
+            return this;
+        }
+
+        @Override
+        public PreparedCqlQuery<K, C> withDoubleValue(Double value) {
+            bindList.add(value);
+            return this;
+        }
+
+        @Override
+        public PreparedCqlQuery<K, C> withLongValue(Long value) {
+            bindList.add(value);
+            return this;
+        }
+
+        @Override
+        public PreparedCqlQuery<K, C> withFloatValue(Float value) {
+            bindList.add(value);
+            return this;
+        }
+
+        @Override
+        public PreparedCqlQuery<K, C> withShortValue(Short value) {
+            bindList.add(value);
+            return this;
+        }
+
+        @Override
+        public PreparedCqlQuery<K, C> withUUIDValue(UUID value) {
+            bindList.add(value);
+            return this;
+        }
+    }
+
+
+    @Override
+    public PreparedCqlQuery<K, C> asPreparedStatement() {
+        return new InternalPreparedStatement();
+    }
+
+    private class InternalExecutionImpl extends CqlAbstractExecutionImpl<CqlResult<K, C>> {
+
+        private final Statement query;
+
+        public InternalExecutionImpl(Statement query) {
+            super(ksContext, cfContext);
+            this.query = query;
+        }
+
+        @Override
+        public CassandraOperationType getOperationType() {
+            return CassandraOperationType.CQL;
+        }
+
+        @Override
+        public Statement getQuery() {
+            return query;
+        }
+
+        @Override
+        public CqlResult<K, C> parseResultSet(ResultSet resultSet) {
+
+            boolean isCountQuery = basicCqlQuery.contains(" count(");
+            if (isCountQuery) {
+                return new DirectCqlResult<K, C>(new Long(resultSet.one().getLong(0)));
+            }
+            else {
+                return new DirectCqlResult<K, C>(resultSet.all(), (ColumnFamily<K, C>) cf);
+            }
+        }
+    }
 }

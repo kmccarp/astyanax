@@ -29,12 +29,12 @@ public interface DualWritesUpdateListener {
      * Start dual writes
      */
     public void dualWritesEnabled();
-    
+
     /**
      * Stop dual writes
      */
     public void dualWritesDisabled();
-    
+
     /**
      * Flip roles of primary and secondary keyspaces. 
      * 

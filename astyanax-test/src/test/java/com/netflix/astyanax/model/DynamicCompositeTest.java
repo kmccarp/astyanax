@@ -24,8 +24,8 @@ public class DynamicCompositeTest {
     @Test
     public void testComposite() {
         DynamicComposite dc = new DynamicComposite();
-        for ( char ch = 'A'; ch < 'Z'; ch++ ) {
-            dc.addComponent( Character.toString( ch ), StringSerializer.get() );
+        for (char ch = 'A'; ch < 'Z'; ch++) {
+            dc.addComponent(Character.toString(ch), StringSerializer.get());
         }
     }
 
@@ -47,47 +47,47 @@ public class DynamicCompositeTest {
         DynamicComposite dc = new DynamicComposite();
 
         final String string = "test";
-        final byte[] bytes = new byte[] { 0x00 };
+        final byte[] bytes = new byte[]{0x00};
         final int intValue = 1;
         final long longValue = 1l;
         final UUID uuid = UUID.randomUUID();
 
 
-        dc.addComponent( string, asciiSerializer, getReversed( asciiSerializer ) );
+        dc.addComponent(string, asciiSerializer, getReversed(asciiSerializer));
 
-        dc.addComponent( bytes, bytesArraySerializer, getReversed( bytesArraySerializer ) );
+        dc.addComponent(bytes, bytesArraySerializer, getReversed(bytesArraySerializer));
 
-        dc.addComponent( intValue, integerSerializer, getReversed( integerSerializer ) );
+        dc.addComponent(intValue, integerSerializer, getReversed(integerSerializer));
 
-        dc.addComponent( longValue, longSerializer, getReversed( longSerializer ) );
+        dc.addComponent(longValue, longSerializer, getReversed(longSerializer));
 
-        dc.addComponent( string, stringSerializer, getReversed( stringSerializer ) );
+        dc.addComponent(string, stringSerializer, getReversed(stringSerializer));
 
-        dc.addComponent( uuid, uuidSerializer, getReversed( uuidSerializer ) );
+        dc.addComponent(uuid, uuidSerializer, getReversed(uuidSerializer));
 
         //serialize to bytes
         ByteBuffer buff = dc.serialize();
 
         //de-serialize
-        DynamicComposite read = DynamicComposite.fromByteBuffer( buff );
+        DynamicComposite read = DynamicComposite.fromByteBuffer(buff);
 
         assertEquals(6, read.size());
 
-        assertEquals(string, read.getComponent( 0 ).getValue( asciiSerializer ));
+        assertEquals(string, read.getComponent(0).getValue(asciiSerializer));
 
-        assertArrayEquals( bytes, ( byte[] ) read.getComponent( 1 ).getValue( bytesArraySerializer ) );
+        assertArrayEquals(bytes, (byte[]) read.getComponent(1).getValue(bytesArraySerializer));
 
-        assertEquals(intValue, read.getComponent( 2 ).getValue( integerSerializer ));
+        assertEquals(intValue, read.getComponent(2).getValue(integerSerializer));
 
-        assertEquals(longValue, read.getComponent( 3 ).getValue( longSerializer ));
+        assertEquals(longValue, read.getComponent(3).getValue(longSerializer));
 
-        assertEquals(string, read.getComponent( 4 ).getValue( stringSerializer ));
+        assertEquals(string, read.getComponent(4).getValue(stringSerializer));
 
-        assertEquals(uuid, read.getComponent( 5 ).getValue( uuidSerializer ));
+        assertEquals(uuid, read.getComponent(5).getValue(uuidSerializer));
     }
 
 
-    private String getReversed( AbstractSerializer serializer ) {
+    private String getReversed(AbstractSerializer serializer) {
         return serializer.getComparatorType().getTypeName() + "(reversed=true)";
     }
 }

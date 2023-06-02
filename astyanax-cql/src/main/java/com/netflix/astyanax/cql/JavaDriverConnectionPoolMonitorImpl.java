@@ -32,92 +32,93 @@ import com.netflix.astyanax.connectionpool.HostStats;
 
 public class JavaDriverConnectionPoolMonitorImpl implements ConnectionPoolMonitor {
 
-	private final AtomicReference<Cluster> cluster = new AtomicReference<Cluster>();
-	
-	private MetricRegistryListener metricsRegListener = new MetricRegistryListener(){
+    private final AtomicReference<Cluster> cluster = new AtomicReference<Cluster>();
 
-		@Override
-		public void onGaugeAdded(String name, Gauge<?> gauge) {
-			// TODO Auto-generated method stub
-			
-		}
+    private MetricRegistryListener metricsRegListener = new MetricRegistryListener(){
 
-		@Override
-		public void onGaugeRemoved(String name) {
-			// TODO Auto-generated method stub
-			
-		}
+        @Override
+        public void onGaugeAdded(String name, Gauge<?> gauge) {
+            // TODO Auto-generated method stub
+            
+        }
 
-		@Override
-		public void onCounterAdded(String name, Counter counter) {
-			// TODO Auto-generated method stub
-			
-		}
+        @Override
+        public void onGaugeRemoved(String name) {
+            // TODO Auto-generated method stub
+            
+        }
 
-		@Override
-		public void onCounterRemoved(String name) {
-			// TODO Auto-generated method stub
-			
-		}
+        @Override
+        public void onCounterAdded(String name, Counter counter) {
+            // TODO Auto-generated method stub
+            
+        }
 
-		@Override
-		public void onHistogramAdded(String name, Histogram histogram) {
-			// TODO Auto-generated method stub
-			
-		}
+        @Override
+        public void onCounterRemoved(String name) {
+            // TODO Auto-generated method stub
+            
+        }
 
-		@Override
-		public void onHistogramRemoved(String name) {
-			// TODO Auto-generated method stub
-			
-		}
+        @Override
+        public void onHistogramAdded(String name, Histogram histogram) {
+            // TODO Auto-generated method stub
+            
+        }
 
-		@Override
-		public void onMeterAdded(String name, Meter meter) {
-			// TODO Auto-generated method stub
-			
-		}
+        @Override
+        public void onHistogramRemoved(String name) {
+            // TODO Auto-generated method stub
+            
+        }
 
-		@Override
-		public void onMeterRemoved(String name) {
-			// TODO Auto-generated method stub
-			
-		}
+        @Override
+        public void onMeterAdded(String name, Meter meter) {
+            // TODO Auto-generated method stub
+            
+        }
 
-		@Override
-		public void onTimerAdded(String name, Timer timer) {
-			// TODO Auto-generated method stub
-			
-		}
+        @Override
+        public void onMeterRemoved(String name) {
+            // TODO Auto-generated method stub
+            
+        }
 
-		@Override
-		public void onTimerRemoved(String name) {
-			// TODO Auto-generated method stub
-			
-		}};
-	
-	public JavaDriverConnectionPoolMonitorImpl() {	
-	}
-	
-	public JavaDriverConnectionPoolMonitorImpl withJavaDriverMetricsRegistry(MetricRegistryListener metricsRegListener){
-		this.metricsRegListener = metricsRegListener;
-		return this;
-	}
-	
-	public MetricRegistryListener getMetricsRegistryListener(){
-		return metricsRegListener;
-	}
-	
+        @Override
+        public void onTimerAdded(String name, Timer timer) {
+            // TODO Auto-generated method stub
+            
+        }
+
+        @Override
+        public void onTimerRemoved(String name) {
+            // TODO Auto-generated method stub
+            
+        }
+    };
+
+    public JavaDriverConnectionPoolMonitorImpl() {
+    }
+
+    public JavaDriverConnectionPoolMonitorImpl withJavaDriverMetricsRegistry(MetricRegistryListener metricsRegListener) {
+        this.metricsRegListener = metricsRegListener;
+        return this;
+    }
+
+    public MetricRegistryListener getMetricsRegistryListener() {
+        return metricsRegListener;
+    }
+
     /**
      * Returns the number of Cassandra hosts currently known by the driver (that is 
      * whether they are currently considered up or down).
      *
      * @return the number of Cassandra hosts currently known by the driver.
      */
-	@Override
-	public long getHostCount() {
-		return cluster.get().getMetrics().getKnownHosts().getValue();
-	}
+    @Override
+    public long getHostCount() {
+        return cluster.get().getMetrics().getKnownHosts().getValue();
+    }
 
     /**
      * Returns the number of Cassandra hosts the driver is currently connected to
@@ -125,19 +126,19 @@ public class JavaDriverConnectionPoolMonitorImpl implements ConnectionPoolMonito
      *
      * @return the number of Cassandra hosts the driver is currently connected to.
      */
-	@Override
-	public long getHostActiveCount() {
-		return cluster.get().getMetrics().getConnectedToHosts().getValue();
-	}
+    @Override
+    public long getHostActiveCount() {
+        return cluster.get().getMetrics().getConnectedToHosts().getValue();
+    }
 
     /**
      * Returns the total number of currently opened connections to Cassandra hosts.
      *
      * @return The total number of currently opened connections to Cassandra hosts.
      */
-	public long getNumOpenConnections() {
-		return cluster.get().getMetrics().getOpenConnections().getValue();
-	}
+    public long getNumOpenConnections() {
+        return cluster.get().getMetrics().getOpenConnections().getValue();
+    }
 
     /**
      * Returns the number of connection to Cassandra nodes errors.
@@ -152,10 +153,10 @@ public class JavaDriverConnectionPoolMonitorImpl implements ConnectionPoolMonito
      *
      * @return the number of connection to Cassandra nodes errors.
      */
-	@Override
-	public long getConnectionCreateFailedCount() {
-		return cluster.get().getMetrics().getErrorMetrics().getConnectionErrors().getCount();
-	}
+    @Override
+    public long getConnectionCreateFailedCount() {
+        return cluster.get().getMetrics().getErrorMetrics().getConnectionErrors().getCount();
+    }
 
     /**
      * Returns the number of write requests that returned a timeout (independently
@@ -184,10 +185,10 @@ public class JavaDriverConnectionPoolMonitorImpl implements ConnectionPoolMonito
      * @return the number of requests errors not accounted by another
      * metric.
      */
-	@Override
-	public long getBadRequestCount() {
-		return cluster.get().getMetrics().getErrorMetrics().getOthers().getCount();
-	}
+    @Override
+    public long getBadRequestCount() {
+        return cluster.get().getMetrics().getErrorMetrics().getOthers().getCount();
+    }
 
     /**
      * Returns the number of requests that returned an unavailable exception
@@ -196,10 +197,10 @@ public class JavaDriverConnectionPoolMonitorImpl implements ConnectionPoolMonito
      *
      * @return the number of unavailable exceptions.
      */
-	@Override
-	public long notFoundCount() {
-		return cluster.get().getMetrics().getErrorMetrics().getUnavailables().getCount();
-	}
+    @Override
+    public long notFoundCount() {
+        return cluster.get().getMetrics().getErrorMetrics().getUnavailables().getCount();
+    }
 
     /**
      * Returns the number of times a request was ignored
@@ -209,10 +210,10 @@ public class JavaDriverConnectionPoolMonitorImpl implements ConnectionPoolMonito
      * @return the number of times a request was ignored due to the
      * {@link com.datastax.driver.core.policies.RetryPolicy}.
      */
-	@Override
-	public long getSocketTimeoutCount() {
-		return cluster.get().getMetrics().getErrorMetrics().getIgnores().getCount();
-	}
+    @Override
+    public long getSocketTimeoutCount() {
+        return cluster.get().getMetrics().getErrorMetrics().getIgnores().getCount();
+    }
 
     /**
      * Returns the number of times a request was retried due to the
@@ -221,176 +222,176 @@ public class JavaDriverConnectionPoolMonitorImpl implements ConnectionPoolMonito
      * @return the number of times a requests was retried due to the 
      * {@link com.datastax.driver.core.policies.RetryPolicy}.
      */
-	@Override
-	public long getUnknownErrorCount() {
-		return cluster.get().getMetrics().getErrorMetrics().getRetries().getCount();
-	}
+    @Override
+    public long getUnknownErrorCount() {
+        return cluster.get().getMetrics().getErrorMetrics().getRetries().getCount();
+    }
 
-	@Override
-	public void incOperationFailure(Host host, Exception reason) {
-		// TODO Auto-generated method stub
+    @Override
+    public void incOperationFailure(Host host, Exception reason) {
+        // TODO Auto-generated method stub
 
-	}
+    }
 
-	@Override
-	public long getOperationFailureCount() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+    @Override
+    public long getOperationFailureCount() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 
-	@Override
-	public void incFailover(Host host, Exception reason) {
-		// TODO Auto-generated method stub
+    @Override
+    public void incFailover(Host host, Exception reason) {
+        // TODO Auto-generated method stub
 
-	}
+    }
 
-	@Override
-	public long getFailoverCount() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+    @Override
+    public long getFailoverCount() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 
-	@Override
-	public void incOperationSuccess(Host host, long latency) {
-		// TODO Auto-generated method stub
+    @Override
+    public void incOperationSuccess(Host host, long latency) {
+        // TODO Auto-generated method stub
 
-	}
+    }
 
-	@Override
-	public long getOperationSuccessCount() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+    @Override
+    public long getOperationSuccessCount() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 
-	@Override
-	public void incConnectionCreated(Host host) {
-		// TODO Auto-generated method stub
+    @Override
+    public void incConnectionCreated(Host host) {
+        // TODO Auto-generated method stub
 
-	}
+    }
 
-	@Override
-	public long getConnectionCreatedCount() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+    @Override
+    public long getConnectionCreatedCount() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 
-	@Override
-	public void incConnectionClosed(Host host, Exception reason) {
-		// TODO Auto-generated method stub
+    @Override
+    public void incConnectionClosed(Host host, Exception reason) {
+        // TODO Auto-generated method stub
 
-	}
+    }
 
-	@Override
-	public long getConnectionClosedCount() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+    @Override
+    public long getConnectionClosedCount() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 
-	@Override
-	public void incConnectionCreateFailed(Host host, Exception reason) {
-		// TODO Auto-generated method stub
+    @Override
+    public void incConnectionCreateFailed(Host host, Exception reason) {
+        // TODO Auto-generated method stub
 
-	}
+    }
 
-	@Override
-	public void incConnectionBorrowed(Host host, long delay) {
-		// TODO Auto-generated method stub
+    @Override
+    public void incConnectionBorrowed(Host host, long delay) {
+        // TODO Auto-generated method stub
 
-	}
+    }
 
-	@Override
-	public long getConnectionBorrowedCount() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+    @Override
+    public long getConnectionBorrowedCount() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 
-	@Override
-	public long getConnectionReturnedCount() {
-		return 0;
-	}
-	
-	@Override
-	public void incConnectionReturned(Host host) {
-		// TODO Auto-generated method stub
+    @Override
+    public long getConnectionReturnedCount() {
+        return 0;
+    }
 
-	}
+    @Override
+    public void incConnectionReturned(Host host) {
+        // TODO Auto-generated method stub
 
-	@Override
-	public long getPoolExhaustedTimeoutCount() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+    }
 
-	@Override
-	public long getOperationTimeoutCount() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+    @Override
+    public long getPoolExhaustedTimeoutCount() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 
-	@Override
-	public long getNoHostCount() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+    @Override
+    public long getOperationTimeoutCount() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 
-	@Override
-	public long getInterruptedCount() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+    @Override
+    public long getNoHostCount() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 
-	@Override
-	public long getTransportErrorCount() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+    @Override
+    public long getInterruptedCount() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 
-	@Override
-	public long getHostAddedCount() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+    @Override
+    public long getTransportErrorCount() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 
-	@Override
-	public long getHostRemovedCount() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+    @Override
+    public long getHostAddedCount() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 
-	@Override
-	public long getHostDownCount() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+    @Override
+    public long getHostRemovedCount() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 
-	@Override
-	public void onHostAdded(Host host, HostConnectionPool<?> pool) {
-		// TODO Auto-generated method stub
+    @Override
+    public long getHostDownCount() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 
-	}
+    @Override
+    public void onHostAdded(Host host, HostConnectionPool<?> pool) {
+        // TODO Auto-generated method stub
 
-	@Override
-	public void onHostRemoved(Host host) {
-		// TODO Auto-generated method stub
+    }
 
-	}
+    @Override
+    public void onHostRemoved(Host host) {
+        // TODO Auto-generated method stub
 
-	@Override
-	public void onHostDown(Host host, Exception reason) {
-		// TODO Auto-generated method stub
+    }
 
-	}
+    @Override
+    public void onHostDown(Host host, Exception reason) {
+        // TODO Auto-generated method stub
 
-	@Override
-	public void onHostReactivated(Host host, HostConnectionPool<?> pool) {
-		// TODO Auto-generated method stub
+    }
 
-	}
+    @Override
+    public void onHostReactivated(Host host, HostConnectionPool<?> pool) {
+        // TODO Auto-generated method stub
 
-	@Override
-	public Map<Host, HostStats> getHostStats() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    }
+
+    @Override
+    public Map<Host, HostStats> getHostStats() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
 }

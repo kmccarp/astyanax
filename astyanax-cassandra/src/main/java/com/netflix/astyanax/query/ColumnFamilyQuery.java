@@ -58,7 +58,7 @@ public interface ColumnFamilyQuery<K, C> {
      * @param rowKey
      */
     RowQuery<K, C> getKey(K rowKey);
-    
+
     /**
      * Query a single row
      * 
@@ -78,7 +78,7 @@ public interface ColumnFamilyQuery<K, C> {
      *            Max number of keys to return
      */
     RowSliceQuery<K, C> getKeyRange(K startKey, K endKey, String startToken, String endToken, int count);
-    
+
     /**
      * Query a range of rows. startKey and endKey cannot not be used with the
      * RandomPartitioner.
@@ -98,7 +98,7 @@ public interface ColumnFamilyQuery<K, C> {
      * @param keys
      */
     RowSliceQuery<K, C> getKeySlice(K... keys);
-    
+
     /**
      * Query a non-contiguous set of rows.
      * 
@@ -119,7 +119,7 @@ public interface ColumnFamilyQuery<K, C> {
      * @param keys
      */
     RowSliceQuery<K, C> getRowSlice(Collection<K> keys);
-    
+
     /**
      * Query a non-contiguous set of keys.
      * 
@@ -133,7 +133,7 @@ public interface ColumnFamilyQuery<K, C> {
      * @param keys
      */
     RowSliceQuery<K, C> getRowSlice(Iterable<K> keys);
-    
+
     /**
      * Query to get an iterator to all rows in the column family
      */
@@ -147,14 +147,14 @@ public interface ColumnFamilyQuery<K, C> {
      * @param cql
      */
     CqlQuery<K, C> withCql(String cql);
-    
+
     /**
      * Search for keys matching the provided index clause
      * 
      * @param indexClause
      */
     IndexQuery<K, C> searchWithIndex();
-    
+
     /**
      * Enable/disable prepared statement caching for the query. Note that this interface is not applicable to the 
      * thrift implementation. It is mainly meant for driver impls that make use of PreparedStatements

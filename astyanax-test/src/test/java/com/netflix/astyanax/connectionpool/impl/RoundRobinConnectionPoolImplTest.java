@@ -183,11 +183,11 @@ public class RoundRobinConnectionPoolImplTest extends BaseConnectionPoolTest {
 
         ConnectionPoolConfigurationImpl config = new ConnectionPoolConfigurationImpl(
                 TestConstants.CLUSTER_NAME + "_" + TestConstants.KEYSPACE_NAME)
-            .setRetrySuspendWindow(1000)
-            .setRetryBackoffStrategy(new FixedRetryBackoffStrategy(3000,3000))
-            .setMaxConnsPerHost(3)
-            .setMaxPendingConnectionsPerHost(2)
-            .setInitConnsPerHost(0);
+                .setRetrySuspendWindow(1000)
+                .setRetryBackoffStrategy(new FixedRetryBackoffStrategy(3000, 3000))
+                .setMaxConnsPerHost(3)
+                .setMaxPendingConnectionsPerHost(2)
+                .setInitConnsPerHost(0);
         config.initialize();
 
         ConnectionPool<TestClient> cp = new RoundRobinConnectionPoolImpl<TestClient>(

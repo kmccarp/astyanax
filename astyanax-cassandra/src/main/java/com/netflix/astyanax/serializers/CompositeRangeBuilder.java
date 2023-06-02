@@ -30,11 +30,11 @@ public abstract class CompositeRangeBuilder implements ByteBufferRange {
     private boolean lockComponent = false;
 
     private List<RangeQueryRecord> records = new ArrayList<RangeQueryRecord>();
-    
+
     protected void nextComponent() {
-    	getNextComponent();
-    	// flip to a new record, which is for a new component
-    	records.add(new RangeQueryRecord());
+        getNextComponent();
+        // flip to a new record, which is for a new component
+        records.add(new RangeQueryRecord());
     }
 
     abstract protected void getNextComponent();
@@ -47,10 +47,10 @@ public abstract class CompositeRangeBuilder implements ByteBufferRange {
         }
         append(start, object, Equality.EQUAL);
         append(end, object, Equality.EQUAL);
-        
+
         getLastRecord().addQueryOp(object, Equality.EQUAL);
         nextComponent();
-        
+
         return this;
     }
 
@@ -96,15 +96,15 @@ public abstract class CompositeRangeBuilder implements ByteBufferRange {
         getLastRecord().addQueryOp(value, Equality.LESS_THAN_EQUALS);
         return this;
     }
-    
+
     private RangeQueryRecord getLastRecord() {
-    	
-    	if (records.size() == 0) {
-    		RangeQueryRecord record = new RangeQueryRecord();
-    		records.add(record);
-    	}
-    	
-    	return records.get(records.size()-1);
+
+        if (records.size() == 0) {
+            RangeQueryRecord record = new RangeQueryRecord();
+            records.add(record);
+        }
+
+        return records.get(records.size() - 1);
     }
 
     @Override
@@ -132,97 +132,98 @@ public abstract class CompositeRangeBuilder implements ByteBufferRange {
     }
 
     public CompositeByteBufferRange build() {
-    	return new CompositeByteBufferRange(start, end, limit, reversed, records);
+        return new CompositeByteBufferRange(start, end, limit, reversed, records);
     }
-    
-    public static class RangeQueryRecord {
-    	
-    	private List<RangeQueryOp> ops = new ArrayList<RangeQueryOp>();
 
-    	public RangeQueryRecord() {
-    		
-    	}
-    	
-    	public void addQueryOp(Object value, Equality operator) {
-    		add(new RangeQueryOp(value, operator));
-    	}
-    	
-    	public void add(RangeQueryOp rangeOp) {
-    		ops.add(rangeOp);
-    	}
-    	
-    	public List<RangeQueryOp> getOps() {
-    		return ops;
-    	}
+    public static class RangeQueryRecord {
+
+        private List<RangeQueryOp> ops = new ArrayList<RangeQueryOp>();
+
+        public RangeQueryRecord() {
+
+        }
+
+        public void addQueryOp(Object value, Equality operator) {
+            add(new RangeQueryOp(value, operator));
+        }
+
+        public void add(RangeQueryOp rangeOp) {
+            ops.add(rangeOp);
+        }
+
+        public List<RangeQueryOp> getOps() {
+            return ops;
+        }
     }
 
     public static class RangeQueryOp {
-		
-		private final Object value;
-		private final Equality operator;
-		
-		public RangeQueryOp(Object value, Equality operator) {
-			this.value = value;
-			this.operator = operator;
-		}
-		
-		public Object getValue() {
-			return value;
-		}
-		public Equality getOperator() {
-			return operator;
-		}
-	}
-    
+
+        private final Object value;
+        private final Equality operator;
+
+        public RangeQueryOp(Object value, Equality operator) {
+            this.value = value;
+            this.operator = operator;
+        }
+
+        public Object getValue() {
+            return value;
+        }
+
+        public Equality getOperator() {
+            return operator;
+        }
+    }
+
     public static class CompositeByteBufferRange implements ByteBufferRange {
-    	
+
         private final ByteBufferOutputStream start;
         private final ByteBufferOutputStream end;
         private int limit;
         private boolean reversed;
         private final List<RangeQueryRecord> records;
 
-        private CompositeByteBufferRange(ByteBufferOutputStream rangeStart, ByteBufferOutputStream rangeEnd, 
-        		int rangeLimit, boolean rangeReversed, 
-        		List<RangeQueryRecord> rangeRecords) {
-        	this.start = rangeStart;
-        	this.end = rangeEnd;
-        	this.limit = rangeLimit;
-        	this.reversed = rangeReversed;
-        	this.records = rangeRecords;
+        private CompositeByteBufferRange(ByteBufferOutputStream rangeStart, ByteBufferOutputStream rangeEnd,
+                int rangeLimit, boolean rangeReversed,
+                List<RangeQueryRecord> rangeRecords) {
+            this.start = rangeStart;
+            this.end = rangeEnd;
+            this.limit = rangeLimit;
+            this.reversed = rangeReversed;
+            this.records = rangeRecords;
         }
-        
+
         public CompositeByteBufferRange(int rangeLimit, boolean rangeReversed, List<RangeQueryRecord> rangeRecords) {
-        	// This is only meant to be called by internally
-        	this.start = null;
-        	this.end = null;
-        	this.limit = rangeLimit;
-        	this.reversed = rangeReversed;
-        	this.records = rangeRecords;
+            // This is only meant to be called by internally
+            this.start = null;
+            this.end = null;
+            this.limit = rangeLimit;
+            this.reversed = rangeReversed;
+            this.records = rangeRecords;
         }
 
-    	 @Override
-         public ByteBuffer getStart() {
-             return start.getByteBuffer();
-         }
+        @Override
+        public ByteBuffer getStart() {
+            return start.getByteBuffer();
+        }
 
-         @Override
-         public ByteBuffer getEnd() {
-             return end.getByteBuffer();
-         }
+        @Override
+        public ByteBuffer getEnd() {
+            return end.getByteBuffer();
+        }
 
-         @Override
-         public boolean isReversed() {
-             return reversed;
-         }
+        @Override
+        public boolean isReversed() {
+            return reversed;
+        }
 
-         @Override
-         public int getLimit() {
-             return limit;
-         }
-         
-         public List<RangeQueryRecord> getRecords() {
-        	 return records;
-         }
+        @Override
+        public int getLimit() {
+            return limit;
+        }
+
+        public List<RangeQueryRecord> getRecords() {
+            return records;
+        }
     }
 }

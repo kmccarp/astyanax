@@ -36,27 +36,27 @@ public class CompositeParserImpl implements CompositeParser {
 
     @Override
     public String readString() {
-        return read( StringSerializer.get() );
+        return read(StringSerializer.get());
     }
 
     @Override
     public Long readLong() {
-        return read( LongSerializer.get() );
+        return read(LongSerializer.get());
     }
 
     @Override
     public Integer readInteger() {
-        return read( IntegerSerializer.get() );
+        return read(IntegerSerializer.get());
     }
 
     @Override
     public Boolean readBoolean() {
-        return read( BooleanSerializer.get() );
+        return read(BooleanSerializer.get());
     }
 
     @Override
     public UUID readUUID() {
-        return read( UUIDSerializer.get() );
+        return read(UUIDSerializer.get());
     }
 
     @SuppressWarnings("unchecked")

@@ -230,13 +230,16 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
                                         ColumnOrSuperColumn last = Iterables.getLast(columnList);
                                         if (last.isSetColumn()) {
                                             predicate.getSlice_range().setStart(last.getColumn().getName());
-                                        } else if (last.isSetCounter_column()) {
+                                        }
+                                        else if (last.isSetCounter_column()) {
                                             predicate.getSlice_range().setStart(last.getCounter_column().getName());
-                                        } else if (last.isSetSuper_column()) {
+                                        }
+                                        else if (last.isSetSuper_column()) {
                                             // TODO: Super columns
                                             // should be deprecated
                                             predicate.getSlice_range().setStart(last.getSuper_column().getName());
-                                        } else if (last.isSetCounter_super_column()) {
+                                        }
+                                        else if (last.isSetCounter_super_column()) {
                                             // TODO: Super columns
                                             // should be deprecated
                                             predicate.getSlice_range().setStart(last.getCounter_super_column().getName());
@@ -656,7 +659,7 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
                                 else {
                                     if (isPaginating) {
                                         if (!firstPage && !cfmap.isEmpty() &&
-                                              cfmap.get(0).bufferForKey().equals(indexClause.bufferForStart_key())) {
+                                                cfmap.get(0).bufferForKey().equals(indexClause.bufferForStart_key())) {
                                             cfmap.remove(0);
                                         }
 
@@ -738,9 +741,9 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
         return getKeySlice(keys);
     }
 
-	@Override
-	public ColumnFamilyQuery<K, C> withCaching(boolean condition) {
-		// do nothing
-		return this;
-	}
+    @Override
+    public ColumnFamilyQuery<K, C> withCaching(boolean condition) {
+        // do nothing
+        return this;
+    }
 }

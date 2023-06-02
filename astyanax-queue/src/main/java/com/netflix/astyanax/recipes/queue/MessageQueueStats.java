@@ -28,11 +28,11 @@ public interface MessageQueueStats {
     void incExpiredLockCount();
 
     void incSendMessageCount();
-    
+
     void incAckMessageCount();
 
     void incInvalidMessageCount();
-    
+
     void incPersistError();
 
     /**
@@ -42,45 +42,45 @@ public interface MessageQueueStats {
      * @return
      */
     long getEmptyPartitionCount();
-    
+
     /**
      * Number of lock contention events
      * @return
      */
     long getLockCountentionCount();
-    
+
     /**
      * Number of messages consumed
      * @return
      */
     long getProcessCount();
-    
+
     /**
      * Number of timed out messages. 
      * @return
      */
     long getReprocessCount();
-    
+
     /**
      * Number of expired locks found on a queue shard.  An expired lock indicates
      * that a client crashed before it could unlock a shard when popping events.
      * @return
      */
     long getExpiredLockCount();
-    
+
     /**
      * Number of message acks being sent
      * @return
      */
     long getAckMessageCount();
-    
+
     /**
      * Number of messages send by this producer.  This is not a global total
      * number of messages ever sent on the queue.
      * @return
      */
     long getSendMessageCount();
-    
+
     /**
      * Number of messages that contain invalid data such unfound task class
      * @return

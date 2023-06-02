@@ -34,33 +34,33 @@ import com.netflix.astyanax.thrift.ThriftFamilyFactory;
  */
 @Ignore
 public class LockRecipeTest {
-    private static ColumnFamily<String, String> LOCK_CF_LONG   = 
+    private static ColumnFamily<String, String> LOCK_CF_LONG =
             ColumnFamily.newColumnFamily("LockCfLong", StringSerializer.get(), StringSerializer.get(), LongSerializer.get());
-    
-    private static ColumnFamily<String, String> LOCK_CF_STRING = 
+
+    private static ColumnFamily<String, String> LOCK_CF_STRING =
             ColumnFamily.newColumnFamily("LockCfString", StringSerializer.get(), StringSerializer.get(), StringSerializer.get());
-    
-    private static final int    TTL                 = 20;
-    private static final int    TIMEOUT             = 10;
-    private static final String SEEDS               = "localhost:9160";
+
+    private static final int    TTL = 20;
+    private static final int    TIMEOUT = 10;
+    private static final String SEEDS = "localhost:9160";
     private static final long   CASSANDRA_WAIT_TIME = 3000;
-    
+
     private static Keyspace                  keyspace;
     private static AstyanaxContext<Keyspace> keyspaceContext;
     private static EmbeddedCassandra         cassandra;
-    
-    private static String TEST_CLUSTER_NAME  = "cass_sandbox";
+
+    private static String TEST_CLUSTER_NAME = "cass_sandbox";
     private static String TEST_KEYSPACE_NAME = "LockUnitTest";
-    
+
     @BeforeClass
     public static void setup() throws Exception {
         System.out.println("TESTING THRIFT KEYSPACE");
 
         cassandra = new EmbeddedCassandra();
         cassandra.start();
-        
+
         Thread.sleep(CASSANDRA_WAIT_TIME);
-        
+
         createKeyspace();
     }
 
@@ -68,7 +68,7 @@ public class LockRecipeTest {
     public static void teardown() {
         if (keyspaceContext != null)
             keyspaceContext.shutdown();
-        
+
         if (cassandra != null)
             cassandra.stop();
     }
@@ -93,51 +93,51 @@ public class LockRecipeTest {
                 .buildKeyspace(ThriftFamilyFactory.getInstance());
 
         keyspaceContext.start();
-        
+
         keyspace = keyspaceContext.getEntity();
-        
+
         try {
             keyspace.dropKeyspace();
         }
         catch (Exception e) {
-            
+
         }
-        
+
         keyspace.createKeyspace(ImmutableMap.<String, Object>builder()
                 .put("strategy_options", ImmutableMap.<String, Object>builder()
                         .put("replication_factor", "1")
                         .build())
-                .put("strategy_class",     "SimpleStrategy")
+                .put("strategy_class", "SimpleStrategy")
                 .build()
-                );
-        
+        );
+
         keyspace.createColumnFamily(LOCK_CF_LONG, ImmutableMap.<String, Object>builder()
                 .put("default_validation_class", "LongType")
-                .put("key_validation_class",     "UTF8Type")
-                .put("comparator_type",          "UTF8Type")
+                .put("key_validation_class", "UTF8Type")
+                .put("comparator_type", "UTF8Type")
                 .build());
-        
+
         keyspace.createColumnFamily(LOCK_CF_STRING, ImmutableMap.<String, Object>builder()
                 .put("default_validation_class", "UTF8Type")
-                .put("key_validation_class",     "UTF8Type")
-                .put("comparator_type",          "UTF8Type")
+                .put("key_validation_class", "UTF8Type")
+                .put("comparator_type", "UTF8Type")
                 .build());
         ;
-        
+
         KeyspaceDefinition ki = keyspaceContext.getEntity().describeKeyspace();
         System.out.println("Describe Keyspace: " + ki.getName());
 
     }
-    
-    
+
+
     @Test
     public void testTtl() throws Exception {
-        ColumnPrefixDistributedRowLock<String> lock = 
-            new ColumnPrefixDistributedRowLock<String>(keyspace, LOCK_CF_LONG, "testTtl")
-                .withTtl(2)
-                .withConsistencyLevel(ConsistencyLevel.CL_ONE)
-                .expireLockAfter(1,  TimeUnit.SECONDS);
-        
+        ColumnPrefixDistributedRowLock<String> lock =
+                new ColumnPrefixDistributedRowLock<String>(keyspace, LOCK_CF_LONG, "testTtl")
+                        .withTtl(2)
+                        .withConsistencyLevel(ConsistencyLevel.CL_ONE)
+                        .expireLockAfter(1, TimeUnit.SECONDS);
+
         try {
             lock.acquire();
             Assert.assertEquals(1, lock.readLockColumns().size());
@@ -149,18 +149,18 @@ public class LockRecipeTest {
         }
         finally {
             lock.release();
-        }    
+        }
         Assert.assertEquals(0, lock.readLockColumns().size());
     }
-    
+
     @Test
     public void testTtlString() throws Exception {
-        ColumnPrefixDistributedRowLock<String> lock = 
-            new ColumnPrefixDistributedRowLock<String>(keyspace, LOCK_CF_STRING, "testTtl")
-                .withTtl(2)
-                .withConsistencyLevel(ConsistencyLevel.CL_ONE)
-                .expireLockAfter(1,  TimeUnit.SECONDS);
-        
+        ColumnPrefixDistributedRowLock<String> lock =
+                new ColumnPrefixDistributedRowLock<String>(keyspace, LOCK_CF_STRING, "testTtl")
+                        .withTtl(2)
+                        .withConsistencyLevel(ConsistencyLevel.CL_ONE)
+                        .expireLockAfter(1, TimeUnit.SECONDS);
+
         try {
             lock.acquire();
             Assert.assertEquals(1, lock.readLockColumns().size());
@@ -172,24 +172,24 @@ public class LockRecipeTest {
         }
         finally {
             lock.release();
-        }    
+        }
         Assert.assertEquals(0, lock.readLockColumns().size());
     }
-    
+
     @Test
     public void testStaleLockWithFail() throws Exception {
-        ColumnPrefixDistributedRowLock<String> lock1 = 
-            new ColumnPrefixDistributedRowLock<String>(keyspace, LOCK_CF_LONG, "testStaleLock")
-                .withTtl(TTL)
-                .withConsistencyLevel(ConsistencyLevel.CL_ONE)
-                .expireLockAfter(1, TimeUnit.SECONDS);
-        
-        ColumnPrefixDistributedRowLock<String> lock2 = 
-            new ColumnPrefixDistributedRowLock<String>(keyspace, LOCK_CF_LONG, "testStaleLock")
-                .withTtl(TTL)
-                .withConsistencyLevel(ConsistencyLevel.CL_ONE)
-                .expireLockAfter(9,  TimeUnit.SECONDS);
-        
+        ColumnPrefixDistributedRowLock<String> lock1 =
+                new ColumnPrefixDistributedRowLock<String>(keyspace, LOCK_CF_LONG, "testStaleLock")
+                        .withTtl(TTL)
+                        .withConsistencyLevel(ConsistencyLevel.CL_ONE)
+                        .expireLockAfter(1, TimeUnit.SECONDS);
+
+        ColumnPrefixDistributedRowLock<String> lock2 =
+                new ColumnPrefixDistributedRowLock<String>(keyspace, LOCK_CF_LONG, "testStaleLock")
+                        .withTtl(TTL)
+                        .withConsistencyLevel(ConsistencyLevel.CL_ONE)
+                        .expireLockAfter(9, TimeUnit.SECONDS);
+
         try {
             lock1.acquire();
             Thread.sleep(5000);
@@ -210,21 +210,21 @@ public class LockRecipeTest {
             lock1.release();
         }
     }
-    
+
     @Test
     public void testStaleLockWithFail_String() throws Exception {
-        ColumnPrefixDistributedRowLock<String> lock1 = 
-            new ColumnPrefixDistributedRowLock<String>(keyspace, LOCK_CF_STRING, "testStaleLock")
-                .withTtl(TTL)
-                .withConsistencyLevel(ConsistencyLevel.CL_ONE)
-                .expireLockAfter(1, TimeUnit.SECONDS);
-        
-        ColumnPrefixDistributedRowLock<String> lock2 = 
-            new ColumnPrefixDistributedRowLock<String>(keyspace, LOCK_CF_STRING, "testStaleLock")
-                .withTtl(TTL)
-                .withConsistencyLevel(ConsistencyLevel.CL_ONE)
-                .expireLockAfter(9,  TimeUnit.SECONDS);
-        
+        ColumnPrefixDistributedRowLock<String> lock1 =
+                new ColumnPrefixDistributedRowLock<String>(keyspace, LOCK_CF_STRING, "testStaleLock")
+                        .withTtl(TTL)
+                        .withConsistencyLevel(ConsistencyLevel.CL_ONE)
+                        .expireLockAfter(1, TimeUnit.SECONDS);
+
+        ColumnPrefixDistributedRowLock<String> lock2 =
+                new ColumnPrefixDistributedRowLock<String>(keyspace, LOCK_CF_STRING, "testStaleLock")
+                        .withTtl(TTL)
+                        .withConsistencyLevel(ConsistencyLevel.CL_ONE)
+                        .expireLockAfter(9, TimeUnit.SECONDS);
+
         try {
             lock1.acquire();
             Thread.sleep(5000);
@@ -245,22 +245,22 @@ public class LockRecipeTest {
             lock1.release();
         }
     }
-    
+
     @Test
     public void testStaleLock() throws Exception {
-        ColumnPrefixDistributedRowLock<String> lock1 = 
-            new ColumnPrefixDistributedRowLock<String>(keyspace, LOCK_CF_LONG, "testStaleLock")
-                .withTtl(TTL)
-                .withConsistencyLevel(ConsistencyLevel.CL_ONE)
-                .expireLockAfter(1, TimeUnit.SECONDS);
-        
-        ColumnPrefixDistributedRowLock<String> lock2 = 
-            new ColumnPrefixDistributedRowLock<String>(keyspace, LOCK_CF_LONG, "testStaleLock")
-                .failOnStaleLock(true)
-                .withTtl(TTL)
-                .withConsistencyLevel(ConsistencyLevel.CL_ONE)
-                .expireLockAfter(9, TimeUnit.SECONDS);
-        
+        ColumnPrefixDistributedRowLock<String> lock1 =
+                new ColumnPrefixDistributedRowLock<String>(keyspace, LOCK_CF_LONG, "testStaleLock")
+                        .withTtl(TTL)
+                        .withConsistencyLevel(ConsistencyLevel.CL_ONE)
+                        .expireLockAfter(1, TimeUnit.SECONDS);
+
+        ColumnPrefixDistributedRowLock<String> lock2 =
+                new ColumnPrefixDistributedRowLock<String>(keyspace, LOCK_CF_LONG, "testStaleLock")
+                        .failOnStaleLock(true)
+                        .withTtl(TTL)
+                        .withConsistencyLevel(ConsistencyLevel.CL_ONE)
+                        .expireLockAfter(9, TimeUnit.SECONDS);
+
         try {
             lock1.acquire();
             Thread.sleep(2000);
@@ -285,21 +285,22 @@ public class LockRecipeTest {
             lock1.release();
         }
     }
+
     @Test
     public void testStaleLock_String() throws Exception {
-        ColumnPrefixDistributedRowLock<String> lock1 = 
-            new ColumnPrefixDistributedRowLock<String>(keyspace, LOCK_CF_STRING, "testStaleLock")
-                .withTtl(TTL)
-                .withConsistencyLevel(ConsistencyLevel.CL_ONE)
-                .expireLockAfter(1, TimeUnit.SECONDS);
-        
-        ColumnPrefixDistributedRowLock<String> lock2 = 
-            new ColumnPrefixDistributedRowLock<String>(keyspace, LOCK_CF_STRING, "testStaleLock")
-                .failOnStaleLock(true)
-                .withTtl(TTL)
-                .withConsistencyLevel(ConsistencyLevel.CL_ONE)
-                .expireLockAfter(9, TimeUnit.SECONDS);
-        
+        ColumnPrefixDistributedRowLock<String> lock1 =
+                new ColumnPrefixDistributedRowLock<String>(keyspace, LOCK_CF_STRING, "testStaleLock")
+                        .withTtl(TTL)
+                        .withConsistencyLevel(ConsistencyLevel.CL_ONE)
+                        .expireLockAfter(1, TimeUnit.SECONDS);
+
+        ColumnPrefixDistributedRowLock<String> lock2 =
+                new ColumnPrefixDistributedRowLock<String>(keyspace, LOCK_CF_STRING, "testStaleLock")
+                        .failOnStaleLock(true)
+                        .withTtl(TTL)
+                        .withConsistencyLevel(ConsistencyLevel.CL_ONE)
+                        .expireLockAfter(9, TimeUnit.SECONDS);
+
         try {
             lock1.acquire();
             Thread.sleep(2000);
@@ -324,7 +325,7 @@ public class LockRecipeTest {
             lock1.release();
         }
     }
-    
+
     @Test
     public void testLockAndMutate() throws Exception {
 //        String rowKey     = "testLockAndMutate";
@@ -381,5 +382,5 @@ public class LockRecipeTest {
 //        Assert.assertEquals(1, columns.size());
 //        Assert.assertEquals(value, columns.getIntegerValue(dataColumn, 0));
     }
-    
+
 }

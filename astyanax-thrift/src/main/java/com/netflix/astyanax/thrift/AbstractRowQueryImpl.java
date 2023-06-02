@@ -30,7 +30,7 @@ import com.netflix.astyanax.query.RowQuery;
 public abstract class AbstractRowQueryImpl<K, C> implements RowQuery<K, C> {
 
     protected final SlicePredicate predicate = new SlicePredicate().setSlice_range(ThriftUtils.createAllInclusiveSliceRange());
-    
+
     protected final Serializer<C> serializer;
     protected boolean isPaginating = false;
     protected boolean paginateNoMore = false;

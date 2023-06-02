@@ -22,7 +22,7 @@ import com.netflix.astyanax.AstyanaxConfiguration;
 
 public class ThriftCqlFactoryResolver {
     private static final Pattern VERSION_REGEX = Pattern.compile("^([0-9])+\\.([0-9])+(.*)");
-    
+
     public static ThriftCqlFactory createFactory(AstyanaxConfiguration config) {
         if (config.getTargetCassandraVersion() != null) {
             Matcher m = VERSION_REGEX.matcher(config.getTargetCassandraVersion());
@@ -35,5 +35,5 @@ public class ThriftCqlFactoryResolver {
             }
         }
         return new ThriftCql2Factory();
-    }    
+    }
 }

@@ -71,7 +71,7 @@ public interface Topology<CL> {
      * @param token
      */
     TokenHostConnectionPoolPartition<CL> getPartition(ByteBuffer rowkey);
-    
+
     /**
      * TODO 
      * 
@@ -100,7 +100,7 @@ public interface Topology<CL> {
      * @return Return a mapping of partition ids to partition details
      */
     Map<String, TokenHostConnectionPoolPartition<CL>> getPartitions();
-    
+
     /**
      * Return the partition for a specific token
      * @param token

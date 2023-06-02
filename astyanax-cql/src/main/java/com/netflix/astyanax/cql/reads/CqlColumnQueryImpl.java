@@ -45,77 +45,77 @@ import com.netflix.astyanax.query.ColumnQuery;
  */
 public class CqlColumnQueryImpl<C> implements ColumnQuery<C> {
 
-	private final KeyspaceContext ksContext;
-	private final CFQueryContext<?,C> cfContext;
-	private final Object rowKey;
-	private final C columnName;
+    private final KeyspaceContext ksContext;
+    private final CFQueryContext<?, C> cfContext;
+    private final Object rowKey;
+    private final C columnName;
 
-	private boolean useCaching = false; 
-	
-	private final CqlColumnFamilyDefinitionImpl cfDef;
+    private boolean useCaching = false;
 
-	CqlColumnQueryImpl(KeyspaceContext ksCtx, CFQueryContext<?,C> cfCtx, Object rowKey, C colName, boolean caching) {
-		this.ksContext = ksCtx;
-		this.cfContext = cfCtx;
-		this.rowKey = rowKey;
-		this.columnName = colName;
-		this.useCaching = caching;
-		
-		ColumnFamily<?,?> cf = cfCtx.getColumnFamily();
-		cfDef = (CqlColumnFamilyDefinitionImpl) cf.getColumnFamilyDefinition();
-	}
+    private final CqlColumnFamilyDefinitionImpl cfDef;
 
-	@Override
-	public OperationResult<Column<C>> execute() throws ConnectionException {
-		return new InternalColumnQueryExecutionImpl(this).execute();
-	}
+    CqlColumnQueryImpl(KeyspaceContext ksCtx, CFQueryContext<?, C> cfCtx, Object rowKey, C colName, boolean caching) {
+        this.ksContext = ksCtx;
+        this.cfContext = cfCtx;
+        this.rowKey = rowKey;
+        this.columnName = colName;
+        this.useCaching = caching;
 
-	@Override
-	public ListenableFuture<OperationResult<Column<C>>> executeAsync() throws ConnectionException {
-		return new InternalColumnQueryExecutionImpl(this).executeAsync();
-	}
+        ColumnFamily<?, ?> cf = cfCtx.getColumnFamily();
+        cfDef = (CqlColumnFamilyDefinitionImpl) cf.getColumnFamilyDefinition();
+    }
 
-	private class InternalColumnQueryExecutionImpl extends CqlAbstractExecutionImpl<Column<C>> {
+    @Override
+    public OperationResult<Column<C>> execute() throws ConnectionException {
+        return new InternalColumnQueryExecutionImpl(this).execute();
+    }
 
-		private final CqlColumnQueryImpl<?> columnQuery; 
-		
-		public InternalColumnQueryExecutionImpl(CqlColumnQueryImpl<?> query) {
-			super(ksContext, cfContext);
-			this.columnQuery = query;
-		}
+    @Override
+    public ListenableFuture<OperationResult<Column<C>>> executeAsync() throws ConnectionException {
+        return new InternalColumnQueryExecutionImpl(this).executeAsync();
+    }
 
-		@Override
-		public CassandraOperationType getOperationType() {
-			return CassandraOperationType.GET_COLUMN;
-		}
+    private class InternalColumnQueryExecutionImpl extends CqlAbstractExecutionImpl<Column<C>> {
 
-		@Override
-		public Statement getQuery() {
-			return cfDef.getRowQueryGenerator().getQueryStatement(columnQuery, useCaching);
-		}
+        private final CqlColumnQueryImpl<?> columnQuery;
 
-		@Override
-		public Column<C> parseResultSet(ResultSet rs) throws NotFoundException {
+        public InternalColumnQueryExecutionImpl(CqlColumnQueryImpl<?> query) {
+            super(ksContext, cfContext);
+            this.columnQuery = query;
+        }
 
-			Row row = rs.one();
-			if (row == null) {
-				return null;
-			}
+        @Override
+        public CassandraOperationType getOperationType() {
+            return CassandraOperationType.GET_COLUMN;
+        }
 
-			CqlColumnImpl<C> cqlCol = new CqlColumnImpl<C>((C) columnName, row, 0);
-			return cqlCol;
-		}
-	}
+        @Override
+        public Statement getQuery() {
+            return cfDef.getRowQueryGenerator().getQueryStatement(columnQuery, useCaching);
+        }
 
-	public Object getRowKey() {
-		return rowKey;
-	}
-	
-	public C getColumnName() {
-		return columnName;
-	}
-	
-	public ColumnFamily<?,C> getCF() {
-		return this.cfContext.getColumnFamily();
-	}
+        @Override
+        public Column<C> parseResultSet(ResultSet rs) throws NotFoundException {
+
+            Row row = rs.one();
+            if (row == null) {
+                return null;
+            }
+
+            CqlColumnImpl<C> cqlCol = new CqlColumnImpl<C>((C) columnName, row, 0);
+            return cqlCol;
+        }
+    }
+
+    public Object getRowKey() {
+        return rowKey;
+    }
+
+    public C getColumnName() {
+        return columnName;
+    }
+
+    public ColumnFamily<?, C> getCF() {
+        return this.cfContext.getColumnFamily();
+    }
 }

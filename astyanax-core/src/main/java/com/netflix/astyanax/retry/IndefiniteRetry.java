@@ -18,7 +18,7 @@ package com.netflix.astyanax.retry;
 public class IndefiniteRetry implements RetryPolicy {
 
     private int counter = 1;
-    
+
     @Override
     public void begin() {
         counter = 1;

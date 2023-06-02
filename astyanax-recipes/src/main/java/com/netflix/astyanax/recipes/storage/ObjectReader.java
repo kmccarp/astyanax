@@ -175,19 +175,19 @@ public class ObjectReader implements Callable<ObjectMetadata> {
                         throw exception.get();
 
                     for (int i = 0; i < chunks.length(); i++) {
-                    	
+
                         ByteBuffer bb = chunks.get(i);
                         byte[] bytes = new byte[bb.remaining()];
                         bb.get(bytes, 0, bytes.length);
                         os.write(bytes);
-                        
+
                         //os.write(chunks.get(i).array());
                         os.flush();
                     }
                     idsToRead.clear();
                 }
             }
-            
+
             if (totalBytesRead.get() != attributes.getObjectSize()) {
                 throw new Exception("Bytes read (" + totalBytesRead.get() + ") does not match object size ("
                         + attributes.getObjectSize() + ") for object " + objectName);

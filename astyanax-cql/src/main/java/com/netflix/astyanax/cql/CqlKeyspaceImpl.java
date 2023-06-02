@@ -88,429 +88,439 @@ import com.netflix.astyanax.serializers.UnknownComparatorException;
  */
 public class CqlKeyspaceImpl implements Keyspace, SeedHostListener {
 
-	private static final Logger Logger = LoggerFactory.getLogger(CqlKeyspaceImpl.class);
-	
-	private final Clock clock;
-	
-	public volatile Cluster cluster;
-	public volatile Session session;
-	
-	private final KeyspaceContext ksContext;
-	private final String keyspaceName;
-	private final AstyanaxConfiguration astyanaxConfig;
-	private final KeyspaceTracerFactory tracerFactory; 
-	private final Configuration javaDriverConfig;
-	private final ConnectionPoolMonitor cpMonitor;
-	private final MetricRegistryListener metricsRegListener;
+    private static final Logger Logger = LoggerFactory.getLogger(CqlKeyspaceImpl.class);
 
-	public CqlKeyspaceImpl(String ksName, AstyanaxConfiguration asConfig, KeyspaceTracerFactory tracerFactory, ConnectionPoolConfiguration cpConfig, ConnectionPoolMonitor cpMonitor) {
-		this(null, ksName, asConfig, tracerFactory, cpConfig,cpMonitor);
-	}
+    private final Clock clock;
 
-	public CqlKeyspaceImpl(KeyspaceContext ksContext) {
-		this(ksContext.getSession(), ksContext.getKeyspace(), ksContext.getConfig(), ksContext.getTracerFactory(), null, ksContext.getConnectionPoolMonitor());
-	}
+    public volatile Cluster cluster;
+    public volatile Session session;
 
-	CqlKeyspaceImpl(Session session, String ksName, AstyanaxConfiguration asConfig, KeyspaceTracerFactory tracerFactory, ConnectionPoolMonitor cpMonitor) {
-		this(session, ksName, asConfig, tracerFactory, null,cpMonitor);
-	}
+    private final KeyspaceContext ksContext;
+    private final String keyspaceName;
+    private final AstyanaxConfiguration astyanaxConfig;
+    private final KeyspaceTracerFactory tracerFactory;
+    private final Configuration javaDriverConfig;
+    private final ConnectionPoolMonitor cpMonitor;
+    private final MetricRegistryListener metricsRegListener;
 
-	private CqlKeyspaceImpl(Session session, String ksName, AstyanaxConfiguration asConfig, KeyspaceTracerFactory tracerFactory, ConnectionPoolConfiguration cpConfig, ConnectionPoolMonitor cpMonitor) {
-		this.session = session;
-		this.keyspaceName = ksName.toLowerCase();
-		this.astyanaxConfig = asConfig;
-		this.tracerFactory = tracerFactory;
-		this.cpMonitor = cpMonitor;
-		this.metricsRegListener = ((JavaDriverConnectionPoolMonitorImpl)cpMonitor).getMetricsRegistryListener();
-		this.ksContext = new KeyspaceContext(this);
-		
-		if (asConfig.getClock() != null) {
-			clock = asConfig.getClock();
-		} else {
-			clock = new MicrosecondsAsyncClock();
-		}
-		
-		if (cpConfig != null) {
-			javaDriverConfig = ((JavaDriverConnectionPoolConfigurationImpl)cpConfig).getJavaDriverConfig();
-		} else {
-			javaDriverConfig = null;
-		}
-	}
-	
-	
-	@Override
-	public AstyanaxConfiguration getConfig() {
-		return astyanaxConfig;
-	}
+    public CqlKeyspaceImpl(String ksName, AstyanaxConfiguration asConfig, KeyspaceTracerFactory tracerFactory, ConnectionPoolConfiguration cpConfig, ConnectionPoolMonitor cpMonitor) {
+        this(null, ksName, asConfig, tracerFactory, cpConfig, cpMonitor);
+    }
 
-	@Override
-	public String getKeyspaceName() {
-		return keyspaceName;
-	}
+    public CqlKeyspaceImpl(KeyspaceContext ksContext) {
+        this(ksContext.getSession(), ksContext.getKeyspace(), ksContext.getConfig(), ksContext.getTracerFactory(), null, ksContext.getConnectionPoolMonitor());
+    }
 
-	@Override
-	public Partitioner getPartitioner() throws ConnectionException {
-		String pName = describePartitioner();
-		if (pName.contains("Murmur3Partitioner")) {
-			return Murmur3Partitioner.get();
-		} else if (pName.contains("RandomPartitioner")) {
-			return BigInteger127Partitioner.get();
-		} else {
-			throw new RuntimeException("Unrecognized partitioner: " + pName);
-		}
-	}
+    CqlKeyspaceImpl(Session session, String ksName, AstyanaxConfiguration asConfig, KeyspaceTracerFactory tracerFactory, ConnectionPoolMonitor cpMonitor) {
+        this(session, ksName, asConfig, tracerFactory, null, cpMonitor);
+    }
 
-	@Override
-	public String describePartitioner() throws ConnectionException {
-		Statement q = QueryBuilder.select("partitioner").from("system", "local");
-		ResultSet result = session.execute(q);
-		com.datastax.driver.core.Row row = result.one();
-		if (row == null) {
-			throw new RuntimeException("Missing paritioner");
-		}
-		String pName = row.getString(0);
-		return pName;
-	}
+    private CqlKeyspaceImpl(Session session, String ksName, AstyanaxConfiguration asConfig, KeyspaceTracerFactory tracerFactory, ConnectionPoolConfiguration cpConfig, ConnectionPoolMonitor cpMonitor) {
+        this.session = session;
+        this.keyspaceName = ksName.toLowerCase();
+        this.astyanaxConfig = asConfig;
+        this.tracerFactory = tracerFactory;
+        this.cpMonitor = cpMonitor;
+        this.metricsRegListener = ((JavaDriverConnectionPoolMonitorImpl) cpMonitor).getMetricsRegistryListener();
+        this.ksContext = new KeyspaceContext(this);
 
-	@Override
-	public List<TokenRange> describeRing() throws ConnectionException {
-		return CqlRingDescriber.getInstance().getTokenRanges(session, false);
-	}
+        if (asConfig.getClock() != null) {
+            clock = asConfig.getClock();
+        }
+        else {
+            clock = new MicrosecondsAsyncClock();
+        }
 
-	@Override
-	public List<TokenRange> describeRing(String dc) throws ConnectionException {
-		return CqlRingDescriber.getInstance().getTokenRanges(session, dc, null);
-	}
+        if (cpConfig != null) {
+            javaDriverConfig = ((JavaDriverConnectionPoolConfigurationImpl) cpConfig).getJavaDriverConfig();
+        }
+        else {
+            javaDriverConfig = null;
+        }
+    }
 
-	@Override
-	public List<TokenRange> describeRing(String dc, String rack) throws ConnectionException {
-		return CqlRingDescriber.getInstance().getTokenRanges(session, dc, rack);
-	}
 
-	@Override
-	public List<TokenRange> describeRing(boolean cached) throws ConnectionException {
-		return CqlRingDescriber.getInstance().getTokenRanges(session, cached);
-	}
+    @Override
+    public AstyanaxConfiguration getConfig() {
+        return astyanaxConfig;
+    }
 
-	@Override
-	public KeyspaceDefinition describeKeyspace() throws ConnectionException {
-		
-		Statement query = QueryBuilder.select().from("system", "schema_keyspaces").where(eq("keyspace_name", keyspaceName));
-		Row row = session.execute(query).one();
-		if (row == null) {
-			throw new RuntimeException("Keyspace not found: " + keyspaceName);
-		}
-		return (new CqlKeyspaceDefinitionImpl(session, row));
-	}
+    @Override
+    public String getKeyspaceName() {
+        return keyspaceName;
+    }
 
-	@Override
-	public Properties getKeyspaceProperties() throws ConnectionException {
-		try {
-			return describeKeyspace().getProperties();
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
+    @Override
+    public Partitioner getPartitioner() throws ConnectionException {
+        String pName = describePartitioner();
+        if (pName.contains("Murmur3Partitioner")) {
+            return Murmur3Partitioner.get();
+        }
+        else if (pName.contains("RandomPartitioner")) {
+            return BigInteger127Partitioner.get();
+        }
+        else {
+            throw new RuntimeException("Unrecognized partitioner: " + pName);
+        }
+    }
 
-	@Override
-	public Properties getColumnFamilyProperties(String columnFamily) throws ConnectionException {
+    @Override
+    public String describePartitioner() throws ConnectionException {
+        Statement q = QueryBuilder.select("partitioner").from("system", "local");
+        ResultSet result = session.execute(q);
+        com.datastax.driver.core.Row row = result.one();
+        if (row == null) {
+            throw new RuntimeException("Missing paritioner");
+        }
+        String pName = row.getString(0);
+        return pName;
+    }
+
+    @Override
+    public List<TokenRange> describeRing() throws ConnectionException {
+        return CqlRingDescriber.getInstance().getTokenRanges(session, false);
+    }
+
+    @Override
+    public List<TokenRange> describeRing(String dc) throws ConnectionException {
+        return CqlRingDescriber.getInstance().getTokenRanges(session, dc, null);
+    }
+
+    @Override
+    public List<TokenRange> describeRing(String dc, String rack) throws ConnectionException {
+        return CqlRingDescriber.getInstance().getTokenRanges(session, dc, rack);
+    }
+
+    @Override
+    public List<TokenRange> describeRing(boolean cached) throws ConnectionException {
+        return CqlRingDescriber.getInstance().getTokenRanges(session, cached);
+    }
+
+    @Override
+    public KeyspaceDefinition describeKeyspace() throws ConnectionException {
+
+        Statement query = QueryBuilder.select().from("system", "schema_keyspaces").where(eq("keyspace_name", keyspaceName));
+        Row row = session.execute(query).one();
+        if (row == null) {
+            throw new RuntimeException("Keyspace not found: " + keyspaceName);
+        }
+        return (new CqlKeyspaceDefinitionImpl(session, row));
+    }
+
+    @Override
+    public Properties getKeyspaceProperties() throws ConnectionException {
+        try {
+            return describeKeyspace().getProperties();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public Properties getColumnFamilyProperties(String columnFamily) throws ConnectionException {
         KeyspaceDefinition ksDef = this.describeKeyspace();
         ColumnFamilyDefinition cfDef = ksDef.getColumnFamily(columnFamily);
         if (cfDef == null)
             throw new NotFoundException(String.format("Column family '%s' in keyspace '%s' not found", columnFamily, getKeyspaceName()));
         try {
-			return cfDef.getProperties();
-		} catch (Exception e) {
-			throw new RuntimeException();
-		}
-	}
+            return cfDef.getProperties();
+        } catch (Exception e) {
+            throw new RuntimeException();
+        }
+    }
 
-	@Override
-	public SerializerPackage getSerializerPackage(String cfName, boolean ignoreErrors) throws ConnectionException, UnknownComparatorException {
-		
-		ColumnFamilyDefinition cfDef = describeKeyspace().getColumnFamily(cfName);
-		return new SerializerPackageImpl(cfDef, ignoreErrors);
-	}
+    @Override
+    public SerializerPackage getSerializerPackage(String cfName, boolean ignoreErrors) throws ConnectionException, UnknownComparatorException {
 
-	@Override
-	public MutationBatch prepareMutationBatch() {
-		return new CqlMutationBatchImpl(ksContext, clock, astyanaxConfig.getDefaultWriteConsistencyLevel(), astyanaxConfig.getRetryPolicy());
-	}
+        ColumnFamilyDefinition cfDef = describeKeyspace().getColumnFamily(cfName);
+        return new SerializerPackageImpl(cfDef, ignoreErrors);
+    }
 
-	@Override
-	public <K, C> ColumnMutation prepareColumnMutation(ColumnFamily<K, C> columnFamily, K rowKey, C column) {
-		return new CqlColumnMutationImpl<K,C>(ksContext, new CFQueryContext<K, C>(columnFamily, rowKey), column);
-	}
+    @Override
+    public MutationBatch prepareMutationBatch() {
+        return new CqlMutationBatchImpl(ksContext, clock, astyanaxConfig.getDefaultWriteConsistencyLevel(), astyanaxConfig.getRetryPolicy());
+    }
 
-	@Override
-	public <K, C> ColumnFamilyQuery<K, C> prepareQuery(ColumnFamily<K, C> cf) {
-		return new CqlColumnFamilyQueryImpl<K,C>(ksContext, cf);
-	}
+    @Override
+    public <K, C> ColumnMutation prepareColumnMutation(ColumnFamily<K, C> columnFamily, K rowKey, C column) {
+        return new CqlColumnMutationImpl<K, C>(ksContext, new CFQueryContext<K, C>(columnFamily, rowKey), column);
+    }
 
-	@Override
-	public OperationResult<SchemaChangeResult> createKeyspace(Map<String, Object> options) throws ConnectionException {
-		return new CqlKeyspaceDefinitionImpl(session, options).setName(keyspaceName).execute();
-	}
+    @Override
+    public <K, C> ColumnFamilyQuery<K, C> prepareQuery(ColumnFamily<K, C> cf) {
+        return new CqlColumnFamilyQueryImpl<K, C>(ksContext, cf);
+    }
 
-	@Override
-	public OperationResult<SchemaChangeResult> createKeyspace(Properties properties) throws ConnectionException {
-		return new CqlKeyspaceDefinitionImpl(session, properties).setName(keyspaceName).execute();
-	}
+    @Override
+    public OperationResult<SchemaChangeResult> createKeyspace(Map<String, Object> options) throws ConnectionException {
+        return new CqlKeyspaceDefinitionImpl(session, options).setName(keyspaceName).execute();
+    }
 
-	@SuppressWarnings("rawtypes")
-	@Override
-	public OperationResult<SchemaChangeResult> createKeyspace(Map<String, Object> options, Map<ColumnFamily, Map<String, Object>> cfs) throws ConnectionException {
-		
-		CqlKeyspaceDefinitionImpl ksDef = new CqlKeyspaceDefinitionImpl(session, options);
-		if (ksDef.getName() == null) {
-			ksDef.setName(keyspaceName);
-		}
-		
-		OperationResult<SchemaChangeResult> result = ksDef.execute();
-		
-		for (ColumnFamily cf : cfs.keySet()) {
-			CqlColumnFamilyDefinitionImpl cfDef = new CqlColumnFamilyDefinitionImpl(session, ksDef.getName(), cf, cfs.get(cf));
-			ksDef.addColumnFamily(cfDef);
-		}
-		
-		return result;
-	}
+    @Override
+    public OperationResult<SchemaChangeResult> createKeyspace(Properties properties) throws ConnectionException {
+        return new CqlKeyspaceDefinitionImpl(session, properties).setName(keyspaceName).execute();
+    }
 
-	@Override
-	public OperationResult<SchemaChangeResult> updateKeyspace(Map<String, Object> options) throws ConnectionException {
-		return new CqlKeyspaceDefinitionImpl(session, options).setName(keyspaceName).alterKeyspace().execute();
-	}
+    @SuppressWarnings("rawtypes")
+    @Override
+    public OperationResult<SchemaChangeResult> createKeyspace(Map<String, Object> options, Map<ColumnFamily, Map<String, Object>> cfs) throws ConnectionException {
 
-	@Override
-	public OperationResult<SchemaChangeResult> updateKeyspace(Properties props) throws ConnectionException {
-		return new CqlKeyspaceDefinitionImpl(session, props).setName(keyspaceName).alterKeyspace().execute();
-	}
+        CqlKeyspaceDefinitionImpl ksDef = new CqlKeyspaceDefinitionImpl(session, options);
+        if (ksDef.getName() == null) {
+            ksDef.setName(keyspaceName);
+        }
 
-	@Override
-	public OperationResult<SchemaChangeResult> dropKeyspace() throws ConnectionException {
-		return new CqlOperationResultImpl<SchemaChangeResult>(session.execute("DROP KEYSPACE " + keyspaceName), null);
-	}
-	
-	@Override
-	public <K, C> OperationResult<Void> truncateColumnFamily(ColumnFamily<K, C> columnFamily) throws OperationException, ConnectionException {
-		ResultSet result = session.execute("TRUNCATE " + keyspaceName + "." + columnFamily.getName());
-		return new CqlOperationResultImpl<Void>(result, null);
-	}
+        OperationResult<SchemaChangeResult> result = ksDef.execute();
 
-	@Override
-	public OperationResult<Void> truncateColumnFamily(String columnFamily) throws ConnectionException {
-		ResultSet result = session.execute("TRUNCATE " + keyspaceName + "." + columnFamily);
-		return new CqlOperationResultImpl<Void>(result, null);
-	}
+        for (ColumnFamily cf : cfs.keySet()) {
+            CqlColumnFamilyDefinitionImpl cfDef = new CqlColumnFamilyDefinitionImpl(session, ksDef.getName(), cf, cfs.get(cf));
+            ksDef.addColumnFamily(cfDef);
+        }
 
-	@Override
-	public <K, C> OperationResult<SchemaChangeResult> createColumnFamily(ColumnFamily<K, C> columnFamily, Map<String, Object> options) throws ConnectionException {
-		return new CqlColumnFamilyDefinitionImpl(session, keyspaceName, columnFamily, options).execute();
-	}
+        return result;
+    }
 
-	@Override
-	public OperationResult<SchemaChangeResult> createColumnFamily(Properties props) throws ConnectionException {
-		return new CqlColumnFamilyDefinitionImpl(session, keyspaceName, props).execute();
-	}
+    @Override
+    public OperationResult<SchemaChangeResult> updateKeyspace(Map<String, Object> options) throws ConnectionException {
+        return new CqlKeyspaceDefinitionImpl(session, options).setName(keyspaceName).alterKeyspace().execute();
+    }
 
-	@Override
-	public OperationResult<SchemaChangeResult> createColumnFamily(Map<String, Object> options) throws ConnectionException {
-		return new CqlColumnFamilyDefinitionImpl(session, keyspaceName, options).execute();
-	}
+    @Override
+    public OperationResult<SchemaChangeResult> updateKeyspace(Properties props) throws ConnectionException {
+        return new CqlKeyspaceDefinitionImpl(session, props).setName(keyspaceName).alterKeyspace().execute();
+    }
 
-	@Override
-	public <K, C> OperationResult<SchemaChangeResult> updateColumnFamily(ColumnFamily<K, C> columnFamily, Map<String, Object> options) throws ConnectionException {
-		return new CqlColumnFamilyDefinitionImpl(session, keyspaceName, columnFamily, options).alterTable().execute();
-	}
+    @Override
+    public OperationResult<SchemaChangeResult> dropKeyspace() throws ConnectionException {
+        return new CqlOperationResultImpl<SchemaChangeResult>(session.execute("DROP KEYSPACE " + keyspaceName), null);
+    }
 
-	@Override
-	public OperationResult<SchemaChangeResult> updateColumnFamily(Properties props) throws ConnectionException {
-		return new CqlColumnFamilyDefinitionImpl(session, keyspaceName, props).alterTable().execute();
-	}
+    @Override
+    public <K, C> OperationResult<Void> truncateColumnFamily(ColumnFamily<K, C> columnFamily) throws OperationException, ConnectionException {
+        ResultSet result = session.execute("TRUNCATE " + keyspaceName + "." + columnFamily.getName());
+        return new CqlOperationResultImpl<Void>(result, null);
+    }
 
-	@Override
-	public OperationResult<SchemaChangeResult> updateColumnFamily(Map<String, Object> options) throws ConnectionException {
-		return new CqlColumnFamilyDefinitionImpl(session, keyspaceName, options).alterTable().execute();
-	}
+    @Override
+    public OperationResult<Void> truncateColumnFamily(String columnFamily) throws ConnectionException {
+        ResultSet result = session.execute("TRUNCATE " + keyspaceName + "." + columnFamily);
+        return new CqlOperationResultImpl<Void>(result, null);
+    }
 
-	@Override
-	public OperationResult<SchemaChangeResult> dropColumnFamily(String columnFamilyName) throws ConnectionException {
-		return new CqlOperationResultImpl<SchemaChangeResult>(session.execute("DROP TABLE " + keyspaceName + "." + columnFamilyName), null);
-	}
+    @Override
+    public <K, C> OperationResult<SchemaChangeResult> createColumnFamily(ColumnFamily<K, C> columnFamily, Map<String, Object> options) throws ConnectionException {
+        return new CqlColumnFamilyDefinitionImpl(session, keyspaceName, columnFamily, options).execute();
+    }
 
-	@Override
-	public <K, C> OperationResult<SchemaChangeResult> dropColumnFamily(ColumnFamily<K, C> columnFamily) throws ConnectionException {
-		return dropColumnFamily(columnFamily.getName());
-	}
+    @Override
+    public OperationResult<SchemaChangeResult> createColumnFamily(Properties props) throws ConnectionException {
+        return new CqlColumnFamilyDefinitionImpl(session, keyspaceName, props).execute();
+    }
 
-	@Override
-	public Map<String, List<String>> describeSchemaVersions() throws ConnectionException {
-		return new CqlSchemaVersionReader(session).exec();
-	}
+    @Override
+    public OperationResult<SchemaChangeResult> createColumnFamily(Map<String, Object> options) throws ConnectionException {
+        return new CqlColumnFamilyDefinitionImpl(session, keyspaceName, options).execute();
+    }
 
-	@Override
-	public CqlStatement prepareCqlStatement() {
-		return new DirectCqlStatement(session);
-	}
+    @Override
+    public <K, C> OperationResult<SchemaChangeResult> updateColumnFamily(ColumnFamily<K, C> columnFamily, Map<String, Object> options) throws ConnectionException {
+        return new CqlColumnFamilyDefinitionImpl(session, keyspaceName, columnFamily, options).alterTable().execute();
+    }
 
-	@Override
-	public ConnectionPool<?> getConnectionPool() throws ConnectionException {
-		throw new UnsupportedOperationException("Operation not supported");
-	}
+    @Override
+    public OperationResult<SchemaChangeResult> updateColumnFamily(Properties props) throws ConnectionException {
+        return new CqlColumnFamilyDefinitionImpl(session, keyspaceName, props).alterTable().execute();
+    }
 
+    @Override
+    public OperationResult<SchemaChangeResult> updateColumnFamily(Map<String, Object> options) throws ConnectionException {
+        return new CqlColumnFamilyDefinitionImpl(session, keyspaceName, options).alterTable().execute();
+    }
 
-	@Override
-	public OperationResult<Void> testOperation(Operation<?, ?> operation) throws ConnectionException {
-		throw new UnsupportedOperationException("Operation not supported");
-	}
+    @Override
+    public OperationResult<SchemaChangeResult> dropColumnFamily(String columnFamilyName) throws ConnectionException {
+        return new CqlOperationResultImpl<SchemaChangeResult>(session.execute("DROP TABLE " + keyspaceName + "." + columnFamilyName), null);
+    }
 
-	@Override
-	public OperationResult<Void> testOperation(Operation<?, ?> operation, RetryPolicy retry) throws ConnectionException {
-		throw new UnsupportedOperationException("Operation not supported");
-	}
+    @Override
+    public <K, C> OperationResult<SchemaChangeResult> dropColumnFamily(ColumnFamily<K, C> columnFamily) throws ConnectionException {
+        return dropColumnFamily(columnFamily.getName());
+    }
 
-	@Override
-	public void setHosts(Collection<Host> hosts, int port) {
+    @Override
+    public Map<String, List<String>> describeSchemaVersions() throws ConnectionException {
+        return new CqlSchemaVersionReader(session).exec();
+    }
 
-		try {
-			if (session != null) {
-				Logger.info("Session has already been set, SKIPPING SET HOSTS");
-				return;
-			}
-			List<Host> hostList = Lists.newArrayList(hosts);
+    @Override
+    public CqlStatement prepareCqlStatement() {
+        return new DirectCqlStatement(session);
+    }
 
-			List<String> contactPoints = Lists.transform(hostList, new Function<Host, String>() {
-				@Override
-				public String apply(Host input) {
-					if (input != null) {
-						return input.getHostName(); 
-					}
-					return null;
-				}
-			});
-
-			Configuration config = javaDriverConfig;
-			
-			// We really need a mechanism to easily override Configuration on the builder
-			Logger.info("Using port: " + port);
-			
-			Cluster.Builder builder = Cluster.builder()
-					.addContactPoints(contactPoints.toArray(new String[0]))
-					.withPort(port)
-					.withLoadBalancingPolicy(config.getPolicies().getLoadBalancingPolicy())
-					.withReconnectionPolicy(config.getPolicies().getReconnectionPolicy())
-					.withRetryPolicy(config.getPolicies().getRetryPolicy())
-					.withCompression(config.getProtocolOptions().getCompression())
-					.withPoolingOptions(config.getPoolingOptions())
-					.withSocketOptions(config.getSocketOptions())
-					.withQueryOptions(config.getQueryOptions());
-			
-			if (config.getMetricsOptions() == null) {
-				builder.withoutMetrics();
-			} else if (!config.getMetricsOptions().isJMXReportingEnabled()) {
-				builder.withoutJMXReporting();
-			}
-					
-			cluster = builder.build();
-			if (!(this.cpMonitor instanceof JavaDriverConnectionPoolMonitorImpl))
-				this.cluster.getMetrics().getRegistry().addListener((MetricRegistryListener) this.metricsRegListener);
-			
-			Logger.info("Connecting to cluster");
-			session = cluster.connect();
-			Logger.info("Done connecting to cluster, session object created");
-
-		} catch (RuntimeException e) {
-			Logger.error("Failed to set hosts for keyspace impl", e);
-			
-		} catch (Exception e) {
-			Logger.error("Failed to set hosts for keyspace impl", e);
-		}
-	}
-	
-	@Override
-	public void shutdown() {
-		cluster.close();
-	}
+    @Override
+    public ConnectionPool<?> getConnectionPool() throws ConnectionException {
+        throw new UnsupportedOperationException("Operation not supported");
+    }
 
 
-	public class KeyspaceContext {
-		
-		private final Keyspace ks; 
-		
-		public KeyspaceContext(Keyspace keyspaceCtx) {
-			this.ks = keyspaceCtx;
-		}
-		public Session getSession() {
-			return session;
-		}
-		public String getKeyspace() {
-			return keyspaceName;
-		}
-		public AstyanaxConfiguration getConfig() {
-			return astyanaxConfig;
-		}
-		public KeyspaceTracerFactory getTracerFactory() {
-			return tracerFactory;
-		}
-		
-		public Keyspace getKeyspaceContext() {
-			return ks;
-		}
-		public ConnectionPoolMonitor getConnectionPoolMonitor(){
-			return cpMonitor;
-		}
-	}
+    @Override
+    public OperationResult<Void> testOperation(Operation<?, ?> operation) throws ConnectionException {
+        throw new UnsupportedOperationException("Operation not supported");
+    }
+
+    @Override
+    public OperationResult<Void> testOperation(Operation<?, ?> operation, RetryPolicy retry) throws ConnectionException {
+        throw new UnsupportedOperationException("Operation not supported");
+    }
+
+    @Override
+    public void setHosts(Collection<Host> hosts, int port) {
+
+        try {
+            if (session != null) {
+                Logger.info("Session has already been set, SKIPPING SET HOSTS");
+                return;
+            }
+            List<Host> hostList = Lists.newArrayList(hosts);
+
+            List<String> contactPoints = Lists.transform(hostList, new Function<Host, String>() {
+                @Override
+                public String apply(Host input) {
+                    if (input != null) {
+                        return input.getHostName();
+                    }
+                    return null;
+                }
+            });
+
+            Configuration config = javaDriverConfig;
+
+            // We really need a mechanism to easily override Configuration on the builder
+            Logger.info("Using port: " + port);
+
+            Cluster.Builder builder = Cluster.builder()
+                    .addContactPoints(contactPoints.toArray(new String[0]))
+                    .withPort(port)
+                    .withLoadBalancingPolicy(config.getPolicies().getLoadBalancingPolicy())
+                    .withReconnectionPolicy(config.getPolicies().getReconnectionPolicy())
+                    .withRetryPolicy(config.getPolicies().getRetryPolicy())
+                    .withCompression(config.getProtocolOptions().getCompression())
+                    .withPoolingOptions(config.getPoolingOptions())
+                    .withSocketOptions(config.getSocketOptions())
+                    .withQueryOptions(config.getQueryOptions());
+
+            if (config.getMetricsOptions() == null) {
+                builder.withoutMetrics();
+            }
+            else if (!config.getMetricsOptions().isJMXReportingEnabled()) {
+                builder.withoutJMXReporting();
+            }
+
+            cluster = builder.build();
+            if (!(this.cpMonitor instanceof JavaDriverConnectionPoolMonitorImpl))
+                this.cluster.getMetrics().getRegistry().addListener((MetricRegistryListener) this.metricsRegListener);
+
+            Logger.info("Connecting to cluster");
+            session = cluster.connect();
+            Logger.info("Done connecting to cluster, session object created");
+
+        } catch (RuntimeException e) {
+            Logger.error("Failed to set hosts for keyspace impl", e);
+
+        } catch (Exception e) {
+            Logger.error("Failed to set hosts for keyspace impl", e);
+        }
+    }
+
+    @Override
+    public void shutdown() {
+        cluster.close();
+    }
 
 
-	@Override
-	public OperationResult<SchemaChangeResult> createKeyspaceIfNotExists(final Map<String, Object> options) throws ConnectionException {
+    public class KeyspaceContext {
 
-		return createKeyspaceIfNotExists(new Callable<OperationResult<SchemaChangeResult>>() {
-			@Override
-			public OperationResult<SchemaChangeResult> call() throws Exception {
-				return createKeyspace(options);
-			}
-		});
-	}
+        private final Keyspace ks;
 
-	@Override
-	public OperationResult<SchemaChangeResult> createKeyspaceIfNotExists(final Properties properties) throws ConnectionException {
-		
-		return createKeyspaceIfNotExists(new Callable<OperationResult<SchemaChangeResult>>() {
-			@Override
-			public OperationResult<SchemaChangeResult> call() throws Exception {
-				return createKeyspace(properties);
-			}
-		});
-	}
+        public KeyspaceContext(Keyspace keyspaceCtx) {
+            this.ks = keyspaceCtx;
+        }
 
-	@Override
-	public OperationResult<SchemaChangeResult> createKeyspaceIfNotExists(final Map<String, Object> options, final Map<ColumnFamily, Map<String, Object>> cfs) throws ConnectionException {
-		
-		return createKeyspaceIfNotExists(new Callable<OperationResult<SchemaChangeResult>>() {
-			@Override
-			public OperationResult<SchemaChangeResult> call() throws Exception {
-				return createKeyspace(options, cfs);
-			}
-		});
-	}
-	
-    
+        public Session getSession() {
+            return session;
+        }
+
+        public String getKeyspace() {
+            return keyspaceName;
+        }
+
+        public AstyanaxConfiguration getConfig() {
+            return astyanaxConfig;
+        }
+
+        public KeyspaceTracerFactory getTracerFactory() {
+            return tracerFactory;
+        }
+
+        public Keyspace getKeyspaceContext() {
+            return ks;
+        }
+
+        public ConnectionPoolMonitor getConnectionPoolMonitor() {
+            return cpMonitor;
+        }
+    }
+
+
+    @Override
+    public OperationResult<SchemaChangeResult> createKeyspaceIfNotExists(final Map<String, Object> options) throws ConnectionException {
+
+        return createKeyspaceIfNotExists(new Callable<OperationResult<SchemaChangeResult>>() {
+            @Override
+            public OperationResult<SchemaChangeResult> call() throws Exception {
+                return createKeyspace(options);
+            }
+        });
+    }
+
+    @Override
+    public OperationResult<SchemaChangeResult> createKeyspaceIfNotExists(final Properties properties) throws ConnectionException {
+
+        return createKeyspaceIfNotExists(new Callable<OperationResult<SchemaChangeResult>>() {
+            @Override
+            public OperationResult<SchemaChangeResult> call() throws Exception {
+                return createKeyspace(properties);
+            }
+        });
+    }
+
+    @Override
+    public OperationResult<SchemaChangeResult> createKeyspaceIfNotExists(final Map<String, Object> options, final Map<ColumnFamily, Map<String, Object>> cfs) throws ConnectionException {
+
+        return createKeyspaceIfNotExists(new Callable<OperationResult<SchemaChangeResult>>() {
+            @Override
+            public OperationResult<SchemaChangeResult> call() throws Exception {
+                return createKeyspace(options, cfs);
+            }
+        });
+    }
+
+
     private OperationResult<SchemaChangeResult> createKeyspaceIfNotExists(Callable<OperationResult<SchemaChangeResult>> createKeyspace) throws ConnectionException {
-        
-    	// Check if keyspace exists
-    	ResultSet result = session.execute("select * from system.local where keyspace_name = '" + keyspaceName + "'");
-    	List<Row> rows = result.all();
-    	if (rows != null && rows.isEmpty()) {
-    		return new OperationResultImpl<SchemaChangeResult>(Host.NO_HOST, new SchemaChangeResponseImpl().setSchemaId("no-op"), 0);
-    	}
 
-    	try {
-    		return createKeyspace.call();
-    	} catch (ConnectionException e) {
-    		throw e;
-    	} catch (Exception e) {
-    		throw new RuntimeException(e);
-    	}
+        // Check if keyspace exists
+        ResultSet result = session.execute("select * from system.local where keyspace_name = '" + keyspaceName + "'");
+        List<Row> rows = result.all();
+        if (rows != null && rows.isEmpty()) {
+            return new OperationResultImpl<SchemaChangeResult>(Host.NO_HOST, new SchemaChangeResponseImpl().setSchemaId("no-op"), 0);
+        }
+
+        try {
+            return createKeyspace.call();
+        } catch (ConnectionException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

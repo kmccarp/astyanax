@@ -30,40 +30,40 @@ import com.netflix.astyanax.model.Rows;
  * @author poberai
  */
 public class DirectCqlStatementResultImpl implements CqlStatementResult {
-	
-	private final ResultSet rs; 
-	
-	public DirectCqlStatementResultImpl(ResultSet rs) {
-		this.rs = rs;
-	}
 
-	@Override
-	public long asCount() {
-		return rs.one().getLong(0);
-	}
+    private final ResultSet rs;
 
-	@Override
-	public <K, C> Rows<K, C> getRows(ColumnFamily<K, C> columnFamily) {
+    public DirectCqlStatementResultImpl(ResultSet rs) {
+        this.rs = rs;
+    }
 
-		List<com.datastax.driver.core.Row> rows = rs.all(); 
-		return new CqlRowListImpl<K, C>(rows, columnFamily);
-	}
+    @Override
+    public long asCount() {
+        return rs.one().getLong(0);
+    }
 
-	@Override
-	public CqlSchema getSchema() {
-		return new DirectCqlSchema(rs);
-	}
-	
-	public static class DirectCqlSchema implements CqlSchema {
-		
-		private final ResultSet rs;
-		
-		public DirectCqlSchema(ResultSet result) {
-			this.rs = result;
-		}
-		
-		public ResultSet getResultSet() {
-			return rs;
-		}
-	}
+    @Override
+    public <K, C> Rows<K, C> getRows(ColumnFamily<K, C> columnFamily) {
+
+        List<com.datastax.driver.core.Row> rows = rs.all();
+        return new CqlRowListImpl<K, C>(rows, columnFamily);
+    }
+
+    @Override
+    public CqlSchema getSchema() {
+        return new DirectCqlSchema(rs);
+    }
+
+    public static class DirectCqlSchema implements CqlSchema {
+
+        private final ResultSet rs;
+
+        public DirectCqlSchema(ResultSet result) {
+            this.rs = result;
+        }
+
+        public ResultSet getResultSet() {
+            return rs;
+        }
+    }
 }

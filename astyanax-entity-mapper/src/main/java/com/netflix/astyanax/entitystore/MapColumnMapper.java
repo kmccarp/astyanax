@@ -34,13 +34,13 @@ public class MapColumnMapper extends AbstractColumnMapper {
 
     public MapColumnMapper(Field field) {
         super(field);
-        
-        ParameterizedType stringListType = (ParameterizedType) field.getGenericType();
-        this.keyClazz         = (Class<?>) stringListType.getActualTypeArguments()[0];
-        this.keySerializer    = SerializerTypeInferer.getSerializer(this.keyClazz);
 
-        this.valueClazz       = (Class<?>) stringListType.getActualTypeArguments()[1];
-        this.valueSerializer  = SerializerTypeInferer.getSerializer(this.valueClazz);
+        ParameterizedType stringListType = (ParameterizedType) field.getGenericType();
+        this.keyClazz = (Class<?>) stringListType.getActualTypeArguments()[0];
+        this.keySerializer = SerializerTypeInferer.getSerializer(this.keyClazz);
+
+        this.valueClazz = (Class<?>) stringListType.getActualTypeArguments()[1];
+        this.valueSerializer = SerializerTypeInferer.getSerializer(this.valueClazz);
     }
 
     @Override
@@ -57,21 +57,21 @@ public class MapColumnMapper extends AbstractColumnMapper {
             else
                 throw new IllegalArgumentException("cannot write non-nullable column with null value: " + columnName);
         }
-        
+
         for (Entry<?, ?> entry : map.entrySet()) {
             clm.putColumn(prefix + columnName + "." + entry.getKey().toString(), entry.getValue(), valueSerializer, null);
         }
         return true;
     }
-    
+
     @Override
     public boolean setField(Object entity, Iterator<String> name, com.netflix.astyanax.model.Column<String> column) throws Exception {
         Map<Object, Object> map = (Map<Object, Object>) field.get(entity);
         if (map == null) {
             map = Maps.newLinkedHashMap();
-            field.set(entity,  map);
+            field.set(entity, map);
         }
-        
+
         String key = name.next();
         if (name.hasNext())
             return false;

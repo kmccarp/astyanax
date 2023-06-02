@@ -105,7 +105,8 @@ public class StressSimpleHostConnectionPoolImpl {
         try {
             if (max > min) {
                 Thread.sleep(min + new Random().nextInt(max - min));
-            } else {
+            }
+            else {
                 Thread.sleep(min);
             }
         } catch (InterruptedException e) {

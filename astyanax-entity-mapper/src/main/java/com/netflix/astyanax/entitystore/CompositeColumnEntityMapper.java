@@ -52,37 +52,37 @@ public class CompositeColumnEntityMapper {
      * Class of embedded entity
      */
     private final Class<?>          clazz;
-    
+
     /**
      * List of serializers for the composite parts
      */
     private List<FieldMapper<?>>    components = Lists.newArrayList();
-    
+
     /**
      * List of valid (i.e. existing) column names
      */
     private Set<String>             validNames = Sets.newHashSet();
-    
+
     /**
      * Mapper for the value part of the entity
      */
     private FieldMapper<?>          valueMapper;
-    
+
     /**
      * Largest buffer size
      */
     private int                     bufferSize = 64;
-    
+
     /**
      * Parent field
      */
     private final Field                   containerField;
-    
+
     public CompositeColumnEntityMapper(Field field) {
-        
+
         ParameterizedType containerEntityType = (ParameterizedType) field.getGenericType();
-        
-        this.clazz  = (Class<?>) containerEntityType.getActualTypeArguments()[0];
+
+        this.clazz = (Class<?>) containerEntityType.getActualTypeArguments()[0];
         this.containerField = field;
         this.containerField.setAccessible(true);
         Field[] declaredFields = clazz.getDeclaredFields();
@@ -96,11 +96,11 @@ public class CompositeColumnEntityMapper {
                 validNames.add(fieldMapper.getName());
             }
         }
-        
+
         // Last one is always treated as the 'value'
         valueMapper = components.remove(components.size() - 1);
     }
-    
+
     /**
      * Iterate through the list and create a column for each element
      * @param clm
@@ -116,7 +116,7 @@ public class CompositeColumnEntityMapper {
             }
         }
     }
-    
+
     public void fillMutationBatchForDelete(ColumnListMutation<ByteBuffer> clm, Object entity) throws IllegalArgumentException, IllegalAccessException {
         List<?> list = (List<?>) containerField.get(entity);
         if (list == null) {
@@ -128,7 +128,7 @@ public class CompositeColumnEntityMapper {
             }
         }
     }
-    
+
     /**
      * Add a column based on the provided entity
      * 
@@ -138,14 +138,14 @@ public class CompositeColumnEntityMapper {
     public void fillColumnMutation(ColumnListMutation<ByteBuffer> clm, Object entity) {
         try {
             ByteBuffer columnName = toColumnName(entity);
-            ByteBuffer value      = valueMapper.toByteBuffer(entity);
-            
+            ByteBuffer value = valueMapper.toByteBuffer(entity);
+
             clm.putColumn(columnName, value);
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new PersistenceException("failed to fill mutation batch", e);
         }
     }
-    
+
     /**
      * Return the column name byte buffer for this entity
      * 
@@ -166,7 +166,7 @@ public class CompositeColumnEntityMapper {
         }
         return composite.get();
     }
-    
+
     /**
      * Set the collection field using the provided column list of embedded entities
      * @param entity
@@ -177,18 +177,18 @@ public class CompositeColumnEntityMapper {
      */
     public boolean setField(Object entity, ColumnList<ByteBuffer> columns) throws Exception {
         List<Object> list = getOrCreateField(entity);
-            
+
         // Iterate through columns and add embedded entities to the list
         for (com.netflix.astyanax.model.Column<ByteBuffer> c : columns) {
             list.add(fromColumn(c));
         }
-        
+
         return true;
     }
-    
+
     public boolean setFieldFromCql(Object entity, ColumnList<ByteBuffer> columns) throws Exception {
         List<Object> list = getOrCreateField(entity);
-    
+
         // Iterate through columns and add embedded entities to the list
 //        for (com.netflix.astyanax.model.Column<ByteBuffer> c : columns) {
             list.add(fromCqlColumns(columns));
@@ -196,17 +196,17 @@ public class CompositeColumnEntityMapper {
         
         return true;
     }
-    
+
     private List<Object> getOrCreateField(Object entity) throws IllegalArgumentException, IllegalAccessException {
         // Get or create the list field
         List<Object> list = (List<Object>) containerField.get(entity);
         if (list == null) {
             list = Lists.newArrayList();
-            containerField.set(entity,  list);
+            containerField.set(entity, list);
         }
         return list;
     }
-    
+
     /**
      * Return an object from the column
      * 
@@ -216,36 +216,36 @@ public class CompositeColumnEntityMapper {
     public Object fromColumn(com.netflix.astyanax.model.Column<ByteBuffer> c) {
         try {
             // Allocate a new entity
-            Object entity         = clazz.newInstance();
-            
+            Object entity = clazz.newInstance();
+
             setEntityFieldsFromColumnName(entity, c.getRawName().duplicate());
-            
+
             valueMapper.setField(entity, c.getByteBufferValue().duplicate());
             return entity;
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new PersistenceException("failed to construct entity", e);
         }
     }
-    
+
     public Object fromCqlColumns(com.netflix.astyanax.model.ColumnList<ByteBuffer> c) {
         try {
             // Allocate a new entity
-            Object entity         = clazz.newInstance();
-            
+            Object entity = clazz.newInstance();
+
             Iterator<com.netflix.astyanax.model.Column<ByteBuffer>> columnIter = c.iterator();
             columnIter.next();
-            
+
             for (FieldMapper<?> component : components) {
                 component.setField(entity, columnIter.next().getByteBufferValue());
             }
-                    
+
             valueMapper.setField(entity, columnIter.next().getByteBufferValue());
             return entity;
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new PersistenceException("failed to construct entity", e);
         }
     }
-    
+
     /**
      * 
      * @param entity
@@ -280,17 +280,17 @@ public class CompositeColumnEntityMapper {
         StringBuilder sb = new StringBuilder();
         sb.append("CompositeType(");
         sb.append(StringUtils.join(
-            Collections2.transform(components, new Function<FieldMapper<?>, String>() {
-                public String apply(FieldMapper<?> input) {
-                    return input.serializer.getComparatorType().getClassName();
-                }
-            }),
-            ","));
+                Collections2.transform(components, new Function<FieldMapper<?>, String>() {
+                    public String apply(FieldMapper<?> input) {
+                        return input.serializer.getComparatorType().getClassName();
+                    }
+                }),
+                ","));
         sb.append(")");
         return sb.toString();
     }
 
-    
+
     public static int getShortLength(ByteBuffer bb) {
         int length = (bb.get() & 0xFF) << 8;
         return length | (bb.get() & 0xFF);
@@ -319,9 +319,9 @@ public class CompositeColumnEntityMapper {
             Preconditions.checkArgument(validNames.contains(predicate.getName()), "Field '" + predicate.getName() + "' does not exist in the entity " + clazz.getCanonicalName());
             lookup.put(predicate.getName(), predicate);
         }
-        
+
         SimpleCompositeBuilder start = new SimpleCompositeBuilder(bufferSize, Equality.GREATER_THAN_EQUALS);
-        SimpleCompositeBuilder end   = new SimpleCompositeBuilder(bufferSize, Equality.LESS_THAN_EQUALS);
+        SimpleCompositeBuilder end = new SimpleCompositeBuilder(bufferSize, Equality.LESS_THAN_EQUALS);
 
         // Iterate through components in order while applying predicate to 'start' and 'end'
         for (FieldMapper<?> mapper : components) {
@@ -329,32 +329,32 @@ public class CompositeColumnEntityMapper {
                 applyPredicate(mapper, start, end, p);
             }
         }
-        
+
         return new ByteBuffer[]{start.get(), end.get()};
     }
-    
+
     private void applyPredicate(FieldMapper<?> mapper, SimpleCompositeBuilder start, SimpleCompositeBuilder end, ColumnPredicate predicate) {
         ByteBuffer bb = mapper.valueToByteBuffer(predicate.getValue());
-        
+
         switch (predicate.getOp()) {
-        case EQUAL:
-            start.addWithoutControl(bb);
-            end.addWithoutControl(bb);
-            break;
-        case GREATER_THAN:
-        case GREATER_THAN_EQUALS:
-            if (mapper.isAscending())
-                start.add(bb, predicate.getOp());
-            else 
-                end.add(bb, predicate.getOp());
-            break;
-        case LESS_THAN:
-        case LESS_THAN_EQUALS:
-            if (mapper.isAscending())
-                end.add(bb, predicate.getOp());
-            else 
-                start.add(bb, predicate.getOp());
-            break;
+            case EQUAL:
+                start.addWithoutControl(bb);
+                end.addWithoutControl(bb);
+                break;
+            case GREATER_THAN:
+            case GREATER_THAN_EQUALS:
+                if (mapper.isAscending())
+                    start.add(bb, predicate.getOp());
+                else
+                    end.add(bb, predicate.getOp());
+                break;
+            case LESS_THAN:
+            case LESS_THAN_EQUALS:
+                if (mapper.isAscending())
+                    end.add(bb, predicate.getOp());
+                else
+                    start.add(bb, predicate.getOp());
+                break;
         }
     }
 }

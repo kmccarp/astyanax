@@ -56,18 +56,18 @@ import com.netflix.astyanax.serializers.StringSerializer;
 import com.netflix.astyanax.util.RangeBuilder;
 
 public class CFStandardTests extends KeyspaceTests {
-	
-	private static final Logger LOG = Logger.getLogger(CFStandardTests.class);
-	
+
+    private static final Logger LOG = Logger.getLogger(CFStandardTests.class);
+
     public static ColumnFamily<String, String> CF_STANDARD1 = ColumnFamily
             .newColumnFamily(
-                    "Standard1", 
+                    "Standard1",
                     StringSerializer.get(),
                     StringSerializer.get());
-    
+
     public static ColumnFamily<String, String> CF_STANDARD2 = ColumnFamily
             .newColumnFamily(
-                    "Standard2", 
+                    "Standard2",
                     StringSerializer.get(),
                     StringSerializer.get());
 
@@ -77,47 +77,47 @@ public class CFStandardTests extends KeyspaceTests {
             StringSerializer.get()); // Column Serializer
 
     @BeforeClass
-	public static void init() throws Exception {
-    	initContext();
-		
-		keyspace.createColumnFamily(CF_STANDARD1, null);
-		keyspace.createColumnFamily(CF_STANDARD2, null);
-		keyspace.createColumnFamily(CF_USER_INFO, null);
-    	
-		CF_STANDARD1.describe(keyspace);
-    	CF_STANDARD2.describe(keyspace);
-    	CF_USER_INFO.describe(keyspace);
-	}
+    public static void init() throws Exception {
+        initContext();
+
+        keyspace.createColumnFamily(CF_STANDARD1, null);
+        keyspace.createColumnFamily(CF_STANDARD2, null);
+        keyspace.createColumnFamily(CF_USER_INFO, null);
+
+        CF_STANDARD1.describe(keyspace);
+        CF_STANDARD2.describe(keyspace);
+        CF_USER_INFO.describe(keyspace);
+    }
 
     @AfterClass
-	public static void tearDown() throws Exception {
-    	keyspace.dropColumnFamily(CF_STANDARD1);
-    	keyspace.dropColumnFamily(CF_STANDARD2);
-    	keyspace.dropColumnFamily(CF_USER_INFO);
-	}
+    public static void tearDown() throws Exception {
+        keyspace.dropColumnFamily(CF_STANDARD1);
+        keyspace.dropColumnFamily(CF_STANDARD2);
+        keyspace.dropColumnFamily(CF_USER_INFO);
+    }
 
     @Test
     public void testSerializedClassValue() throws Exception {
 
-    	UserInfo smo = new UserInfo();
-    	smo.setLastName("Landau");
-    	smo.setFirstName("Eran");
+        UserInfo smo = new UserInfo();
+        smo.setLastName("Landau");
+        smo.setFirstName("Eran");
 
-    	ByteBuffer bb = ObjectSerializer.get().toByteBuffer(smo);
-    	
-    	keyspace.prepareColumnMutation(CF_STANDARD1, "Key_SerializeTest",
-    			"Column1").putValue(bb, null).execute();
+        ByteBuffer bb = ObjectSerializer.get().toByteBuffer(smo);
 
-    	UserInfo smo2 = (UserInfo) keyspace.prepareQuery(CF_STANDARD1)
-    			.getKey("Key_SerializeTest").getColumn("Column1").execute()
-    			.getResult().getValue(ObjectSerializer.get());
-    	
-    	Assert.assertEquals(smo, smo2);
-    }    
+        keyspace.prepareColumnMutation(CF_STANDARD1, "Key_SerializeTest",
+                "Column1").putValue(bb, null).execute();
+
+        UserInfo smo2 = (UserInfo) keyspace.prepareQuery(CF_STANDARD1)
+                .getKey("Key_SerializeTest").getColumn("Column1").execute()
+                .getResult().getValue(ObjectSerializer.get());
+
+        Assert.assertEquals(smo, smo2);
+    }
 
     @Test
     public void testSingleOps() throws Exception {
-    	
+
         String key = "SingleOpsTest";
         Random prng = new Random();
 
@@ -128,10 +128,10 @@ public class CFStandardTests extends KeyspaceTests {
             // Set
             keyspace.prepareColumnMutation(CF_STANDARD1, key, column)
                     .putValue(value, null).execute();
-            
+
             // Read
             ColumnQuery<String> query = keyspace.prepareQuery(CF_STANDARD1).getKey(key).getColumn(column);
-            
+
             String v = query.execute().getResult().getStringValue();
             Assert.assertEquals(value, v);
 
@@ -146,11 +146,11 @@ public class CFStandardTests extends KeyspaceTests {
             } catch (RuntimeException e) {
             } catch (NotFoundException e) {
             } catch (ConnectionException e) {
-            	e.printStackTrace();
+                e.printStackTrace();
                 Assert.fail();
             }
-        } 
-        
+        }
+
         // Set a byte value
         {
             String column = "ByteColumn";
@@ -172,10 +172,10 @@ public class CFStandardTests extends KeyspaceTests {
                 Assert.fail();
             } catch (NullPointerException e) {
             } catch (NotFoundException e) {
-            	// expected
+                // expected
             }
-        } 
-        
+        }
+
         // Set a short value
         {
             String column = "ShortColumn";
@@ -183,7 +183,7 @@ public class CFStandardTests extends KeyspaceTests {
             // Set
             keyspace.prepareColumnMutation(CF_STANDARD1, key, column)
                     .putValue(value, null).execute();
-            
+
             // Read
             short v = keyspace.prepareQuery(CF_STANDARD1).getKey(key)
                     .getColumn(column).execute().getResult().getShortValue();
@@ -193,17 +193,17 @@ public class CFStandardTests extends KeyspaceTests {
                     .deleteColumn().execute();
             // verify column gone
             try {
-            	
+
                 keyspace.prepareQuery(CF_STANDARD1).getKey(key)
                         .getColumn(column).execute().getResult().getShortValue();
                 Assert.fail();
             } catch (NullPointerException e) {
-            	// expected
+                // expected
             } catch (NotFoundException e) {
-            	// expected
+                // expected
             }
-        } 
-        
+        }
+
         // Set a int value
         {
             String column = "IntColumn";
@@ -224,12 +224,12 @@ public class CFStandardTests extends KeyspaceTests {
                         .getColumn(column).execute().getResult().getIntegerValue();
                 Assert.fail();
             } catch (NullPointerException e) {
-            	// expected
+                // expected
             } catch (NotFoundException e) {
-            	// expected
+                // expected
             }
         }
-        
+
         // Set a long value
         {
             String column = "LongColumn";
@@ -241,14 +241,14 @@ public class CFStandardTests extends KeyspaceTests {
             long v = keyspace.prepareQuery(CF_STANDARD1).getKey(key)
                     .getColumn(column).execute().getResult().getLongValue();
             Assert.assertEquals(value, v);
-         // get as integer should fail
+            // get as integer should fail
             try {
                 keyspace.prepareQuery(CF_STANDARD1).getKey(key)
                         .getColumn(column).execute().getResult()
                         .getIntegerValue();
                 Assert.fail();
             } catch (Exception e) {
-            	// expected
+                // expected
             }
             // Delete
             keyspace.prepareColumnMutation(CF_STANDARD1, key, column)
@@ -259,12 +259,12 @@ public class CFStandardTests extends KeyspaceTests {
                         .getColumn(column).execute().getResult().getLongValue();
                 Assert.fail();
             } catch (NullPointerException e) {
-            	// expected
+                // expected
             } catch (NotFoundException e) {
-            	// expected
+                // expected
             }
         }
-        
+
         // Set a float value
         {
             String column = "FloatColumn";
@@ -285,9 +285,9 @@ public class CFStandardTests extends KeyspaceTests {
                         .getColumn(column).execute().getResult().getFloatValue();
                 Assert.fail();
             } catch (NullPointerException e) {
-            	// expected
+                // expected
             } catch (NotFoundException e) {
-            	// expected
+                // expected
             }
         }
 
@@ -309,7 +309,7 @@ public class CFStandardTests extends KeyspaceTests {
                         .getIntegerValue();
                 Assert.fail();
             } catch (Exception e) {
-            	// expected
+                // expected
             }
             // Delete
             keyspace.prepareColumnMutation(CF_STANDARD1, key, column)
@@ -320,13 +320,13 @@ public class CFStandardTests extends KeyspaceTests {
                         .getDoubleValue();
                 Assert.fail();
             } catch (NullPointerException e) {
-            	// expected
+                // expected
             } catch (NotFoundException e) {
             } catch (ConnectionException e) {
                 Assert.fail();
             }
-        } 
-        
+        }
+
         // Set long column with timestamp
         {
             String column = "TimestampColumn";
@@ -341,25 +341,25 @@ public class CFStandardTests extends KeyspaceTests {
             // Read
             Column<String> c = keyspace.prepareQuery(CF_STANDARD1).getKey(key)
                     .getColumn(column).execute().getResult();
-            Assert.assertEquals(100,  c.getTimestamp());
+            Assert.assertEquals(100, c.getTimestamp());
         }
     }
-    
-    
+
+
     @Test
     public void testEmptyColumn() {
         ColumnListMutation<String> mutation = keyspace.prepareMutationBatch().withRow(CF_STANDARD1, "ABC");
-        
+
         try {
-            mutation.putColumn(null,  1L);
+            mutation.putColumn(null, 1L);
             Assert.fail();
         }
         catch (Exception e) {
             LOG.info(e.getMessage());
         }
-        
+
         try {
-            mutation.putColumn("",  1L);
+            mutation.putColumn("", 1L);
             Assert.fail();
         }
         catch (Exception e) {
@@ -373,7 +373,7 @@ public class CFStandardTests extends KeyspaceTests {
         catch (Exception e) {
             LOG.info(e.getMessage());
         }
-        
+
         try {
             mutation.deleteColumn(null);
             Assert.fail();
@@ -385,21 +385,21 @@ public class CFStandardTests extends KeyspaceTests {
 
     @Test
     public void testCqlCount() throws Exception {
-    	LOG.info("CQL Test");
-    	OperationResult<CqlResult<String, String>> result = keyspace
-    			.prepareQuery(CF_STANDARD1)
-    			.withCql("SELECT count(*) FROM astyanaxunittests.standard1 where KEY='A';")
-    			.execute();
+        LOG.info("CQL Test");
+        OperationResult<CqlResult<String, String>> result = keyspace
+                .prepareQuery(CF_STANDARD1)
+                .withCql("SELECT count(*) FROM astyanaxunittests.standard1 where KEY='A';")
+                .execute();
 
-    	long count = result.getResult().getNumber();
-    	LOG.info("CQL Count: " + count);
-    	Assert.assertTrue(0 <= count);
+        long count = result.getResult().getNumber();
+        LOG.info("CQL Count: " + count);
+        Assert.assertTrue(0 <= count);
     }
 
     @Test
     public void testGetSingleColumn() throws Exception {
-    	
-    	keyspace.prepareColumnMutation(CF_STANDARD1, "A", "a").putValue(1, null).execute();
+
+        keyspace.prepareColumnMutation(CF_STANDARD1, "A", "a").putValue(1, null).execute();
         Column<String> column = keyspace.prepareQuery(CF_STANDARD1).getRow("A").getColumn("a").execute().getResult();
         Assert.assertNotNull(column);
         Assert.assertEquals(1, column.getIntegerValue());
@@ -410,10 +410,10 @@ public class CFStandardTests extends KeyspaceTests {
         Column<String> column = keyspace.prepareQuery(CF_STANDARD1).getRow("AA").getColumn("ab").execute().getResult();
         Assert.assertNull(column);
     }
-    
+
     @Test
     public void testFunctionalQuery() throws Exception {
-    	MutationBatch m = keyspace.prepareMutationBatch();
+        MutationBatch m = keyspace.prepareMutationBatch();
 
         for (char keyName = 'A'; keyName <= 'Z'; keyName++) {
             String rowKey = Character.toString(keyName);
@@ -426,22 +426,22 @@ public class CFStandardTests extends KeyspaceTests {
             m.execute();
             m.discardMutations();
         }
-        
+
         OperationResult<ColumnList<String>> r1 = keyspace
                 .prepareQuery(CF_STANDARD1).getKey("A").execute();
         Assert.assertTrue(26 <= r1.getResult().size());
     }
-    
+
     @Test
     public void testNullKeyInMutation() throws Exception {
         try {
-            keyspace.prepareMutationBatch().withRow(CF_STANDARD1,  null).putColumn("abc", "def");
+            keyspace.prepareMutationBatch().withRow(CF_STANDARD1, null).putColumn("abc", "def");
             Assert.fail();
         }
         catch (Exception e) {
         }
     }
-    
+
     @Test
     public void testColumnSlice() throws ConnectionException {
         OperationResult<ColumnList<String>> r1 = keyspace
@@ -449,7 +449,7 @@ public class CFStandardTests extends KeyspaceTests {
                 .withColumnSlice("a", "b").execute();
         Assert.assertEquals(2, r1.getResult().size());
     }
-    
+
     @Test
     public void testColumnRangeSlice() throws ConnectionException {
         OperationResult<ColumnList<String>> r1 = keyspace
@@ -473,14 +473,14 @@ public class CFStandardTests extends KeyspaceTests {
         Assert.assertEquals(5, r3.getResult().size());
         Assert.assertEquals("z", r3.getResult().getColumnByIndex(0).getName());
     }
-    
+
 
     @Test
     public void testGetSingleColumnNotExists() throws ConnectionException {
         Column<String> column = keyspace.prepareQuery(CF_STANDARD1).getRow("A").getColumn("DoesNotExist").execute().getResult();
         Assert.assertNull(column);
     }
-    
+
     @Test
     public void testGetSingleColumnNotExistsAsync() {
         Future<OperationResult<Column<String>>> future = null;
@@ -509,56 +509,56 @@ public class CFStandardTests extends KeyspaceTests {
 
     @Test
     public void testGetSingleKey() throws ConnectionException {
-    	for (char key = 'A'; key <= 'Z'; key++) {
-    		String keyName = Character.toString(key);
-    		OperationResult<ColumnList<String>> result = keyspace.prepareQuery(CF_STANDARD1).getKey(keyName).execute();
-    		Assert.assertNotNull(result.getResult());
-    		Assert.assertFalse(result.getResult().isEmpty());
-    	}
+        for (char key = 'A'; key <= 'Z'; key++) {
+            String keyName = Character.toString(key);
+            OperationResult<ColumnList<String>> result = keyspace.prepareQuery(CF_STANDARD1).getKey(keyName).execute();
+            Assert.assertNotNull(result.getResult());
+            Assert.assertFalse(result.getResult().isEmpty());
+        }
     }
-    
+
     @Test
     public void testGetSingleKeyAsync() throws Exception {
-    	Future<OperationResult<ColumnList<String>>> future = keyspace.prepareQuery(CF_STANDARD1).getKey("A").executeAsync();
+        Future<OperationResult<ColumnList<String>>> future = keyspace.prepareQuery(CF_STANDARD1).getKey("A").executeAsync();
 
-    	ColumnList<String> result = future.get(1000, TimeUnit.MILLISECONDS).getResult();
-    	Assert.assertFalse(result.isEmpty());
+        ColumnList<String> result = future.get(1000, TimeUnit.MILLISECONDS).getResult();
+        Assert.assertFalse(result.isEmpty());
     }
 
     @Test
     public void testGetAllKeysRoot() throws ConnectionException {
-    	LOG.info("Starting testGetAllKeysRoot...");
+        LOG.info("Starting testGetAllKeysRoot...");
 
-    	List<String> keys = new ArrayList<String>();
-    	for (char key = 'A'; key <= 'Z'; key++) {
-    		String keyName = Character.toString(key);
-    		keys.add(keyName);
-    	}
+        List<String> keys = new ArrayList<String>();
+        for (char key = 'A'; key <= 'Z'; key++) {
+            String keyName = Character.toString(key);
+            keys.add(keyName);
+        }
 
-    	OperationResult<Rows<String, String>> result = keyspace
-    			.prepareQuery(CF_STANDARD1)
-    			.getKeySlice(keys.toArray(new String[keys.size()]))
-    			.execute();
+        OperationResult<Rows<String, String>> result = keyspace
+                .prepareQuery(CF_STANDARD1)
+                .getKeySlice(keys.toArray(new String[keys.size()]))
+                .execute();
 
-    	Assert.assertEquals(26,  result.getResult().size());
+        Assert.assertEquals(26, result.getResult().size());
 
-    	Row<String, String> row;
+        Row<String, String> row;
 
-    	row = result.getResult().getRow("A");
-    	Assert.assertEquals("A", row.getKey());
+        row = result.getResult().getRow("A");
+        Assert.assertEquals("A", row.getKey());
 
-    	row = result.getResult().getRow("B");
-    	Assert.assertEquals("B", row.getKey());
+        row = result.getResult().getRow("B");
+        Assert.assertEquals("B", row.getKey());
 
-    	row = result.getResult().getRow("NonExistent");
-    	Assert.assertNull(row);
+        row = result.getResult().getRow("NonExistent");
+        Assert.assertNull(row);
 
-    	row = result.getResult().getRowByIndex(10);
-    	Assert.assertEquals("K", row.getKey());
+        row = result.getResult().getRowByIndex(10);
+        Assert.assertEquals("K", row.getKey());
 
-    	LOG.info("... testGetAllKeysRoot");
+        LOG.info("... testGetAllKeysRoot");
     }
-    
+
     @Test
     public void testEmptyRowKey() {
         try {
@@ -568,7 +568,7 @@ public class CFStandardTests extends KeyspaceTests {
         catch (Exception e) {
             LOG.info(e.getMessage());
         }
-        
+
         try {
             keyspace.prepareMutationBatch().withRow(CF_STANDARD1, null);
             Assert.fail();
@@ -580,50 +580,50 @@ public class CFStandardTests extends KeyspaceTests {
 
     @Test
     public void testGetColumnSlice() throws ConnectionException {
-    	LOG.info("Starting testGetColumnSlice...");
-    	OperationResult<ColumnList<String>> result = keyspace
-    			.prepareQuery(CF_STANDARD1)
-    			.getKey("A")
-    			.withColumnSlice(
-    					new ColumnSlice<String>("c", "h").setLimit(5))
-    					.execute();
-    	Assert.assertNotNull(result.getResult());
-    	Assert.assertEquals(5, result.getResult().size());
+        LOG.info("Starting testGetColumnSlice...");
+        OperationResult<ColumnList<String>> result = keyspace
+                .prepareQuery(CF_STANDARD1)
+                .getKey("A")
+                .withColumnSlice(
+                        new ColumnSlice<String>("c", "h").setLimit(5))
+                .execute();
+        Assert.assertNotNull(result.getResult());
+        Assert.assertEquals(5, result.getResult().size());
     }
 
 
     @Test
     public void testGetAllKeysPath() throws ConnectionException {
-    	LOG.info("Starting testGetAllKeysPath...");
+        LOG.info("Starting testGetAllKeysPath...");
 
-    	List<String> keys = new ArrayList<String>();
-    	for (char key = 'A'; key <= 'Z'; key++) {
-    		String keyName = Character.toString(key);
-    		keys.add(keyName);
-    	}
+        List<String> keys = new ArrayList<String>();
+        for (char key = 'A'; key <= 'Z'; key++) {
+            String keyName = Character.toString(key);
+            keys.add(keyName);
+        }
 
-    	OperationResult<Rows<String, String>> result = keyspace
-    			.prepareQuery(CF_STANDARD1)
-    			.getKeySlice(keys.toArray(new String[keys.size()]))
-    			.execute();
+        OperationResult<Rows<String, String>> result = keyspace
+                .prepareQuery(CF_STANDARD1)
+                .getKeySlice(keys.toArray(new String[keys.size()]))
+                .execute();
 
-    	for (Row<String, String> row : result.getResult()) {
-    		System.out.println(row.getColumns().size());
-    	}
+        for (Row<String, String> row : result.getResult()) {
+            System.out.println(row.getColumns().size());
+        }
 
-    	OperationResult<Map<String, Integer>> counts = keyspace
-    			.prepareQuery(CF_STANDARD1)
-    			.getKeySlice(keys.toArray(new String[keys.size()]))
-    			.getColumnCounts()
-    			.execute();
+        OperationResult<Map<String, Integer>> counts = keyspace
+                .prepareQuery(CF_STANDARD1)
+                .getKeySlice(keys.toArray(new String[keys.size()]))
+                .getColumnCounts()
+                .execute();
 
-    	Assert.assertEquals(26, counts.getResult().size());
+        Assert.assertEquals(26, counts.getResult().size());
 
-    	for (Entry<String, Integer> count : counts.getResult().entrySet()) {
-    		Assert.assertEquals(new Integer(26), count.getValue());
-    	}
+        for (Entry<String, Integer> count : counts.getResult().entrySet()) {
+            Assert.assertEquals(new Integer(26), count.getValue());
+        }
 
-    	LOG.info("Starting testGetAllKeysPath...");
+        LOG.info("Starting testGetAllKeysPath...");
     }
 
     public static class UserInfo implements Serializable {
@@ -662,22 +662,22 @@ public class CFStandardTests extends KeyspaceTests {
     @Test
     public void testHasValue() throws Exception {
 
-    	MutationBatch m = keyspace.prepareMutationBatch();
-    	m.withRow(CF_USER_INFO, "acct1234")
-    	.putColumn("firstname", "john", null)
-    	.putColumn("lastname", "smith", null)
-    	.putColumn("address", "555 Elm St", null)
-    	.putColumn("age", 30, null)
-    	.putEmptyColumn("empty");
+        MutationBatch m = keyspace.prepareMutationBatch();
+        m.withRow(CF_USER_INFO, "acct1234")
+                .putColumn("firstname", "john", null)
+                .putColumn("lastname", "smith", null)
+                .putColumn("address", "555 Elm St", null)
+                .putColumn("age", 30, null)
+                .putEmptyColumn("empty");
 
-    	m.execute();
-    	ColumnList<String> response = keyspace.prepareQuery(CF_USER_INFO).getRow("acct1234").execute().getResult();
-    	Assert.assertEquals("firstname", response.getColumnByName("firstname").getName());
-    	Assert.assertEquals("firstname", response.getColumnByName("firstname").getName());
-    	Assert.assertEquals("john", response.getColumnByName("firstname").getStringValue());
-    	Assert.assertEquals("john", response.getColumnByName("firstname").getStringValue());
-    	Assert.assertEquals(true,  response.getColumnByName("firstname").hasValue());
-    	Assert.assertEquals(false, response.getColumnByName("empty").hasValue());
+        m.execute();
+        ColumnList<String> response = keyspace.prepareQuery(CF_USER_INFO).getRow("acct1234").execute().getResult();
+        Assert.assertEquals("firstname", response.getColumnByName("firstname").getName());
+        Assert.assertEquals("firstname", response.getColumnByName("firstname").getName());
+        Assert.assertEquals("john", response.getColumnByName("firstname").getStringValue());
+        Assert.assertEquals("john", response.getColumnByName("firstname").getStringValue());
+        Assert.assertEquals(true, response.getColumnByName("firstname").hasValue());
+        Assert.assertEquals(false, response.getColumnByName("empty").hasValue());
     }
 
     @Test
@@ -692,7 +692,7 @@ public class CFStandardTests extends KeyspaceTests {
 
         Column<String> column = keyspace.prepareQuery(CF_STANDARD1).getRow(rowKey).getColumn("Column1").execute().getResult();
         Assert.assertEquals("X", column.getStringValue());
-        
+
         m = keyspace.prepareMutationBatch();
         m.withRow(CF_STANDARD1, rowKey).deleteColumn("Column1");
         m.execute();
@@ -721,11 +721,11 @@ public class CFStandardTests extends KeyspaceTests {
         }
 
         m.execute();
-        
+
         // Verify count
         int count = keyspace.prepareQuery(CF_STANDARD1)
-                    .setConsistencyLevel(ConsistencyLevel.CL_QUORUM)
-                    .getKey(rowKey).getCount().execute().getResult();
+                .setConsistencyLevel(ConsistencyLevel.CL_QUORUM)
+                .getKey(rowKey).getCount().execute().getResult();
         Assert.assertEquals(nColumns, count);
 
         // Delete half of the columns
@@ -737,13 +737,13 @@ public class CFStandardTests extends KeyspaceTests {
         }
 
         m.execute();
-        
+
         // Verify count
         count = keyspace.prepareQuery(CF_STANDARD1)
                 .setConsistencyLevel(ConsistencyLevel.CL_QUORUM)
                 .getKey(rowKey).getCount().execute().getResult();
         Assert.assertEquals(nColumns / 2, count);
-        
+
         // GET ROW COUNT WITH PAGINATION
         RowQuery<String, String> query = keyspace.prepareQuery(CF_STANDARD1)
                 .setConsistencyLevel(ConsistencyLevel.CL_QUORUM).getKey(rowKey)
@@ -767,7 +767,7 @@ public class CFStandardTests extends KeyspaceTests {
         }
 
         m.execute();
-        
+
         // Verify count
         count = keyspace.prepareQuery(CF_STANDARD1)
                 .setConsistencyLevel(ConsistencyLevel.CL_QUORUM)
@@ -776,10 +776,10 @@ public class CFStandardTests extends KeyspaceTests {
 
         LOG.info("... testDelete");
     }
-    
+
     @Test
     public void testCopy() throws ConnectionException {
-    	
+
         String keyName = "A";
 
         keyspace.prepareQuery(CF_STANDARD1).getKey(keyName).copyTo(CF_STANDARD2, keyName).execute();
@@ -791,14 +791,14 @@ public class CFStandardTests extends KeyspaceTests {
         Iterator<Column<String>> iter2 = list2.iterator();
 
         while (iter1.hasNext()) {
-        	Column<String> column1 = iter1.next();
-        	Column<String> column2 = iter2.next();
-        	Assert.assertEquals(column1.getName(), column2.getName());
-        	Assert.assertEquals(column1.getByteBufferValue(),column2.getByteBufferValue());
+            Column<String> column1 = iter1.next();
+            Column<String> column2 = iter2.next();
+            Assert.assertEquals(column1.getName(), column2.getName());
+            Assert.assertEquals(column1.getByteBufferValue(), column2.getByteBufferValue());
         }
         Assert.assertFalse(iter2.hasNext());
     }
-    
+
     @Test
     public void testMutationMerge() throws Exception {
         MutationBatch m1 = keyspace.prepareMutationBatch();
@@ -830,11 +830,11 @@ public class CFStandardTests extends KeyspaceTests {
 
         merged.mergeShallow(m5);
         Assert.assertEquals(merged.getRowCount(), 3);
-        
+
         merged.execute();
-        
+
         Rows<String, String> result = keyspace.prepareQuery(CF_STANDARD1).getRowSlice("1", "2", "3").execute().getResult();
-        
+
         Assert.assertTrue(5 == result.getRow("1").getColumns().size());
         Assert.assertTrue(2 == result.getRow("2").getColumns().size());
         Assert.assertTrue(3 == result.getRow("3").getColumns().size());

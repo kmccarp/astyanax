@@ -32,7 +32,7 @@ public interface ShardReaderPolicy {
     public static interface Factory {
         public ShardReaderPolicy create(MessageQueueMetadata metadata);
     }
-    
+
     /**
      * Acquire the next shard to be processed.  Must call releaseShard when done reading
      * from the shard
@@ -40,23 +40,23 @@ public interface ShardReaderPolicy {
      * @throws InterruptedException 
      */
     public MessageQueueShard nextShard() throws InterruptedException;
-    
+
     /**
      * Release a shard after acquiring and reading messages
      * @param shard
      */
     public void releaseShard(MessageQueueShard shard, int messagesRead);
-    
+
     /**
      * @return List all the shards
      */
     public Collection<MessageQueueShard> listShards();
-    
+
     /**
      * @return Return map of all shard stats
      */
     public Map<String, MessageQueueShardStats> getShardStats();
-    
+
     /**
      * @return number of shards in the work or active queue
      */

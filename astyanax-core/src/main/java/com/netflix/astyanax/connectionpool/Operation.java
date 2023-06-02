@@ -46,7 +46,7 @@ public interface Operation<CL, R> {
      * @return
      */
     ByteBuffer getRowKey();
-    
+
     /**
      * Return keyspace for this operation. Return null if using the current
      * keyspace, or a keyspace is not needed for the operation.

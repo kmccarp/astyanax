@@ -27,429 +27,429 @@ import com.netflix.astyanax.serializers.ComparatorType;
 @Entity
 public class SampleEntity {
 
-	////////////////////////////////////////////////////////
-	// custom serializer 
-	
-	public static class Foo {
+    ////////////////////////////////////////////////////////
+    // custom serializer 
+    
+    public static class Foo {
 
-		public int i;
-		
-		public String s;
+        public int i;
 
-		public Foo(int i, String s) {
-			this.i = i;
-			this.s = s;
-		}
+        public String s;
 
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
-				return false;
-			Foo other = (Foo) obj;
-			if(i == other.i && s.equals(other.s))
-				return true;
-			else
-				return false;
-		}
+        public Foo(int i, String s) {
+            this.i = i;
+            this.s = s;
+        }
 
-		@Override
-		public String toString() {		
-			try {
-				JSONObject jsonObj = new JSONObject();
-				jsonObj.put("i", i);
-				jsonObj.put("s", s);
-				return jsonObj.toString();
-			} catch (JSONException e) {
-				throw new RuntimeException("failed to construct JSONObject for toString", e);
-			}
-		}
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            Foo other = (Foo) obj;
+            if (i == other.i && s.equals(other.s))
+                return true;
+            else
+                return false;
+        }
 
-		public static Foo fromString(String str) {
-			try {
-				JSONObject jsonObj = new JSONObject(str);
-				return new Foo(jsonObj.getInt("i"), jsonObj.getString("s"));
-			} catch (JSONException e) {
-				throw new RuntimeException("failed to construct JSONObject for toString", e);
-			}			
-		}
-	}
+        @Override
+        public String toString() {
+            try {
+                JSONObject jsonObj = new JSONObject();
+                jsonObj.put("i", i);
+                jsonObj.put("s", s);
+                return jsonObj.toString();
+            } catch (JSONException e) {
+                throw new RuntimeException("failed to construct JSONObject for toString", e);
+            }
+        }
 
-	public static class FooSerializer extends AbstractSerializer<Foo> {
+        public static Foo fromString(String str) {
+            try {
+                JSONObject jsonObj = new JSONObject(str);
+                return new Foo(jsonObj.getInt("i"), jsonObj.getString("s"));
+            } catch (JSONException e) {
+                throw new RuntimeException("failed to construct JSONObject for toString", e);
+            }
+        }
+    }
 
-		private static final String UTF_8 = "UTF-8";
-		private static final Charset charset = Charset.forName(UTF_8);
-		private static final FooSerializer instance = new FooSerializer();
+    public static class FooSerializer extends AbstractSerializer<Foo> {
 
-		public static FooSerializer get() {
-			return instance;
-		}
+        private static final String UTF_8 = "UTF-8";
+        private static final Charset charset = Charset.forName(UTF_8);
+        private static final FooSerializer instance = new FooSerializer();
 
-		@Override
-		public ByteBuffer toByteBuffer(Foo obj) {
-			if (obj == null) {
-				return null;
-			}
-			return ByteBuffer.wrap(obj.toString().getBytes(charset));
-		}
+        public static FooSerializer get() {
+            return instance;
+        }
 
-		@Override
-		public Foo fromByteBuffer(ByteBuffer byteBuffer) {
-			if (byteBuffer == null) {
-				return null;
-			}
-			return Foo.fromString(charset.decode(byteBuffer).toString());
-		}
+        @Override
+        public ByteBuffer toByteBuffer(Foo obj) {
+            if (obj == null) {
+                return null;
+            }
+            return ByteBuffer.wrap(obj.toString().getBytes(charset));
+        }
 
-		@Override
-		public ComparatorType getComparatorType() {
-			return ComparatorType.UTF8TYPE;
-		}
+        @Override
+        public Foo fromByteBuffer(ByteBuffer byteBuffer) {
+            if (byteBuffer == null) {
+                return null;
+            }
+            return Foo.fromString(charset.decode(byteBuffer).toString());
+        }
 
-		@Override
-		public ByteBuffer fromString(String str) {
-			return UTF8Type.instance.fromString(str);
-		}
+        @Override
+        public ComparatorType getComparatorType() {
+            return ComparatorType.UTF8TYPE;
+        }
 
-		@Override
-		public String getString(ByteBuffer byteBuffer) {
-			return UTF8Type.instance.getString(byteBuffer);
-		}
-	}
-	
-	////////////////////////////////////////////////////////
-	// nested entity
+        @Override
+        public ByteBuffer fromString(String str) {
+            return UTF8Type.instance.fromString(str);
+        }
 
-	@Entity
-	public static class Bar {
-		
-		@Entity
-		public static class BarBar {
-			
-			@Column(name="i")
-			public int i;
-			
-			@Column(name="s")
-			public String s;
-		
-			@Override
-			public boolean equals(Object obj) {
-				if (this == obj)
-					return true;
-				if (obj == null)
-					return false;
-				if (getClass() != obj.getClass())
-					return false;
-				BarBar other = (BarBar) obj;
-				if(i == other.i && s.equals(other.s))
-					return true;
-				else
-					return false;
-			}
+        @Override
+        public String getString(ByteBuffer byteBuffer) {
+            return UTF8Type.instance.getString(byteBuffer);
+        }
+    }
 
-			@Override
-			public String toString() {		
-				try {
-					JSONObject jsonObj = new JSONObject();
-					jsonObj.put("i", i);
-					jsonObj.put("s", s);
-					return jsonObj.toString();
-				} catch (JSONException e) {
-					throw new RuntimeException("failed to construct JSONObject for toString", e);
-				}
-			}
-		}
-		
-		@Column(name="i")
-		public int i;
-		
-		@Column(name="s")
-		public String s;
-		
-		@Column(name="barbar")
-		public BarBar barbar;
-		
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
-				return false;
-			Bar other = (Bar) obj;
-			if(i == other.i && s.equals(other.s) && barbar.equals(other.barbar))
-				return true;
-			else
-				return false;
-		}
+    ////////////////////////////////////////////////////////
+    // nested entity
 
-		@Override
-		public String toString() {		
-			try {
-				JSONObject jsonObj = new JSONObject();
-				jsonObj.put("i", i);
-				jsonObj.put("s", s);
-				JSONObject barbarObj = new JSONObject(barbar.toString());
-				jsonObj.put("barbar", barbarObj);
-				return jsonObj.toString();
-			} catch (JSONException e) {
-				throw new RuntimeException("failed to construct JSONObject for toString", e);
-			}
-		}
-	}
-	
-	////////////////////////////////////////////////////////
-	// root fields
+    @Entity
+    public static class Bar {
 
-	@Id
-	private String id;
+        @Entity
+        public static class BarBar {
 
-	@Column(name="BOOLEAN_PRIMITIVE")
-	private boolean booleanPrimitive;
+            @Column(name = "i")
+            public int i;
 
-	@Column(name="BOOLEAN_OBJECT")
-	private Boolean booleanObject;
+            @Column(name = "s")
+            public String s;
 
-	@Column(name="BYTE_PRIMITIVE")
-	private byte bytePrimitive;
+            @Override
+            public boolean equals(Object obj) {
+                if (this == obj)
+                    return true;
+                if (obj == null)
+                    return false;
+                if (getClass() != obj.getClass())
+                    return false;
+                BarBar other = (BarBar) obj;
+                if (i == other.i && s.equals(other.s))
+                    return true;
+                else
+                    return false;
+            }
 
-	@Column(name="BYTE_OBJECT")
-	private Byte byteObject;
+            @Override
+            public String toString() {
+                try {
+                    JSONObject jsonObj = new JSONObject();
+                    jsonObj.put("i", i);
+                    jsonObj.put("s", s);
+                    return jsonObj.toString();
+                } catch (JSONException e) {
+                    throw new RuntimeException("failed to construct JSONObject for toString", e);
+                }
+            }
+        }
 
-	@Column(name="SHORT_PRIMITIVE")
-	private short shortPrimitive;
+        @Column(name = "i")
+        public int i;
 
-	@Column(name="SHORT_OBJECT")
-	private Short shortObject;
+        @Column(name = "s")
+        public String s;
 
-	@Column(name="INT_PRIMITIVE")
-	private int intPrimitive;
+        @Column(name = "barbar")
+        public BarBar barbar;
 
-	@Column(name="INT_OBJECT")
-	private Integer intObject;
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            Bar other = (Bar) obj;
+            if (i == other.i && s.equals(other.s) && barbar.equals(other.barbar))
+                return true;
+            else
+                return false;
+        }
 
-	@Column(name="LONG_PRIMITIVE")
-	private long longPrimitive;
+        @Override
+        public String toString() {
+            try {
+                JSONObject jsonObj = new JSONObject();
+                jsonObj.put("i", i);
+                jsonObj.put("s", s);
+                JSONObject barbarObj = new JSONObject(barbar.toString());
+                jsonObj.put("barbar", barbarObj);
+                return jsonObj.toString();
+            } catch (JSONException e) {
+                throw new RuntimeException("failed to construct JSONObject for toString", e);
+            }
+        }
+    }
 
-	@Column(name="LONG_OBJECT")
-	private Long longObject;
+    ////////////////////////////////////////////////////////
+    // root fields
 
-	@Column(name="FLOAT_PRIMITIVE")
-	private float floatPrimitive;
+    @Id
+    private String id;
 
-	@Column(name="FLOAT_OBJECT")
-	private Float floatObject;
+    @Column(name = "BOOLEAN_PRIMITIVE")
+    private boolean booleanPrimitive;
 
-	@Column(name="DOUBLE_PRIMITIVE")
-	private double doublePrimitive;
+    @Column(name = "BOOLEAN_OBJECT")
+    private Boolean booleanObject;
 
-	@Column(name="DOUBLE_OBJECT")
-	private Double doubleObject;
+    @Column(name = "BYTE_PRIMITIVE")
+    private byte bytePrimitive;
 
-	@Column(name="STRING")
-	private String string;
+    @Column(name = "BYTE_OBJECT")
+    private Byte byteObject;
 
-	@Column(name="BYTE_ARRAY")
-	private byte[] byteArray;
+    @Column(name = "SHORT_PRIMITIVE")
+    private short shortPrimitive;
 
-	@Column(name="DATE")
-	private Date date;
+    @Column(name = "SHORT_OBJECT")
+    private Short shortObject;
 
-	// name should default to field name
-	@Column()
-	private UUID uuid;
+    @Column(name = "INT_PRIMITIVE")
+    private int intPrimitive;
 
-	@Column(name="FOO")
-	@Serializer(FooSerializer.class)
-	private Foo foo;
-	
-	@Column(name="BAR")
-	private Bar bar;
+    @Column(name = "INT_OBJECT")
+    private Integer intObject;
+
+    @Column(name = "LONG_PRIMITIVE")
+    private long longPrimitive;
+
+    @Column(name = "LONG_OBJECT")
+    private Long longObject;
+
+    @Column(name = "FLOAT_PRIMITIVE")
+    private float floatPrimitive;
+
+    @Column(name = "FLOAT_OBJECT")
+    private Float floatObject;
+
+    @Column(name = "DOUBLE_PRIMITIVE")
+    private double doublePrimitive;
+
+    @Column(name = "DOUBLE_OBJECT")
+    private Double doubleObject;
+
+    @Column(name = "STRING")
+    private String string;
+
+    @Column(name = "BYTE_ARRAY")
+    private byte[] byteArray;
+
+    @Column(name = "DATE")
+    private Date date;
+
+    // name should default to field name
+    @Column()
+    private UUID uuid;
+
+    @Column(name = "FOO")
+    @Serializer(FooSerializer.class)
+    private Foo foo;
+
+    @Column(name = "BAR")
+    private Bar bar;
 
     @Column
-	private Map<String, String> stringMap;
-	
-	@Column
-	private Set<String> stringSet;
-	
-	@Column
-	private Map<Long, Long> longMap;
-	
-	@Column
-	private Set<Long> longSet;
-	
-	public String getId() {
-		return id;
-	}
+    private Map<String, String> stringMap;
 
-	public void setId(String id) {
-		this.id = id;
-	}
+    @Column
+    private Set<String> stringSet;
 
-	public boolean isBooleanPrimitive() {
-		return booleanPrimitive;
-	}
+    @Column
+    private Map<Long, Long> longMap;
 
-	public void setBooleanPrimitive(boolean booleanPrimitive) {
-		this.booleanPrimitive = booleanPrimitive;
-	}
+    @Column
+    private Set<Long> longSet;
 
-	public Boolean getBooleanObject() {
-		return booleanObject;
-	}
+    public String getId() {
+        return id;
+    }
 
-	public void setBooleanObject(Boolean booleanObject) {
-		this.booleanObject = booleanObject;
-	}
+    public void setId(String id) {
+        this.id = id;
+    }
 
-	public byte getBytePrimitive() {
-		return bytePrimitive;
-	}
+    public boolean isBooleanPrimitive() {
+        return booleanPrimitive;
+    }
 
-	public void setBytePrimitive(byte bytePrimitive) {
-		this.bytePrimitive = bytePrimitive;
-	}
+    public void setBooleanPrimitive(boolean booleanPrimitive) {
+        this.booleanPrimitive = booleanPrimitive;
+    }
 
-	public Byte getByteObject() {
-		return byteObject;
-	}
+    public Boolean getBooleanObject() {
+        return booleanObject;
+    }
 
-	public void setByteObject(Byte byteObject) {
-		this.byteObject = byteObject;
-	}
+    public void setBooleanObject(Boolean booleanObject) {
+        this.booleanObject = booleanObject;
+    }
 
-	public short getShortPrimitive() {
-		return shortPrimitive;
-	}
+    public byte getBytePrimitive() {
+        return bytePrimitive;
+    }
 
-	public void setShortPrimitive(short shortPrimitive) {
-		this.shortPrimitive = shortPrimitive;
-	}
+    public void setBytePrimitive(byte bytePrimitive) {
+        this.bytePrimitive = bytePrimitive;
+    }
 
-	public Short getShortObject() {
-		return shortObject;
-	}
+    public Byte getByteObject() {
+        return byteObject;
+    }
 
-	public void setShortObject(Short shortObject) {
-		this.shortObject = shortObject;
-	}
+    public void setByteObject(Byte byteObject) {
+        this.byteObject = byteObject;
+    }
 
-	public int getIntPrimitive() {
-		return intPrimitive;
-	}
+    public short getShortPrimitive() {
+        return shortPrimitive;
+    }
 
-	public void setIntPrimitive(int intPrimitive) {
-		this.intPrimitive = intPrimitive;
-	}
+    public void setShortPrimitive(short shortPrimitive) {
+        this.shortPrimitive = shortPrimitive;
+    }
 
-	public Integer getIntObject() {
-		return intObject;
-	}
+    public Short getShortObject() {
+        return shortObject;
+    }
 
-	public void setIntObject(Integer intObject) {
-		this.intObject = intObject;
-	}
+    public void setShortObject(Short shortObject) {
+        this.shortObject = shortObject;
+    }
 
-	public long getLongPrimitive() {
-		return longPrimitive;
-	}
+    public int getIntPrimitive() {
+        return intPrimitive;
+    }
 
-	public void setLongPrimitive(long longPrimitive) {
-		this.longPrimitive = longPrimitive;
-	}
+    public void setIntPrimitive(int intPrimitive) {
+        this.intPrimitive = intPrimitive;
+    }
 
-	public Long getLongObject() {
-		return longObject;
-	}
+    public Integer getIntObject() {
+        return intObject;
+    }
 
-	public void setLongObject(Long longObject) {
-		this.longObject = longObject;
-	}
+    public void setIntObject(Integer intObject) {
+        this.intObject = intObject;
+    }
 
-	public float getFloatPrimitive() {
-		return floatPrimitive;
-	}
+    public long getLongPrimitive() {
+        return longPrimitive;
+    }
 
-	public void setFloatPrimitive(float floatPrimitive) {
-		this.floatPrimitive = floatPrimitive;
-	}
+    public void setLongPrimitive(long longPrimitive) {
+        this.longPrimitive = longPrimitive;
+    }
 
-	public Float getFloatObject() {
-		return floatObject;
-	}
+    public Long getLongObject() {
+        return longObject;
+    }
 
-	public void setFloatObject(Float floatObject) {
-		this.floatObject = floatObject;
-	}
+    public void setLongObject(Long longObject) {
+        this.longObject = longObject;
+    }
 
-	public double getDoublePrimitive() {
-		return doublePrimitive;
-	}
+    public float getFloatPrimitive() {
+        return floatPrimitive;
+    }
 
-	public void setDoublePrimitive(double doublePrimitive) {
-		this.doublePrimitive = doublePrimitive;
-	}
+    public void setFloatPrimitive(float floatPrimitive) {
+        this.floatPrimitive = floatPrimitive;
+    }
 
-	public Double getDoubleObject() {
-		return doubleObject;
-	}
+    public Float getFloatObject() {
+        return floatObject;
+    }
 
-	public void setDoubleObject(Double doubleObject) {
-		this.doubleObject = doubleObject;
-	}
+    public void setFloatObject(Float floatObject) {
+        this.floatObject = floatObject;
+    }
 
-	public String getString() {
-		return string;
-	}
+    public double getDoublePrimitive() {
+        return doublePrimitive;
+    }
 
-	public void setString(String string) {
-		this.string = string;
-	}
+    public void setDoublePrimitive(double doublePrimitive) {
+        this.doublePrimitive = doublePrimitive;
+    }
 
-	public byte[] getByteArray() {
-		return byteArray;
-	}
+    public Double getDoubleObject() {
+        return doubleObject;
+    }
 
-	public void setByteArray(byte[] byteArray) {
-		this.byteArray = byteArray;
-	}
+    public void setDoubleObject(Double doubleObject) {
+        this.doubleObject = doubleObject;
+    }
 
-	public Date getDate() {
-		return date;
-	}
+    public String getString() {
+        return string;
+    }
 
-	public void setDate(Date date) {
-		this.date = date;
-	}
+    public void setString(String string) {
+        this.string = string;
+    }
 
-	public UUID getUuid() {
-		return uuid;
-	}
+    public byte[] getByteArray() {
+        return byteArray;
+    }
 
-	public void setUuid(UUID uuid) {
-		this.uuid = uuid;
-	}
+    public void setByteArray(byte[] byteArray) {
+        this.byteArray = byteArray;
+    }
 
-	public Foo getFoo() {
-		return foo;
-	}
+    public Date getDate() {
+        return date;
+    }
 
-	public void setFoo(Foo foo) {
-		this.foo = foo;
-	}
-	
-	public Bar getBar() {
-		return bar;
-	}
+    public void setDate(Date date) {
+        this.date = date;
+    }
 
-	public void setBar(Bar bar) {
-		this.bar = bar;
-	}
-	
+    public UUID getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(UUID uuid) {
+        this.uuid = uuid;
+    }
+
+    public Foo getFoo() {
+        return foo;
+    }
+
+    public void setFoo(Foo foo) {
+        this.foo = foo;
+    }
+
+    public Bar getBar() {
+        return bar;
+    }
+
+    public void setBar(Bar bar) {
+        this.bar = bar;
+    }
+
     public Map<String, String> getStringMap() {
         return stringMap;
     }
@@ -466,24 +466,24 @@ public class SampleEntity {
         this.stringSet = stringSet;
     }
 
-	@Override
-	public String toString() {
-	    return ReflectionToStringBuilder.toString(this);
-	}
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.toString(this);
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
 
-		if (obj == null)
-			return false;
+        if (obj == null)
+            return false;
 
-		if (getClass() != obj.getClass())
-			return false;
+        if (getClass() != obj.getClass())
+            return false;
 
-		return EqualsBuilder.reflectionEquals(this, obj);
-	}
+        return EqualsBuilder.reflectionEquals(this, obj);
+    }
 
     public Map<Long, Long> getLongMap() {
         return longMap;

@@ -47,7 +47,7 @@ public interface KeyspaceDefinition {
     Object getFieldValue(String name);
 
     KeyspaceDefinition setFieldValue(String name, Object value);
-    
+
     /**
      * Get metadata for all fields
      * @return

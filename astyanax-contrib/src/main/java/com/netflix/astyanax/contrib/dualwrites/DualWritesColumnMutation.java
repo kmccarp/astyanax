@@ -41,7 +41,7 @@ public class DualWritesColumnMutation implements ColumnMutation {
     private final ColumnMutation secondary;
     private final DualWritesStrategy executionStrategy;
     private final Collection<WriteMetadata> writeMetadata;
-    
+
     public DualWritesColumnMutation(WriteMetadata writeMD, ColumnMutation primaryClm, ColumnMutation secondaryClm, DualWritesStrategy execStrategy) {
         writeMetadata = Collections.singletonList(writeMD);
         primary = primaryClm;

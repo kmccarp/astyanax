@@ -41,7 +41,7 @@ public class DualWritesDemo {
     final String ks2 = "dualwritessrc";
     final String seed2 = "";
 
-    final ColumnFamily<Integer, Long> CF_DUAL_WRITES = 
+    final ColumnFamily<Integer, Long> CF_DUAL_WRITES =
             ColumnFamily.newColumnFamily("foobar", IntegerSerializer.get(), LongSerializer.get(), StringSerializer.get());
 
     AstyanaxContext<Keyspace> ctx1;
@@ -131,10 +131,10 @@ public class DualWritesDemo {
             verifyPresent(keyspace1, 8);
             verifyPresent(keyspace2, 8);
 
-            deleteRowFromKS(dualKeyspace, 1,2,3,4,5,6,7,8);
+            deleteRowFromKS(dualKeyspace, 1, 2, 3, 4, 5, 6, 7, 8);
 
-            verifyNotPresent(keyspace1, 1,2,3,4,5,6,7,8);
-            verifyNotPresent(keyspace2, 1,2,3,4,5,6,7,8);
+            verifyNotPresent(keyspace1, 1, 2, 3, 4, 5, 6, 7, 8);
+            verifyNotPresent(keyspace2, 1, 2, 3, 4, 5, 6, 7, 8);
 
         } finally {
             if (ctx1 != null) {
@@ -149,7 +149,7 @@ public class DualWritesDemo {
     private void addRowToKS(Keyspace ks, int rowKey, int start, int end) throws ConnectionException {
 
         MutationBatch mb = ks.prepareMutationBatch();
-        for (long i=start; i<end; i++) {
+        for (long i = start; i < end; i++) {
             mb.withRow(CF_DUAL_WRITES, rowKey).putColumn(i, "foo");
         }
         mb.execute();
@@ -165,18 +165,18 @@ public class DualWritesDemo {
     }
 
     private AstyanaxContext<Keyspace> getKeyspaceContext(final String ks, final String seedHost) {
-        AstyanaxContext<Keyspace> ctx = 
+        AstyanaxContext<Keyspace> ctx =
                 new AstyanaxContext.Builder()
-        .forKeyspace(ks)
-        .withConnectionPoolConfiguration(
-                new ConnectionPoolConfigurationImpl("myCPConfig-" + ks)
-                .setSeeds(seedHost)
-                .setPort(7102))
-                .withAstyanaxConfiguration(
-                        new AstyanaxConfigurationImpl()
-                        .setDefaultReadConsistencyLevel(ConsistencyLevel.CL_LOCAL_QUORUM)
-                        .setConnectionPoolType(ConnectionPoolType.TOKEN_AWARE)
-                        .setDiscoveryType(NodeDiscoveryType.RING_DESCRIBE))
+                        .forKeyspace(ks)
+                        .withConnectionPoolConfiguration(
+                                new ConnectionPoolConfigurationImpl("myCPConfig-" + ks)
+                                        .setSeeds(seedHost)
+                                        .setPort(7102))
+                        .withAstyanaxConfiguration(
+                                new AstyanaxConfigurationImpl()
+                                        .setDefaultReadConsistencyLevel(ConsistencyLevel.CL_LOCAL_QUORUM)
+                                        .setConnectionPoolType(ConnectionPoolType.TOKEN_AWARE)
+                                        .setDiscoveryType(NodeDiscoveryType.RING_DESCRIBE))
                         .buildKeyspace(ThriftFamilyFactory.getInstance());
 
         return ctx;
@@ -187,7 +187,8 @@ public class DualWritesDemo {
         ColumnList<Long> result = ks.prepareQuery(CF_DUAL_WRITES).getRow(rowKey).execute().getResult();
         if (result.isEmpty()) {
             throw new RuntimeException("Row: " + rowKey + " missing from keysapce: " + ks.getKeyspaceName());
-        } else {
+        }
+        else {
             System.out.println("Verified Row: " + rowKey + " present in ks: " + ks.getKeyspaceName());
         }
     }
@@ -197,7 +198,8 @@ public class DualWritesDemo {
         ColumnList<Long> result = ks.prepareQuery(CF_DUAL_WRITES).getRow(rowKey).execute().getResult();
         if (!result.isEmpty()) {
             throw new RuntimeException("Row: " + rowKey + " present in keysapce: " + ks.getKeyspaceName());
-        } else {
+        }
+        else {
             System.out.println("Verified Row: " + rowKey + " NOT present in ks: " + ks.getKeyspaceName());
         }
     }

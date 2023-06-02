@@ -18,7 +18,7 @@ package com.netflix.astyanax.mapping;
 import java.lang.annotation.*;
 
 @Documented
-@Target({ ElementType.FIELD })
+@Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 @Deprecated
 /**

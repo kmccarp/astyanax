@@ -27,6 +27,6 @@ public interface TokenRange {
     String getStartToken();
 
     String getEndToken();
-    
+
     List<String> getEndpoints();
 }

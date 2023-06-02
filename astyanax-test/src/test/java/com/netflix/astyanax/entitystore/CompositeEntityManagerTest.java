@@ -31,19 +31,19 @@ import com.netflix.astyanax.util.SingletonEmbeddedCassandra;
 
 public class CompositeEntityManagerTest {
     private static Logger LOG = LoggerFactory.getLogger(CompositeEntityManagerTest.class);
-    
+
     private static Keyspace                  keyspace;
     private static AstyanaxContext<Keyspace> keyspaceContext;
 
-    private static String TEST_CLUSTER_NAME  = "junit_cass_sandbox";
+    private static String TEST_CLUSTER_NAME = "junit_cass_sandbox";
     private static String TEST_KEYSPACE_NAME = "CompositeEntityManagerTest";
-    private static final String SEEDS        = "localhost:9160";
+    private static final String SEEDS = "localhost:9160";
 
     @Entity
     public static class TestEntity {
         public TestEntity() {
         }
-        
+
         public TestEntity(String rowKey, String part1, Long part2, Long value) {
             super();
             this.part1 = part1;
@@ -51,17 +51,21 @@ public class CompositeEntityManagerTest {
             this.value = value;
             this.rowKey = rowKey;
         }
-        
-        @Id     String rowKey;      // This will be the row key
-        @Column String part1;       // This will be the first part of the composite
-        @Column Long   part2;       // This will be the second part of the composite
-        @Column Long   value;       // This will be the value of the composite
+
+        @Id
+        String rowKey;      // This will be the row key
+        @Column
+        String part1;       // This will be the first part of the composite
+        @Column
+        Long   part2;       // This will be the second part of the composite
+        @Column
+        Long   value;       // This will be the value of the composite
         
         @Override
         public String toString() {
             return "TestEntityChild ["
-                    +   "key="   + rowKey 
-                    + ", part1=" + part1 
+                    +   "key="   + rowKey
+                    + ", part1=" + part1
                     + ", part2=" + part2
                     + ", value=" + value + "]";
         }
@@ -77,7 +81,7 @@ public class CompositeEntityManagerTest {
         createKeyspace();
 
         Thread.sleep(1000 * 3);
-        
+
     }
 
     @AfterClass
@@ -92,24 +96,24 @@ public class CompositeEntityManagerTest {
 
     private static void createKeyspace() throws Exception {
         keyspaceContext = new AstyanaxContext.Builder()
-        .forCluster(TEST_CLUSTER_NAME)
-        .forKeyspace(TEST_KEYSPACE_NAME)
-        .withAstyanaxConfiguration(
-                new AstyanaxConfigurationImpl()
-                .setCqlVersion("3.0.0")
-                .setTargetCassandraVersion("1.2")
-                .setDiscoveryType(NodeDiscoveryType.RING_DESCRIBE)
-                .setConnectionPoolType(ConnectionPoolType.TOKEN_AWARE))
+                .forCluster(TEST_CLUSTER_NAME)
+                .forKeyspace(TEST_KEYSPACE_NAME)
+                .withAstyanaxConfiguration(
+                        new AstyanaxConfigurationImpl()
+                                .setCqlVersion("3.0.0")
+                                .setTargetCassandraVersion("1.2")
+                                .setDiscoveryType(NodeDiscoveryType.RING_DESCRIBE)
+                                .setConnectionPoolType(ConnectionPoolType.TOKEN_AWARE))
                 .withConnectionPoolConfiguration(
                         new ConnectionPoolConfigurationImpl(TEST_CLUSTER_NAME
                                 + "_" + TEST_KEYSPACE_NAME)
-                        .setSocketTimeout(30000)
-                        .setMaxTimeoutWhenExhausted(2000)
-                        .setMaxConnsPerHost(20)
-                        .setInitConnsPerHost(10)
-                        .setSeeds(SEEDS))
-                        .withConnectionPoolMonitor(new CountingConnectionPoolMonitor())
-                        .buildKeyspace(ThriftFamilyFactory.getInstance());
+                                .setSocketTimeout(30000)
+                                .setMaxTimeoutWhenExhausted(2000)
+                                .setMaxConnsPerHost(20)
+                                .setInitConnsPerHost(10)
+                                .setSeeds(SEEDS))
+                .withConnectionPoolMonitor(new CountingConnectionPoolMonitor())
+                .buildKeyspace(ThriftFamilyFactory.getInstance());
 
         keyspaceContext.start();
 
@@ -126,30 +130,30 @@ public class CompositeEntityManagerTest {
                 .put("strategy_options", ImmutableMap.<String, Object>builder()
                         .put("replication_factor", "1")
                         .build())
-                        .put("strategy_class",     "SimpleStrategy")
-                        .build()
-                );
-        
+                .put("strategy_class", "SimpleStrategy")
+                .build()
+        );
+
         manager = CompositeEntityManager.<TestEntity, String>builder()
-                    .withKeyspace(keyspace)
-                    .withColumnFamily("testentity")
-                    .withEntityType(TestEntity.class)
-                    .withVerboseTracing(true)
-                    .build();
-        
+                .withKeyspace(keyspace)
+                .withColumnFamily("testentity")
+                .withEntityType(TestEntity.class)
+                .withVerboseTracing(true)
+                .build();
+
         manager.createStorage(null);
 
         List<TestEntity> children = Lists.newArrayList();
-        
+
         for (long i = 0; i < 10; i++) {
-            children.add(new TestEntity("A", "a", i, i*i));
-            children.add(new TestEntity("A", "b", i, i*i));
-            children.add(new TestEntity("B", "a", i, i*i));
-            children.add(new TestEntity("B", "b", i, i*i));
+            children.add(new TestEntity("A", "a", i, i * i));
+            children.add(new TestEntity("A", "b", i, i * i));
+            children.add(new TestEntity("B", "a", i, i * i));
+            children.add(new TestEntity("B", "b", i, i * i));
         }
-        
+
         manager.put(children);
-        
+
         // Read back all rows and log
         logResultSet(manager.getAll(), "ALL: ");
     }
@@ -165,17 +169,17 @@ public class CompositeEntityManagerTest {
                 .getResultSet();
         Assert.assertEquals(20, entitiesNative.size());
         LOG.info("NATIVE: " + entitiesNative);
-        
+
         // Multi row query
         cqlEntities = manager.find("SELECT * from TestEntity WHERE KEY IN ('A', 'B')");
-        Assert.assertEquals(40,  cqlEntities.size());
-        
+        Assert.assertEquals(40, cqlEntities.size());
+
         entitiesNative = manager.createNativeQuery()
                 .whereId().in("A", "B")
                 .getResultSet();
         LOG.info("NATIVE: " + entitiesNative);
         Assert.assertEquals(40, entitiesNative.size());
-        
+
         // Simple prefix
         entitiesNative = manager.createNativeQuery()
                 .whereId().equal("A")
@@ -183,21 +187,21 @@ public class CompositeEntityManagerTest {
                 .getResultSet();
         LOG.info("NATIVE: " + entitiesNative);
         Assert.assertEquals(10, entitiesNative.size());
-        
+
         cqlEntities = manager.find("SELECT * from TestEntity WHERE KEY = 'A' AND column1='b' AND column2>=5 AND column2<8");
-        Assert.assertEquals(3,  cqlEntities.size());
+        Assert.assertEquals(3, cqlEntities.size());
         LOG.info(cqlEntities.toString());
-        
+
         manager.remove(new TestEntity("A", "b", 5L, null));
         cqlEntities = manager.find("SELECT * from TestEntity WHERE KEY = 'A' AND column1='b' AND column2>=5 AND column2<8");
-        Assert.assertEquals(2,  cqlEntities.size());
+        Assert.assertEquals(2, cqlEntities.size());
         LOG.info(cqlEntities.toString());
-        
+
         manager.delete("A");
         cqlEntities = manager.find("SELECT * from TestEntity WHERE KEY = 'A' AND column1='b' AND column2>=5 AND column2<8");
-        Assert.assertEquals(0,  cqlEntities.size());
+        Assert.assertEquals(0, cqlEntities.size());
     }
-    
+
     @Test
     public void testQuery() throws Exception {
         Collection<TestEntity> entitiesNative;
@@ -212,7 +216,7 @@ public class CompositeEntityManagerTest {
         LOG.info("NATIVE: " + entitiesNative.toString());
         Assert.assertEquals(3, entitiesNative.size());
     }
-    
+
 //  ... Not sure this use case makes sense since cassandra will end up returning
 //  columns with part2 greater than 8 but less than b
 //    @Test
@@ -244,7 +248,7 @@ public class CompositeEntityManagerTest {
             LOG.info(e.getMessage(), e);
         }
     }
-    
+
     private static void logResultSet(List<TestEntity> result, String prefix) {
         // Read back all rows and log
         List<TestEntity> all = manager.getAll();

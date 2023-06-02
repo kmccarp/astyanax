@@ -26,7 +26,7 @@ public class EmptyColumn<C> extends AbstractColumnImpl<C> {
     public EmptyColumn() {
         super(null);
     }
-    
+
     @Override
     public <V> V getValue(Serializer<V> valSer) {
         throw new UnsupportedOperationException();

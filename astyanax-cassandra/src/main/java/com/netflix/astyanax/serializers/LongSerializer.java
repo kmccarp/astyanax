@@ -49,7 +49,8 @@ public final class LongSerializer extends AbstractSerializer<Long> {
         if (dup.remaining() == 8) {
             long l = dup.getLong();
             return l;
-        } else if (dup.remaining() == 4) {
+        }
+        else if (dup.remaining() == 4) {
             return (long) dup.getInt();
         }
         return null;

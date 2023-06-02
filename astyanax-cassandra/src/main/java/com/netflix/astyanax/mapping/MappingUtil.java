@@ -91,18 +91,18 @@ public class MappingUtil {
      */
     public <T, K> void remove(ColumnFamily<K, String> columnFamily, T item)
             throws Exception {
-        @SuppressWarnings({ "unchecked" })
+        @SuppressWarnings({"unchecked"})
         Class<T> clazz = (Class<T>) item.getClass();
         Mapping<T> mapping = getMapping(clazz);
-        @SuppressWarnings({ "unchecked" })
+        @SuppressWarnings({"unchecked"})
         Class<K> idFieldClass = (Class<K>) mapping.getIdFieldClass(); // safe -
-                                                                      // after
-                                                                      // erasure,
-                                                                      // this is
-                                                                      // all
-                                                                      // just
-                                                                      // Class
-                                                                      // anyway
+        // after
+        // erasure,
+        // this is
+        // all
+        // just
+        // Class
+        // anyway
 
         MutationBatch mutationBatch = keyspace.prepareMutationBatch();
         mutationBatch.withRow(columnFamily,
@@ -122,18 +122,18 @@ public class MappingUtil {
      */
     public <T, K> void put(ColumnFamily<K, String> columnFamily, T item)
             throws Exception {
-        @SuppressWarnings({ "unchecked" })
+        @SuppressWarnings({"unchecked"})
         Class<T> clazz = (Class<T>) item.getClass();
         Mapping<T> mapping = getMapping(clazz);
-        @SuppressWarnings({ "unchecked" })
+        @SuppressWarnings({"unchecked"})
         Class<K> idFieldClass = (Class<K>) mapping.getIdFieldClass(); // safe -
-                                                                      // after
-                                                                      // erasure,
-                                                                      // this is
-                                                                      // all
-                                                                      // just
-                                                                      // Class
-                                                                      // anyway
+        // after
+        // erasure,
+        // this is
+        // all
+        // just
+        // Class
+        // anyway
 
         MutationBatch mutationBatch = keyspace.prepareMutationBatch();
         ColumnListMutation<String> columnListMutation = mutationBatch.withRow(

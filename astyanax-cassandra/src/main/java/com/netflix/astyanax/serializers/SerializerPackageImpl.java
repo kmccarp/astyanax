@@ -52,7 +52,7 @@ public class SerializerPackageImpl implements SerializerPackage {
     private Serializer<?> columnSerializer = DEFAULT_SERIALIZER;
     private Serializer<?> defaultValueSerializer = DEFAULT_SERIALIZER;
 
-    private final Map<ByteBuffer, Serializer<?>> valueSerializers = new HashMap<ByteBuffer, Serializer<?>>();;
+    private final Map<ByteBuffer, Serializer<?>> valueSerializers = new HashMap<ByteBuffer, Serializer<?>>();
 
     public SerializerPackageImpl() {
     }
@@ -107,7 +107,7 @@ public class SerializerPackageImpl implements SerializerPackage {
     }
 
     @SuppressWarnings("rawtypes")
-	public SerializerPackageImpl setKeyType(String keyType) throws UnknownComparatorException {
+    public SerializerPackageImpl setKeyType(String keyType) throws UnknownComparatorException {
         String comparatorType = StringUtils.substringBefore(keyType, "(");
         ComparatorType type = ComparatorType.getByClassName(comparatorType);
 
@@ -157,7 +157,7 @@ public class SerializerPackageImpl implements SerializerPackage {
     }
 
     @SuppressWarnings("rawtypes")
-	public SerializerPackageImpl setColumnNameType(String columnType) throws UnknownComparatorException {
+    public SerializerPackageImpl setColumnNameType(String columnType) throws UnknownComparatorException {
         // Determine the column serializer
         columnType = ComparatorType.getShadedClassName(columnType);
         String comparatorType = StringUtils.substringBefore(columnType, "(");

@@ -71,7 +71,7 @@ public class ShadedTypeParser extends TypeParser {
 
             cacheField = ShadedTypeParser.class.getSuperclass().getDeclaredField("cache");
             cacheField.setAccessible(true);
-            cache = (Map<String, AbstractType<?>>)cacheField.get(null);
+            cache = (Map<String, AbstractType<?>>) cacheField.get(null);
 
             skipBlankMethod = ShadedTypeParser.class.getSuperclass().getDeclaredMethod("skipBlank");
             skipBlankMethod.setAccessible(true);
@@ -95,7 +95,7 @@ public class ShadedTypeParser extends TypeParser {
     }
 
     protected String getStr() throws IllegalAccessException {
-        return (String)strField.get(this);
+        return (String) strField.get(this);
     }
 
     protected int getIdx() throws IllegalAccessException {
@@ -111,19 +111,19 @@ public class ShadedTypeParser extends TypeParser {
     }
 
     protected static int skipBlank(String str, int i) throws InvocationTargetException, IllegalAccessException {
-        return (Integer)skipBlankMethod2.invoke(null, str, i);
+        return (Integer) skipBlankMethod2.invoke(null, str, i);
     }
 
     protected boolean isEOS() throws InvocationTargetException, IllegalAccessException {
-        return (Boolean)isEOSMethod.invoke(this);
+        return (Boolean) isEOSMethod.invoke(this);
     }
 
     protected static boolean isEOS(String str, int i) throws InvocationTargetException, IllegalAccessException {
-        return (Boolean)isEOSMethod2.invoke(null, str, i);
+        return (Boolean) isEOSMethod2.invoke(null, str, i);
     }
 
     private static boolean isIdentifierChar(int c) throws InvocationTargetException, IllegalAccessException {
-        return (Boolean)isIdentifierCharMethod.invoke(null, c);
+        return (Boolean) isIdentifierCharMethod.invoke(null, c);
     }
 
     protected static Method getRawAbstractTypeMethod(Class typeClass) throws NoSuchMethodException {
@@ -154,21 +154,24 @@ public class ShadedTypeParser extends TypeParser {
         }
     }
 
-    public static String getShadedClassName(String className){
-        if(className.startsWith(SHADED_PREFIX)){
+    public static String getShadedClassName(String className) {
+        if (className.startsWith(SHADED_PREFIX)) {
             return className;
-        } else if (className.contains(".")){
+        }
+        else if (className.contains(".")) {
             return SHADED_PREFIX + className;
-        } else {
+        }
+        else {
             return SHADED_PREFIX + "org.apache.cassandra.db.marshal." + className;
         }
     }
 
-    public static String getShadedTypeName(String typeName){
-        if ( typeName.startsWith( "org.apache.cassandra.db.marshal." ) ) {
-            return typeName.substring( "org.apache.cassandra.db.marshal.".length() );
-        } else if ( typeName.startsWith( SHADED_PREFIX + "org.apache.cassandra.db.marshal." ) ) {
-            return typeName.substring( (SHADED_PREFIX + "org.apache.cassandra.db.marshal.").length() );
+    public static String getShadedTypeName(String typeName) {
+        if (typeName.startsWith("org.apache.cassandra.db.marshal.")) {
+            return typeName.substring("org.apache.cassandra.db.marshal.".length());
+        }
+        else if (typeName.startsWith(SHADED_PREFIX + "org.apache.cassandra.db.marshal.")) {
+            return typeName.substring((SHADED_PREFIX + "org.apache.cassandra.db.marshal.").length());
         }
         return typeName;
     }
@@ -177,16 +180,18 @@ public class ShadedTypeParser extends TypeParser {
      * Begin methods very slightly modified from {@link TypeParser} to support shaded classes
      ******************************************************************************************************************/
     public static AbstractType<?> parse(String str) throws SyntaxException, ConfigurationException {
-        try{
+        try {
             if (str == null) {
                 return BytesType.instance;
-            } else {
+            }
+            else {
                 str = getShadedClassName(str);
                 AbstractType<?> type = null;
                 type = (AbstractType) cache.get(str);
                 if (type != null) {
                     return type;
-                } else {
+                }
+                else {
                     int i = 0;
                     i = skipBlank(str, i);
 
@@ -197,14 +202,16 @@ public class ShadedTypeParser extends TypeParser {
 
                     if (i == j) {
                         return BytesType.instance;
-                    } else {
+                    }
+                    else {
                         String name = str.substring(j, i);
                         name = getShadedClassName(name);
                         i = skipBlank(str, i);
                         if (!isEOS(str, i) && str.charAt(i) == '(') {
                             ShadedTypeParser typeParser = buildTypeParser(str, i);
                             type = getAbstractType(name, typeParser);
-                        } else {
+                        }
+                        else {
                             type = getAbstractType(name);
                         }
 
@@ -238,7 +245,7 @@ public class ShadedTypeParser extends TypeParser {
 
         try {
             Field field = typeClass.getDeclaredField("instance");
-            return (AbstractType)field.get((Object)null);
+            return (AbstractType) field.get((Object) null);
         } catch (NoSuchFieldException | IllegalAccessException var4) {
             try {
                 Method getRawAbstractTypeMethod = getRawAbstractTypeMethod(typeClass);
@@ -257,7 +264,7 @@ public class ShadedTypeParser extends TypeParser {
         AbstractType type;
         try {
             Method method = typeClass.getDeclaredMethod("getInstance", TypeParser.class);
-            return (AbstractType)method.invoke((Object)null, parser);
+            return (AbstractType) method.invoke((Object) null, parser);
         } catch (NoSuchMethodException | IllegalAccessException var6) {
             try {
                 Method getRawAbstractTypeMethod = getRawAbstractTypeMethod(typeClass);

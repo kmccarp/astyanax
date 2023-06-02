@@ -20,6 +20,6 @@ import com.netflix.astyanax.query.CqlQuery;
 
 public interface ThriftCqlFactory {
     public CqlStatement createCqlStatement(ThriftKeyspaceImpl keyspace);
-    
+
     public <K, C> CqlQuery<K, C> createCqlQuery(ThriftColumnFamilyQueryImpl<K, C> cfQuery, String cql);
 }

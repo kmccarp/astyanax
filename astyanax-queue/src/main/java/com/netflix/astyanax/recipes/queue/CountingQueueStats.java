@@ -21,14 +21,14 @@ import java.util.concurrent.atomic.AtomicLong;
 public class CountingQueueStats implements MessageQueueStats {
     private AtomicLong emptyPartitionCount = new AtomicLong();
     private AtomicLong lockContentionCount = new AtomicLong();
-    private AtomicLong eventProcessCount   = new AtomicLong();
+    private AtomicLong eventProcessCount = new AtomicLong();
     private AtomicLong eventReprocessCount = new AtomicLong();
-    private AtomicLong expiredLockCount    = new AtomicLong();
-    private AtomicLong ackMessageCount     = new AtomicLong();
-    private AtomicLong sendMessageCount    = new AtomicLong();
-    private AtomicLong invalidTaskCount    = new AtomicLong();
-    private AtomicLong persistErrorCount   = new AtomicLong();
-    
+    private AtomicLong expiredLockCount = new AtomicLong();
+    private AtomicLong ackMessageCount = new AtomicLong();
+    private AtomicLong sendMessageCount = new AtomicLong();
+    private AtomicLong invalidTaskCount = new AtomicLong();
+    private AtomicLong persistErrorCount = new AtomicLong();
+
     @Override
     public void incEmptyPartitionCount() {
         emptyPartitionCount.incrementAndGet();
@@ -51,7 +51,7 @@ public class CountingQueueStats implements MessageQueueStats {
 
     @Override
     public void incExpiredLockCount() {
-        expiredLockCount.incrementAndGet();        
+        expiredLockCount.incrementAndGet();
     }
 
     @Override
@@ -118,10 +118,10 @@ public class CountingQueueStats implements MessageQueueStats {
     public long getPersistErrorCount() {
         return this.persistErrorCount.get();
     }
-    
+
     @Override
     public String toString() {
-        return "CountingQueueStats [empty=" + emptyPartitionCount.get() 
+        return "CountingQueueStats [empty=" + emptyPartitionCount.get()
                 + ", cont="     + lockContentionCount.get()
                 + ", ok="       + eventProcessCount .get()
                 + ", redo="     + eventReprocessCount.get()

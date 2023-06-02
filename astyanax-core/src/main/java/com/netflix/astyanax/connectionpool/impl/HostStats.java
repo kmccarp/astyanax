@@ -28,13 +28,13 @@ public interface HostStats {
      * @return
      */
     long getReturnedCount();
-    
+
     /**
      * Get number of successful operations
      * @return
      */
     long getSuccessCount();
-    
+
     /**
      * Get number of failed operations
      * @return

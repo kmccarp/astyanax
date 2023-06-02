@@ -89,320 +89,328 @@ import com.netflix.astyanax.serializers.CompositeRangeBuilder.CompositeByteBuffe
  */
 public class CFRowRangeQueryGen extends CFRowSliceQueryGen {
 
-	/**
-	 * Constructor
-	 * 
-	 * @param session
-	 * @param keyspaceName
-	 * @param cfDefinition
-	 */
-	public CFRowRangeQueryGen(Session session, String keyspaceName, CqlColumnFamilyDefinitionImpl cfDefinition) {
-		super(session, keyspaceName, cfDefinition);
-	}
+    /**
+     * Constructor
+     * 
+     * @param session
+     * @param keyspaceName
+     * @param cfDefinition
+     */
+    public CFRowRangeQueryGen(Session session, String keyspaceName, CqlColumnFamilyDefinitionImpl cfDefinition) {
+        super(session, keyspaceName, cfDefinition);
+    }
 
-	/**
-	 * Private helper for constructing the where clause for row ranges
-	 * @param keyAlias
-	 * @param select
-	 * @param rowRange
-	 * @return
-	 */
-	private Where addWhereClauseForRowRange(String keyAlias, Select select, RowRange<?> rowRange) {
+    /**
+     * Private helper for constructing the where clause for row ranges
+     * @param keyAlias
+     * @param select
+     * @param rowRange
+     * @return
+     */
+    private Where addWhereClauseForRowRange(String keyAlias, Select select, RowRange<?> rowRange) {
 
-		Where where = null;
+        Where where = null;
 
-		boolean keyIsPresent = false;
-		boolean tokenIsPresent = false; 
+        boolean keyIsPresent = false;
+        boolean tokenIsPresent = false;
 
-		if (rowRange.getStartKey() != null || rowRange.getEndKey() != null) {
-			keyIsPresent = true;
-		}
-		if (rowRange.getStartToken() != null || rowRange.getEndToken() != null) {
-			tokenIsPresent = true;
-		}
+        if (rowRange.getStartKey() != null || rowRange.getEndKey() != null) {
+            keyIsPresent = true;
+        }
+        if (rowRange.getStartToken() != null || rowRange.getEndToken() != null) {
+            tokenIsPresent = true;
+        }
 
-		if (keyIsPresent && tokenIsPresent) {
-			throw new RuntimeException("Cannot provide both token and keys for range query");
-		}
-		
-		if (keyIsPresent) {
-			if (rowRange.getStartKey() != null && rowRange.getEndKey() != null) {
+        if (keyIsPresent && tokenIsPresent) {
+            throw new RuntimeException("Cannot provide both token and keys for range query");
+        }
 
-				where = select.where(gte(keyAlias, BIND_MARKER))
-						.and(lte(keyAlias, BIND_MARKER));
+        if (keyIsPresent) {
+            if (rowRange.getStartKey() != null && rowRange.getEndKey() != null) {
 
-			} else if (rowRange.getStartKey() != null) {				
-				where = select.where(gte(keyAlias, BIND_MARKER));
+                where = select.where(gte(keyAlias, BIND_MARKER))
+                        .and(lte(keyAlias, BIND_MARKER));
 
-			} else if (rowRange.getEndKey() != null) {
-				where = select.where(lte(keyAlias, BIND_MARKER));
-			}
+            }
+            else if (rowRange.getStartKey() != null) {
+                where = select.where(gte(keyAlias, BIND_MARKER));
 
-		} else if (tokenIsPresent) {
-			String tokenOfKey ="token(" + keyAlias + ")";
+            }
+            else if (rowRange.getEndKey() != null) {
+                where = select.where(lte(keyAlias, BIND_MARKER));
+            }
 
-			if (rowRange.getStartToken() != null && rowRange.getEndToken() != null) {
+        }
+        else if (tokenIsPresent) {
+            String tokenOfKey = "token(" + keyAlias + ")";
 
-				where = select.where(gte(tokenOfKey, BIND_MARKER))
-						.and(lte(tokenOfKey, BIND_MARKER));
+            if (rowRange.getStartToken() != null && rowRange.getEndToken() != null) {
 
-			} else if (rowRange.getStartToken() != null) {
-				where = select.where(gte(tokenOfKey, BIND_MARKER));
+                where = select.where(gte(tokenOfKey, BIND_MARKER))
+                        .and(lte(tokenOfKey, BIND_MARKER));
 
-			} else if (rowRange.getEndToken() != null) {
-				where = select.where(lte(tokenOfKey, BIND_MARKER));
-			}
-		} else { 
-			where = select.where();
-		}
+            }
+            else if (rowRange.getStartToken() != null) {
+                where = select.where(gte(tokenOfKey, BIND_MARKER));
 
-		if (rowRange.getCount() > 0) {
-			// TODO: fix this
-			//where.limit(rowRange.getCount());
-		}
-		return where; 
-	}
+            }
+            else if (rowRange.getEndToken() != null) {
+                where = select.where(lte(tokenOfKey, BIND_MARKER));
+            }
+        }
+        else {
+            where = select.where();
+        }
 
-	/**
-	 * Private helper for constructing the bind values for the given row range. Note that the assumption here is that 
-	 * we have a previously constructed prepared statement that we can bind these values with. 
-	 * 
-	 * @param keyAlias
-	 * @param select
-	 * @param rowRange
-	 * @return
-	 */
-	private void bindWhereClauseForRowRange(List<Object> values, RowRange<?> rowRange) {
+        if (rowRange.getCount() > 0) {
+            // TODO: fix this
+            //where.limit(rowRange.getCount());
+        }
+        return where;
+    }
 
-		boolean keyIsPresent = false;
-		boolean tokenIsPresent = false; 
+    /**
+     * Private helper for constructing the bind values for the given row range. Note that the assumption here is that 
+     * we have a previously constructed prepared statement that we can bind these values with. 
+     * 
+     * @param keyAlias
+     * @param select
+     * @param rowRange
+     * @return
+     */
+    private void bindWhereClauseForRowRange(List<Object> values, RowRange<?> rowRange) {
 
-		if (rowRange.getStartKey() != null || rowRange.getEndKey() != null) {
-			keyIsPresent = true;
-		}
-		if (rowRange.getStartToken() != null || rowRange.getEndToken() != null) {
-			tokenIsPresent = true;
-		}
+        boolean keyIsPresent = false;
+        boolean tokenIsPresent = false;
 
-		if (keyIsPresent && tokenIsPresent) {
-			throw new RuntimeException("Cannot provide both token and keys for range query");
-		}
+        if (rowRange.getStartKey() != null || rowRange.getEndKey() != null) {
+            keyIsPresent = true;
+        }
+        if (rowRange.getStartToken() != null || rowRange.getEndToken() != null) {
+            tokenIsPresent = true;
+        }
 
-		if (keyIsPresent) {
-			if (rowRange.getStartKey() != null) {
-				values.add(rowRange.getStartKey());
-			}
-			if (rowRange.getEndKey() != null) {
-				values.add(rowRange.getEndKey());
-			}
+        if (keyIsPresent && tokenIsPresent) {
+            throw new RuntimeException("Cannot provide both token and keys for range query");
+        }
 
-		} else if (tokenIsPresent) {
+        if (keyIsPresent) {
+            if (rowRange.getStartKey() != null) {
+                values.add(rowRange.getStartKey());
+            }
+            if (rowRange.getEndKey() != null) {
+                values.add(rowRange.getEndKey());
+            }
 
-			BigInteger startTokenB = rowRange.getStartToken() != null ? new BigInteger(rowRange.getStartToken()) : null; 
-			BigInteger endTokenB = rowRange.getEndToken() != null ? new BigInteger(rowRange.getEndToken()) : null; 
+        }
+        else if (tokenIsPresent) {
 
-			Long startToken = startTokenB.longValue();
-			Long endToken = endTokenB.longValue();
-			
-			if (startToken != null && endToken != null) {
-				if (startToken != null) {
-					values.add(startToken);
-				}
-				if (endToken != null) {
-					values.add(endToken);
-				}
-			}
+            BigInteger startTokenB = rowRange.getStartToken() != null ? new BigInteger(rowRange.getStartToken()) : null;
+            BigInteger endTokenB = rowRange.getEndToken() != null ? new BigInteger(rowRange.getEndToken()) : null;
 
-			if (rowRange.getCount() > 0) {
-				// TODO: fix this
-				//where.limit(rowRange.getCount());
-			}
-			return; 
-		}
-	}
+            Long startToken = startTokenB.longValue();
+            Long endToken = endTokenB.longValue();
 
-	/**
-	 * Query generator for selecting all columns for the specified row range. 
-	 * 
-	 * Note that this object is an implementation of {@link QueryGenCache}
-	 * and hence it maintains a cached reference to the previously constructed {@link PreparedStatement} for row range queries with the same 
-	 * signature  (i.e all columns)
-	 */
-	private QueryGenCache<CqlRowSliceQueryImpl<?,?>> SelectAllColumnsForRowRange = new QueryGenCache<CqlRowSliceQueryImpl<?,?>>(sessionRef) {
+            if (startToken != null && endToken != null) {
+                if (startToken != null) {
+                    values.add(startToken);
+                }
+                if (endToken != null) {
+                    values.add(endToken);
+                }
+            }
 
-		@Override
-		public Callable<RegularStatement> getQueryGen(final CqlRowSliceQueryImpl<?, ?> rowSliceQuery) {
-			return new Callable<RegularStatement>() {
+            if (rowRange.getCount() > 0) {
+                // TODO: fix this
+                //where.limit(rowRange.getCount());
+            }
+            return;
+        }
+    }
 
-				@Override
-				public RegularStatement call() throws Exception {
-					Select select = selectAllColumnsFromKeyspaceAndCF();
-					return addWhereClauseForRowRange(partitionKeyCol, select, rowSliceQuery.getRowSlice().getRange());
-				}
-			};
-		}
+    /**
+     * Query generator for selecting all columns for the specified row range. 
+     * 
+     * Note that this object is an implementation of {@link QueryGenCache}
+     * and hence it maintains a cached reference to the previously constructed {@link PreparedStatement} for row range queries with the same 
+     * signature  (i.e all columns)
+     */
+    private QueryGenCache<CqlRowSliceQueryImpl<?, ?>> SelectAllColumnsForRowRange = new QueryGenCache<CqlRowSliceQueryImpl<?, ?>>(sessionRef) {
 
-		@Override
-		public BoundStatement bindValues(PreparedStatement pStatement, CqlRowSliceQueryImpl<?, ?> rowSliceQuery) {
+        @Override
+        public Callable<RegularStatement> getQueryGen(final CqlRowSliceQueryImpl<?, ?> rowSliceQuery) {
+            return new Callable<RegularStatement>() {
 
-			List<Object> values = new ArrayList<Object>();
-			bindWhereClauseForRowRange(values, rowSliceQuery.getRowSlice().getRange());
-			return pStatement.bind(values.toArray(new Object[values.size()])); 
-		}
-	};
-	
-	private QueryGenCache<CqlRowSliceQueryImpl<?,?>> SelectColumnSetForRowRange = new QueryGenCache<CqlRowSliceQueryImpl<?,?>>(sessionRef) {
+                @Override
+                public RegularStatement call() throws Exception {
+                    Select select = selectAllColumnsFromKeyspaceAndCF();
+                    return addWhereClauseForRowRange(partitionKeyCol, select, rowSliceQuery.getRowSlice().getRange());
+                }
+            };
+        }
 
-		@Override
-		public Callable<RegularStatement> getQueryGen(final CqlRowSliceQueryImpl<?, ?> rowSliceQuery) {
-			return new Callable<RegularStatement>() {
+        @Override
+        public BoundStatement bindValues(PreparedStatement pStatement, CqlRowSliceQueryImpl<?, ?> rowSliceQuery) {
 
-				@Override
-				public RegularStatement call() throws Exception {
-					
-					// THIS IS A QUERY WHERE THE COLUMN NAME IS DYNAMIC  E.G TIME SERIES
-					RowRange<?> range = rowSliceQuery.getRowSlice().getRange();
-					Collection<?> cols = rowSliceQuery.getColumnSlice().getColumns();
-					Object[] columns = cols.toArray(new Object[cols.size()]); 
+            List<Object> values = new ArrayList<Object>();
+            bindWhereClauseForRowRange(values, rowSliceQuery.getRowSlice().getRange());
+            return pStatement.bind(values.toArray(new Object[values.size()]));
+        }
+    };
 
-					Select select = selectAllColumnsFromKeyspaceAndCF();
+    private QueryGenCache<CqlRowSliceQueryImpl<?, ?>> SelectColumnSetForRowRange = new QueryGenCache<CqlRowSliceQueryImpl<?, ?>>(sessionRef) {
 
-					if (columns != null && columns.length > 0) {
-						select.allowFiltering();
-					}
-					Where where = addWhereClauseForRowRange(partitionKeyCol, select, range);
-					where.and(in(clusteringKeyCols.get(0).getName(), columns));
+        @Override
+        public Callable<RegularStatement> getQueryGen(final CqlRowSliceQueryImpl<?, ?> rowSliceQuery) {
+            return new Callable<RegularStatement>() {
 
-					return where;
-				}
-			};
-		}
+                @Override
+                public RegularStatement call() throws Exception {
 
-		@Override
-		public BoundStatement bindValues(PreparedStatement pStatement, CqlRowSliceQueryImpl<?, ?> rowSliceQuery) {
-			
-			List<Object> values = new ArrayList<Object>();
+                    // THIS IS A QUERY WHERE THE COLUMN NAME IS DYNAMIC  E.G TIME SERIES
+                    RowRange<?> range = rowSliceQuery.getRowSlice().getRange();
+                    Collection<?> cols = rowSliceQuery.getColumnSlice().getColumns();
+                    Object[] columns = cols.toArray(new Object[cols.size()]);
 
-			bindWhereClauseForRowRange(values, rowSliceQuery.getRowSlice().getRange());
-			values.addAll(rowSliceQuery.getColumnSlice().getColumns());
+                    Select select = selectAllColumnsFromKeyspaceAndCF();
 
-			return pStatement.bind(values.toArray());
-		}
-	};
+                    if (columns != null && columns.length > 0) {
+                        select.allowFiltering();
+                    }
+                    Where where = addWhereClauseForRowRange(partitionKeyCol, select, range);
+                    where.and(in(clusteringKeyCols.get(0).getName(), columns));
 
-	
-	/**
-	 * Query generator for selecting a specified column range with a specified row range. 
-	 * 
-	 * Note that this object is an implementation of {@link QueryGenCache}
-	 * and hence it maintains a cached reference to the previously constructed {@link PreparedStatement} for row range queries with the same 
-	 * signature  (i.e similar column range for the row range)
-	 */
-	private QueryGenCache<CqlRowSliceQueryImpl<?,?>> SelectColumnRangeForRowRange = new QueryGenCache<CqlRowSliceQueryImpl<?,?>>(sessionRef) {
+                    return where;
+                }
+            };
+        }
 
-		@Override
-		public Callable<RegularStatement> getQueryGen(final CqlRowSliceQueryImpl<?, ?> rowSliceQuery) {
-			return new Callable<RegularStatement>() {
+        @Override
+        public BoundStatement bindValues(PreparedStatement pStatement, CqlRowSliceQueryImpl<?, ?> rowSliceQuery) {
 
-				@Override
-				public RegularStatement call() throws Exception {
+            List<Object> values = new ArrayList<Object>();
 
-					Select select = selectAllColumnsFromKeyspaceAndCF();
-					
-					CqlColumnSlice<?> columnSlice = rowSliceQuery.getColumnSlice();
-					
-					if (columnSlice != null && columnSlice.isRangeQuery()) {
-						select.allowFiltering();
-					}
+            bindWhereClauseForRowRange(values, rowSliceQuery.getRowSlice().getRange());
+            values.addAll(rowSliceQuery.getColumnSlice().getColumns());
 
-					Where where = addWhereClauseForRowRange(partitionKeyCol, select, rowSliceQuery.getRowSlice().getRange());			
-					where = addWhereClauseForColumnRange(where, columnSlice);
-					return where;
-				}
-			};
-		}
+            return pStatement.bind(values.toArray());
+        }
+    };
 
-		@Override
-		public BoundStatement bindValues(PreparedStatement pStatement, CqlRowSliceQueryImpl<?, ?> rowSliceQuery) {
 
-			List<Object> values = new ArrayList<Object>();
+    /**
+     * Query generator for selecting a specified column range with a specified row range. 
+     * 
+     * Note that this object is an implementation of {@link QueryGenCache}
+     * and hence it maintains a cached reference to the previously constructed {@link PreparedStatement} for row range queries with the same 
+     * signature  (i.e similar column range for the row range)
+     */
+    private QueryGenCache<CqlRowSliceQueryImpl<?, ?>> SelectColumnRangeForRowRange = new QueryGenCache<CqlRowSliceQueryImpl<?, ?>>(sessionRef) {
 
-			bindWhereClauseForRowRange(values, rowSliceQuery.getRowSlice().getRange());
-			bindWhereClauseForColumnRange(values, rowSliceQuery.getColumnSlice());
-			
-			return pStatement.bind(values.toArray());
-		}
-	};
-	
-	/**
-	 * Query generator for selecting a specified composite column range with a specified row range. 
-	 * 
-	 * Note that this object is an implementation of {@link QueryGenCache}
-	 * and hence it maintains a cached reference to the previously constructed {@link PreparedStatement} for row range queries with the same 
-	 * signature  (i.e similar composite column range for the row range)
-	 */
-	private QueryGenCache<CqlRowSliceQueryImpl<?,?>> SelectCompositeColumnRangeForRowRange = new QueryGenCache<CqlRowSliceQueryImpl<?,?>>(sessionRef) {
+        @Override
+        public Callable<RegularStatement> getQueryGen(final CqlRowSliceQueryImpl<?, ?> rowSliceQuery) {
+            return new Callable<RegularStatement>() {
 
-		@Override
-		public Callable<RegularStatement> getQueryGen(final CqlRowSliceQueryImpl<?, ?> rowSliceQuery) {
-			return new Callable<RegularStatement>() {
+                @Override
+                public RegularStatement call() throws Exception {
 
-				@Override
-				public RegularStatement call() throws Exception {
-					Select select = selectAllColumnsFromKeyspaceAndCF();
-					CompositeByteBufferRange compositeRange = rowSliceQuery.getCompositeRange();
-					if (compositeRange != null) {
-						select.allowFiltering();
-					}
+                    Select select = selectAllColumnsFromKeyspaceAndCF();
 
-					Where where = addWhereClauseForRowRange(partitionKeyCol, select, rowSliceQuery.getRowSlice().getRange());	
-					where = addWhereClauseForCompositeColumnRange(where, compositeRange);
-					return where;
-				}
-				
-			};
-		}
+                    CqlColumnSlice<?> columnSlice = rowSliceQuery.getColumnSlice();
 
-		@Override
-		public BoundStatement bindValues(PreparedStatement pStatement, CqlRowSliceQueryImpl<?, ?> rowSliceQuery) {
+                    if (columnSlice != null && columnSlice.isRangeQuery()) {
+                        select.allowFiltering();
+                    }
 
-			List<Object> values = new ArrayList<Object>();
+                    Where where = addWhereClauseForRowRange(partitionKeyCol, select, rowSliceQuery.getRowSlice().getRange());
+                    where = addWhereClauseForColumnRange(where, columnSlice);
+                    return where;
+                }
+            };
+        }
 
-			bindWhereClauseForRowRange(values, rowSliceQuery.getRowSlice().getRange());
-			bindWhereClauseForCompositeColumnRange(values, rowSliceQuery.getCompositeRange());
+        @Override
+        public BoundStatement bindValues(PreparedStatement pStatement, CqlRowSliceQueryImpl<?, ?> rowSliceQuery) {
 
-			return pStatement.bind(values.toArray());
-		}
-	};
-	
-	/**
-	 * Main method used to generate the query for the specified row slice query. 
-	 * Note that depending on the query signature, the caller may choose to enable/disable caching
-	 * 
-	 * @param rowSliceQuery: The Astaynax query for which we need to generate a java driver query
-	 * @param useCaching: boolean condition indicating whether we should use a previously cached prepared stmt or not. 
-	 *                    If false, then the cache is ignored and we generate the prepared stmt for this query
-	 *                    If true, then the cached prepared stmt is used. If the cache has not been inited, 
-	 *                    then the prepared stmt is constructed for this query and subsequently cached
-	 *                    
-	 * @return BoundStatement: they statement for this Astyanax query
-	 */
-	public BoundStatement getQueryStatement(CqlRowSliceQueryImpl<?,?> rowSliceQuery, boolean useCaching) {
+            List<Object> values = new ArrayList<Object>();
 
-		switch (rowSliceQuery.getColQueryType()) {
+            bindWhereClauseForRowRange(values, rowSliceQuery.getRowSlice().getRange());
+            bindWhereClauseForColumnRange(values, rowSliceQuery.getColumnSlice());
 
-		case AllColumns:
-			return SelectAllColumnsForRowRange.getBoundStatement(rowSliceQuery, useCaching);
-		case ColumnSet: 
-			return SelectColumnSetForRowRange.getBoundStatement(rowSliceQuery, useCaching);
-		case ColumnRange:
-			if (isCompositeColumn) {
-				return SelectCompositeColumnRangeForRowRange.getBoundStatement(rowSliceQuery, useCaching);
-			} else {
-				return SelectColumnRangeForRowRange.getBoundStatement(rowSliceQuery, useCaching);
-			}
-		default :
-			throw new RuntimeException("RowSliceQuery with row range use case not supported.");
-		}
-	}
+            return pStatement.bind(values.toArray());
+        }
+    };
+
+    /**
+     * Query generator for selecting a specified composite column range with a specified row range. 
+     * 
+     * Note that this object is an implementation of {@link QueryGenCache}
+     * and hence it maintains a cached reference to the previously constructed {@link PreparedStatement} for row range queries with the same 
+     * signature  (i.e similar composite column range for the row range)
+     */
+    private QueryGenCache<CqlRowSliceQueryImpl<?, ?>> SelectCompositeColumnRangeForRowRange = new QueryGenCache<CqlRowSliceQueryImpl<?, ?>>(sessionRef) {
+
+        @Override
+        public Callable<RegularStatement> getQueryGen(final CqlRowSliceQueryImpl<?, ?> rowSliceQuery) {
+            return new Callable<RegularStatement>() {
+
+                @Override
+                public RegularStatement call() throws Exception {
+                    Select select = selectAllColumnsFromKeyspaceAndCF();
+                    CompositeByteBufferRange compositeRange = rowSliceQuery.getCompositeRange();
+                    if (compositeRange != null) {
+                        select.allowFiltering();
+                    }
+
+                    Where where = addWhereClauseForRowRange(partitionKeyCol, select, rowSliceQuery.getRowSlice().getRange());
+                    where = addWhereClauseForCompositeColumnRange(where, compositeRange);
+                    return where;
+                }
+
+            };
+        }
+
+        @Override
+        public BoundStatement bindValues(PreparedStatement pStatement, CqlRowSliceQueryImpl<?, ?> rowSliceQuery) {
+
+            List<Object> values = new ArrayList<Object>();
+
+            bindWhereClauseForRowRange(values, rowSliceQuery.getRowSlice().getRange());
+            bindWhereClauseForCompositeColumnRange(values, rowSliceQuery.getCompositeRange());
+
+            return pStatement.bind(values.toArray());
+        }
+    };
+
+    /**
+     * Main method used to generate the query for the specified row slice query. 
+     * Note that depending on the query signature, the caller may choose to enable/disable caching
+     * 
+     * @param rowSliceQuery: The Astaynax query for which we need to generate a java driver query
+     * @param useCaching: boolean condition indicating whether we should use a previously cached prepared stmt or not. 
+     *                    If false, then the cache is ignored and we generate the prepared stmt for this query
+     *                    If true, then the cached prepared stmt is used. If the cache has not been inited, 
+     *                    then the prepared stmt is constructed for this query and subsequently cached
+     *                    
+     * @return BoundStatement: they statement for this Astyanax query
+     */
+    public BoundStatement getQueryStatement(CqlRowSliceQueryImpl<?, ?> rowSliceQuery, boolean useCaching) {
+
+        switch (rowSliceQuery.getColQueryType()) {
+
+            case AllColumns:
+                return SelectAllColumnsForRowRange.getBoundStatement(rowSliceQuery, useCaching);
+            case ColumnSet:
+                return SelectColumnSetForRowRange.getBoundStatement(rowSliceQuery, useCaching);
+            case ColumnRange:
+                if (isCompositeColumn) {
+                    return SelectCompositeColumnRangeForRowRange.getBoundStatement(rowSliceQuery, useCaching);
+                }
+                else {
+                    return SelectColumnRangeForRowRange.getBoundStatement(rowSliceQuery, useCaching);
+                }
+            default :
+                throw new RuntimeException("RowSliceQuery with row range use case not supported.");
+        }
+    }
 }

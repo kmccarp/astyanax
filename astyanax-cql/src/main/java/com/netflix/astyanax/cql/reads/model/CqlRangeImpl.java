@@ -32,16 +32,16 @@ import com.netflix.astyanax.query.RowQuery;
  * @param <T>
  */
 public class CqlRangeImpl<T> implements ByteBufferRange {
-	
-	private final String columnName;
-	private final T start;
+
+    private final String columnName;
+    private final T start;
     private final T end;
     private final int limit;
     private final boolean reversed;
     private int fetchSize = -1;
 
     public CqlRangeImpl(String columnName, T start, T end, int limit, boolean reversed, int fetchSize) {
-    	this.columnName = columnName;
+        this.columnName = columnName;
         this.start = start;
         this.end = end;
         this.limit = limit;
@@ -51,24 +51,24 @@ public class CqlRangeImpl<T> implements ByteBufferRange {
 
     @Override
     public ByteBuffer getStart() {
-		throw new UnsupportedOperationException("Operation not supported");
+        throw new UnsupportedOperationException("Operation not supported");
     }
 
     @Override
     public ByteBuffer getEnd() {
-		throw new UnsupportedOperationException("Operation not supported");
+        throw new UnsupportedOperationException("Operation not supported");
     }
 
     public String getColumnName() {
-    	return columnName;
+        return columnName;
     }
-    
+
     public T getCqlStart() {
-		return start;
+        return start;
     }
 
     public T getCqlEnd() {
-		return end;
+        return end;
     }
 
     @Override
@@ -80,12 +80,12 @@ public class CqlRangeImpl<T> implements ByteBufferRange {
     public int getLimit() {
         return limit;
     }
-    
+
     public int getFetchSize() {
-    	return fetchSize;
+        return fetchSize;
     }
-    
+
     public void setFetchSize(int size) {
-    	fetchSize = size;
+        fetchSize = size;
     }
 }

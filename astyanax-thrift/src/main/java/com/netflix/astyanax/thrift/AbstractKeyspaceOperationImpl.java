@@ -37,7 +37,7 @@ public abstract class AbstractKeyspaceOperationImpl<R> extends AbstractOperation
     public String getKeyspace() {
         return this.keyspaceName;
     }
-    
+
     @Override
     public ByteBuffer getRowKey() {
         return null;

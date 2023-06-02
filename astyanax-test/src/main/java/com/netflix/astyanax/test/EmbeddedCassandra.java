@@ -49,9 +49,9 @@ public class EmbeddedCassandra {
 
     private final ExecutorService service = Executors.newSingleThreadExecutor(
             new ThreadFactoryBuilder()
-                .setDaemon(true)
-                .setNameFormat("EmbeddedCassandra-%d")
-                .build());
+                    .setDaemon(true)
+                    .setNameFormat("EmbeddedCassandra-%d")
+                    .build());
 
     private final CassandraDaemon cassandra;
     private final File dataDir;
@@ -112,22 +112,22 @@ public class EmbeddedCassandra {
         LOG.info("Started cassandra deamon");
     }
 
-    public void start()  {
+    public void start() {
         Future<Object> future = service.submit(new Callable<Object>(){
-                @Override
-                public Object call() throws Exception
-                {
-                    try {
-                        cassandra.start();
-                    }
-                    catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    return null;
+            @Override
+            public Object call() throws Exception
+            {
+                try {
+                    cassandra.start();
                 }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return null;
             }
+        }
         );
-        
+
         try {
             future.get();
         } catch (InterruptedException e) {

@@ -32,24 +32,24 @@ import com.netflix.astyanax.serializers.LongSerializer;
 import com.netflix.astyanax.serializers.StringSerializer;
 
 public class LongColumnPaginationTests extends KeyspaceTests {
-	
-	public static ColumnFamily<String, Long> CF_LONGCOLUMN = ColumnFamily
+
+    public static ColumnFamily<String, Long> CF_LONGCOLUMN = ColumnFamily
             .newColumnFamily(
-                    "LongColumn1", 
+                    "LongColumn1",
                     StringSerializer.get(),
                     LongSerializer.get());
 
     @BeforeClass
-	public static void init() throws Exception {
-		initContext();
-		keyspace.createColumnFamily(CF_LONGCOLUMN, null);
-		CF_LONGCOLUMN.describe(keyspace);
-	}
+    public static void init() throws Exception {
+        initContext();
+        keyspace.createColumnFamily(CF_LONGCOLUMN, null);
+        CF_LONGCOLUMN.describe(keyspace);
+    }
 
     @AfterClass
-	public static void teardown() throws Exception {
-    	keyspace.dropColumnFamily(CF_LONGCOLUMN);
-	}
+    public static void teardown() throws Exception {
+        keyspace.dropColumnFamily(CF_LONGCOLUMN);
+    }
 
     @Test
     public void paginateLongColumns() throws Exception {
@@ -62,52 +62,52 @@ public class LongColumnPaginationTests extends KeyspaceTests {
         }
         cfmLong.putEmptyColumn(Long.MAX_VALUE, null);
         m.execute();
-        
+
         // READ BACK WITH PAGINATION
         Long column = Long.MIN_VALUE;
         ColumnList<Long> columns;
         int pageSize = 10;
         RowQuery<String, Long> query = keyspace
-        		.prepareQuery(CF_LONGCOLUMN)
-        		.getKey("A")
-        		.autoPaginate(true)
-        		.withColumnRange(
-        				new CqlRangeBuilder<Long>()
-        				.setStart(column)
-        				.setFetchSize(pageSize).build());
+                .prepareQuery(CF_LONGCOLUMN)
+                .getKey("A")
+                .autoPaginate(true)
+                .withColumnRange(
+                        new CqlRangeBuilder<Long>()
+                                .setStart(column)
+                                .setFetchSize(pageSize).build());
 
         int pageCount = 0;
         int colCount = 0;
         while (!(columns = query.execute().getResult()).isEmpty()) {
-        	for (Column<Long> c : columns) {
-        		colCount++;
-        	}
-        	pageCount++;
+            for (Column<Long> c : columns) {
+                colCount++;
+            }
+            pageCount++;
         }
 
         Assert.assertTrue("PageCount: " + pageCount, pageCount == 3);
-        Assert.assertTrue("colCount = " + colCount,colCount == 21);
+        Assert.assertTrue("colCount = " + colCount, colCount == 21);
 
         query = keyspace
-        		.prepareQuery(CF_LONGCOLUMN)
-        		.getKey("A")
-        		.autoPaginate(true)
-        		.withColumnRange(
-        				new CqlRangeBuilder<Long>()
-        				.setStart(-5L)
-        				.setEnd(11L)
-        				.setFetchSize(pageSize).build());
+                .prepareQuery(CF_LONGCOLUMN)
+                .getKey("A")
+                .autoPaginate(true)
+                .withColumnRange(
+                        new CqlRangeBuilder<Long>()
+                                .setStart(-5L)
+                                .setEnd(11L)
+                                .setFetchSize(pageSize).build());
 
         pageCount = 0;
         colCount = 0;
         while (!(columns = query.execute().getResult()).isEmpty()) {
-        	for (Column<Long> c : columns) {
-        		colCount++;
-        	}
-        	pageCount++;
+            for (Column<Long> c : columns) {
+                colCount++;
+            }
+            pageCount++;
         }
 
         Assert.assertTrue(pageCount == 2);
-        Assert.assertTrue("colCount = " + colCount,colCount == 15);
+        Assert.assertTrue("colCount = " + colCount, colCount == 15);
     }
 }

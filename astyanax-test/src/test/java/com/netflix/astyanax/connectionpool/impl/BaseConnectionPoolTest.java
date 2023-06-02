@@ -285,10 +285,10 @@ public abstract class BaseConnectionPoolTest {
         List<Host> ring3 = Lists.newArrayList();
 
         pool.setHosts(ring1);
-        Assert.assertTrue (pool.hasHost (host1));
-        Assert.assertTrue (pool.isHostUp(host1));
-        
-        Assert.assertFalse(pool.hasHost (host2));
+        Assert.assertTrue(pool.hasHost(host1));
+        Assert.assertTrue(pool.isHostUp(host1));
+
+        Assert.assertFalse(pool.hasHost(host2));
         Assert.assertFalse(pool.isHostUp(host2));
 
         try {
@@ -346,7 +346,7 @@ public abstract class BaseConnectionPoolTest {
          * MockConnectionFactory(config));
          */
         ConnectionPool<TestClient> pool = createPool();
-        
+
         Host host1 = new Host("127.0.0.1",
                 TestHostType.CONNECT_FAIL_FIRST.ordinal());
         List<Host> ring1 = Lists.newArrayList(host1);

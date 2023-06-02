@@ -35,17 +35,17 @@ import com.netflix.astyanax.serializers.ByteBufferSerializer;
  * @param <K>
  * @param <C>
  */
-public class ColumnFamily<K, C> implements Comparable<ColumnFamily<K,C>>{
+public class ColumnFamily<K, C> implements Comparable<ColumnFamily<K, C>> {
     private final String columnFamilyName;
     private final Serializer<K> keySerializer;
     private final Serializer<C> columnSerializer;
     private final Serializer<?> defaultValueSerializer;
     private final ColumnType type;
 
-    private ColumnFamilyDefinition cfDef; 
-    
+    private ColumnFamilyDefinition cfDef;
+
     private String keyAlias = "key";
-    
+
     /**
      * @param columnFamilyName
      * @param keySerializer
@@ -73,11 +73,11 @@ public class ColumnFamily<K, C> implements Comparable<ColumnFamily<K,C>>{
         this.defaultValueSerializer = defaultValueSerializer;
         this.type = ColumnType.STANDARD;
     }
-    
+
     public String getName() {
         return columnFamilyName;
     }
-    
+
     /**
      * Serializer for first level column names. This serializer does not apply
      * to sub column names.
@@ -96,7 +96,7 @@ public class ColumnFamily<K, C> implements Comparable<ColumnFamily<K,C>>{
     public Serializer<K> getKeySerializer() {
         return keySerializer;
     }
-    
+
     public Serializer<?> getDefaultValueSerializer() {
         return defaultValueSerializer;
     }
@@ -110,15 +110,15 @@ public class ColumnFamily<K, C> implements Comparable<ColumnFamily<K,C>>{
     public ColumnType getType() {
         return type;
     }
-    
+
     public void setKeyAlias(String alias) {
-    	keyAlias = alias; 
+        keyAlias = alias;
     }
 
     public String getKeyAlias() {
-    	return keyAlias;
+        return keyAlias;
     }
-    
+
     public PreparedIndexExpression<K, C> newIndexClause() {
         return new PreparedIndexExpressionImpl<K, C>(this.columnSerializer);
     }
@@ -127,7 +127,7 @@ public class ColumnFamily<K, C> implements Comparable<ColumnFamily<K,C>>{
             Serializer<C> columnSerializer) {
         return new ColumnFamily<K, C>(columnFamilyName, keySerializer, columnSerializer);
     }
-    
+
     public static <K, C> ColumnFamily<K, C> newColumnFamily(String columnFamilyName, Serializer<K> keySerializer,
             Serializer<C> columnSerializer, Serializer<?> defaultSerializer) {
         return new ColumnFamily<K, C>(columnFamilyName, keySerializer, columnSerializer, defaultSerializer);
@@ -140,17 +140,17 @@ public class ColumnFamily<K, C> implements Comparable<ColumnFamily<K,C>>{
 
     @Override
     public boolean equals(Object obj) {
-        
+
         if (this == obj) return true;
         if (obj == null) return false;
-        
+
         if (!(obj instanceof ColumnFamily))
             return false;
-        
+
         ColumnFamily other = (ColumnFamily) obj;
         return (getName() == null) ? other.getName() == null : getName().equals(other.getName());
     }
-    
+
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -158,20 +158,20 @@ public class ColumnFamily<K, C> implements Comparable<ColumnFamily<K,C>>{
         result = prime * result + ((getName() == null) ? 0 : getName().hashCode());
         return result;
     }
-    
+
     public boolean inThriftMode() {
-    	return true;
+        return true;
     }
-    
+
     public ColumnFamilyDefinition describe(Keyspace keyspace) throws ConnectionException {
-    	
-		KeyspaceDefinition ksDef = keyspace.describeKeyspace();
-		cfDef = ksDef.getColumnFamily(this.getName());
-    	return cfDef;
+
+        KeyspaceDefinition ksDef = keyspace.describeKeyspace();
+        cfDef = ksDef.getColumnFamily(this.getName());
+        return cfDef;
     }
-    
+
     public ColumnFamilyDefinition getColumnFamilyDefinition() {
-    	return cfDef;
+        return cfDef;
     }
-    
+
 }

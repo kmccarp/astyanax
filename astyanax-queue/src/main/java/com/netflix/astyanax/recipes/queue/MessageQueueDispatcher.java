@@ -41,18 +41,18 @@ import com.netflix.astyanax.recipes.locks.BusyLockException;
  */
 public class MessageQueueDispatcher {
     private static final Logger LOG = LoggerFactory.getLogger(MessageQueueDispatcher.class);
-    
-    public final static int   DEFAULT_BATCH_SIZE            = 5;
-    public final static int   DEFAULT_POLLING_INTERVAL     = 1000;
-    public final static int   DEFAULT_THREAD_COUNT          = 1;
-    public final static int   DEFAULT_CONSUMER_COUNT        = 1;
-    public final static int   DEFAULT_ACK_SIZE              = 100;
-    public final static int   DEFAULT_ACK_INTERVAL          = 100;
-    public final static int   DEFAULT_BACKLOG_SIZE          = 1000;
-    
+
+    public final static int   DEFAULT_BATCH_SIZE = 5;
+    public final static int   DEFAULT_POLLING_INTERVAL = 1000;
+    public final static int   DEFAULT_THREAD_COUNT = 1;
+    public final static int   DEFAULT_CONSUMER_COUNT = 1;
+    public final static int   DEFAULT_ACK_SIZE = 100;
+    public final static int   DEFAULT_ACK_INTERVAL = 100;
+    public final static int   DEFAULT_BACKLOG_SIZE = 1000;
+
     public static class Builder {
         private final MessageQueueDispatcher dispatcher = new MessageQueueDispatcher();
-        
+
         /**
          * Specify the message queue to use for this dispatcher
          * @param messageQueue
@@ -62,7 +62,7 @@ public class MessageQueueDispatcher {
             dispatcher.messageQueue = messageQueue;
             return this;
         }
-        
+
         /**
          * Change the number of threads reading from the queue
          * 
@@ -72,7 +72,7 @@ public class MessageQueueDispatcher {
         public Builder withThreadCount(int threadCount) {
             return withProcessorThreadCount(threadCount);
         }
-        
+
         /**
          * Specify number of threads that are processing events popped from the queue
          * @param threadCount
@@ -82,7 +82,7 @@ public class MessageQueueDispatcher {
             dispatcher.processorThreadCount = threadCount;
             return this;
         }
-        
+
         /**
          * Number of pending events to process in the backlog
          * @param size
@@ -92,7 +92,7 @@ public class MessageQueueDispatcher {
             dispatcher.backlogSize = size;
             return this;
         }
-        
+
         /**
          * Set the number of consumers that will be removing items from the 
          * queue.  This value must be less than or equal to the thread count.
@@ -103,7 +103,7 @@ public class MessageQueueDispatcher {
             dispatcher.consumerCount = consumerCount;
             return this;
         }
-        
+
         /**
          * Number of 'triggers' to read from the queue in each call.  
          * Default is 1
@@ -113,7 +113,7 @@ public class MessageQueueDispatcher {
             dispatcher.batchSize = batchSize;
             return this;
         }
-        
+
         /**
          * Flush the ack queue on this interval.
          * @param interval
@@ -123,7 +123,7 @@ public class MessageQueueDispatcher {
             dispatcher.ackInterval = TimeUnit.MILLISECONDS.convert(interval, units);
             return this;
         }
-        
+
         /**
          * Interval for polling from the queue.  
          * @param interval
@@ -133,7 +133,7 @@ public class MessageQueueDispatcher {
             dispatcher.pollingInterval = TimeUnit.MILLISECONDS.convert(interval, units);
             return this;
         }
-        
+
         /**
          * Callback to process messages.  The callback is called from any of the internal processing
          * threads and is therefore not thread safe.
@@ -145,7 +145,7 @@ public class MessageQueueDispatcher {
             dispatcher.callback = callback;
             return this;
         }
-        
+
         /**
          * Provide a message handler factory to use when creating tasks.
          * @param factory
@@ -155,22 +155,22 @@ public class MessageQueueDispatcher {
             dispatcher.handlerFactory = factory;
             return this;
         }
-        
+
         public MessageQueueDispatcher build() {
             Preconditions.checkArgument(dispatcher.consumerCount <= dispatcher.processorThreadCount, "consumerCounter must be <= threadCount");
             dispatcher.initialize();
             return dispatcher;
         }
     }
-    
-    private int             processorThreadCount   = DEFAULT_THREAD_COUNT;
-    private int             batchSize     = DEFAULT_BATCH_SIZE;
+
+    private int             processorThreadCount = DEFAULT_THREAD_COUNT;
+    private int             batchSize = DEFAULT_BATCH_SIZE;
     private int             consumerCount = DEFAULT_CONSUMER_COUNT;
-    private int             ackSize       = DEFAULT_ACK_SIZE;
-    private long            ackInterval   = DEFAULT_ACK_INTERVAL;
-    private int             backlogSize   = DEFAULT_BACKLOG_SIZE;
+    private int             ackSize = DEFAULT_ACK_SIZE;
+    private long            ackInterval = DEFAULT_ACK_INTERVAL;
+    private int             backlogSize = DEFAULT_BACKLOG_SIZE;
     private long            pollingInterval = DEFAULT_POLLING_INTERVAL;
-    private boolean         terminate     = false;
+    private boolean         terminate = false;
     private MessageQueue    messageQueue;
     private ExecutorService executor;
     private MessageConsumer ackConsumer;
@@ -178,46 +178,46 @@ public class MessageQueueDispatcher {
     private MessageHandlerFactory handlerFactory;
     private LinkedBlockingQueue<MessageContext> toAck = Queues.newLinkedBlockingQueue();
     private LinkedBlockingQueue<MessageContext> toProcess = Queues.newLinkedBlockingQueue(500);
-    
+
     private MessageQueueDispatcher() {
     }
-    
+
     private void initialize() {
         Preconditions.checkNotNull(messageQueue, "Must specify message queue");
-        
+
         if (this.handlerFactory == null)
             this.handlerFactory = new SimpleMessageHandlerFactory();
         toProcess = Queues.newLinkedBlockingQueue(backlogSize);
     }
-    
+
     public void start() {
         executor = Executors.newScheduledThreadPool(processorThreadCount + consumerCount + 1);
-        
+
         startAckThread();
-        
+
         for (int i = 0; i < consumerCount; i++) {
             startConsumer(i);
         }
-        
+
         for (int i = 0; i < processorThreadCount; i++) {
             startProcessor(i);
         }
     }
-    
+
     public void stop() {
         terminate = true;
         executor.shutdownNow();
     }
-    
+
     private void startAckThread() {
         ackConsumer = messageQueue.createConsumer();
-        
+
         executor.submit(new Runnable() {
             @Override
             public void run() {
                 String name = StringUtils.join(Lists.newArrayList(messageQueue.getName(), "Ack"), ":");
                 Thread.currentThread().setName(name);
-                
+
                 while (!terminate) {
                     try {
                         List<MessageContext> messages = Lists.newArrayList();
@@ -234,7 +234,7 @@ public class MessageQueueDispatcher {
                     catch (Throwable t) {
                         LOG.info("Error acking messages", t);
                     }
-                    
+
                     try {
                         Thread.sleep(ackInterval);
                     } catch (InterruptedException e) {
@@ -245,17 +245,17 @@ public class MessageQueueDispatcher {
             }
         });
     }
-    
+
     private void startConsumer(final int id) {
         executor.submit(new Runnable() {
             @Override
             public void run() {
                 String name = StringUtils.join(Lists.newArrayList(messageQueue.getName(), "Consumer", Integer.toString(id)), ":");
                 Thread.currentThread().setName(name);
-                
+
                 // Create the consumer context
                 final MessageConsumer consumer = messageQueue.createConsumer();
-                
+
                 while (!terminate) {
                     // Process events in a tight loop, until asked to terminate
                     Collection<MessageContext> messages = null;
@@ -269,7 +269,7 @@ public class MessageQueueDispatcher {
                                 toProcess.put(context);
                             }
                         }
-                    } 
+                    }
                     catch (BusyLockException e) {
                         try {
                             Thread.sleep(pollingInterval);
@@ -285,7 +285,7 @@ public class MessageQueueDispatcher {
             }
         });
     }
-    
+
     private void startProcessor(final int id) {
         executor.submit(new Runnable() {
             @Override
@@ -305,7 +305,7 @@ public class MessageQueueDispatcher {
                             Thread.currentThread().interrupt();
                             return;
                         }
-                        
+
                         // Process the message
                         Message message = context.getMessage();
                         try {
@@ -318,7 +318,7 @@ public class MessageQueueDispatcher {
                                 }
                                 continue;
                             }
-                            
+
                             // Use default callback
                             if (callback.apply(context)) {
                                 context.setStatus(MessageStatus.DONE);

@@ -43,7 +43,7 @@ public interface MessageConsumer {
      * @return
      */
     List<MessageContext> readMessages(int itemsToRead, long timeout, TimeUnit units) throws MessageQueueException, BusyLockException, InterruptedException;
-    
+
     /**
      * Read messages from a known shard
      * 
@@ -54,7 +54,7 @@ public interface MessageConsumer {
      * @throws MessageQueueException 
      */
     List<MessageContext> readMessagesFromShard(String shard, int itemsToRead) throws MessageQueueException, BusyLockException;
-    
+
     /**
      * Peek into messages from the queue.  The queue state is not altered by this operation.
      * @param itemsToPop
@@ -83,5 +83,5 @@ public interface MessageConsumer {
      * @param message
      */
     void ackPoisonMessage(MessageContext message) throws MessageQueueException;
-    
+
 }

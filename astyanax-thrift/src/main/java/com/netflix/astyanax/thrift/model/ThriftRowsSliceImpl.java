@@ -42,15 +42,15 @@ import com.netflix.astyanax.model.Rows;
  */
 public class ThriftRowsSliceImpl<K, C> implements Rows<K, C> {
 
-    private List<Row<K,C>>   rows;
-    private Map<K, Row<K,C>> lookup;
+    private List<Row<K, C>>   rows;
+    private Map<K, Row<K, C>> lookup;
 
     public ThriftRowsSliceImpl(List<KeySlice> rows, Serializer<K> keySer, Serializer<C> colSer) {
-        this.rows   = Lists.newArrayListWithCapacity(rows.size());
-        
+        this.rows = Lists.newArrayListWithCapacity(rows.size());
+
         for (KeySlice row : rows) {
-            Row<K,C> thriftRow = new ThriftRowImpl<K, C>(
-                    keySer.fromBytes(row.getKey()), 
+            Row<K, C> thriftRow = new ThriftRowImpl<K, C>(
+                    keySer.fromBytes(row.getKey()),
                     ByteBuffer.wrap(row.getKey()),
                     new ThriftColumnOrSuperColumnListImpl<C>(row.getColumns(), colSer));
             this.rows.add(thriftRow);
@@ -85,19 +85,19 @@ public class ThriftRowsSliceImpl<K, C> implements Rows<K, C> {
 
     @Override
     public Collection<K> getKeys() {
-        return Lists.transform(rows, new Function<Row<K,C>, K>() {
+        return Lists.transform(rows, new Function<Row<K, C>, K>() {
             @Override
             public K apply(Row<K, C> row) {
                 return row.getKey();
             }
         });
     }
-    
+
     private void lazyBuildLookup() {
         if (lookup == null) {
             this.lookup = Maps.newHashMap();
-            for (Row<K,C> row : rows) {
-                this.lookup.put(row.getKey(),  row);
+            for (Row<K, C> row : rows) {
+                this.lookup.put(row.getKey(), row);
             }
         }
     }

@@ -37,84 +37,84 @@ import com.datastax.driver.core.Session;
  * @param <Q>
  */
 public abstract class QueryGenCache<Q> {
-	
-	private static final Logger LOG = LoggerFactory.getLogger(QueryGenCache.class);
 
-	// reference to the session object. This is required for "preparing" a statement
-	private AtomicReference<Session> sessionRef = new AtomicReference<Session>(null); 
-	// The cached reference to the query constructed by extending classes
-	private final AtomicReference<PreparedStatement> cachedStatement = new AtomicReference<PreparedStatement>(null);
+    private static final Logger LOG = LoggerFactory.getLogger(QueryGenCache.class);
 
-	/**
-	 * Constructor
-	 * @param sessionR
-	 */
-	public QueryGenCache(AtomicReference<Session> sessionR) {
-		this.sessionRef = sessionR;
-	}
+    // reference to the session object. This is required for "preparing" a statement
+    private AtomicReference<Session> sessionRef = new AtomicReference<Session>(null);
+    // The cached reference to the query constructed by extending classes
+    private final AtomicReference<PreparedStatement> cachedStatement = new AtomicReference<PreparedStatement>(null);
 
-	/**
-	 * Get the bound statement from the prepared statement
-	 * @param query
-	 * @param useCaching
-	 * @return BoundStatement
-	 */
-	public BoundStatement getBoundStatement(Q query, boolean useCaching) {
+    /**
+     * Constructor
+     * @param sessionR
+     */
+    public QueryGenCache(AtomicReference<Session> sessionR) {
+        this.sessionRef = sessionR;
+    }
 
-		PreparedStatement pStatement = getPreparedStatement(query, useCaching);
-		return bindValues(pStatement, query);
-	}
+    /**
+     * Get the bound statement from the prepared statement
+     * @param query
+     * @param useCaching
+     * @return BoundStatement
+     */
+    public BoundStatement getBoundStatement(Q query, boolean useCaching) {
 
-	/**
-	 * Get the bound statemnent by either constructing the query or using the cached statement underneath.
-	 * Note that the caller can provide useCaching as a knob to turn caching ON/OFF. 
-	 * If false, then the query is just constructed using the extending class and returned. 
-	 * If true, then the cached reference is consulted. If the cache is empty, then the query is constructed
-	 * and used to seed the cache. 
-	 * 
-	 * @param query
-	 * @param useCaching
-	 * @return PreparedStatement
-	 */
-	public PreparedStatement getPreparedStatement(Q query, boolean useCaching) {
+        PreparedStatement pStatement = getPreparedStatement(query, useCaching);
+        return bindValues(pStatement, query);
+    }
 
-		PreparedStatement pStatement = null;
+    /**
+     * Get the bound statemnent by either constructing the query or using the cached statement underneath.
+     * Note that the caller can provide useCaching as a knob to turn caching ON/OFF. 
+     * If false, then the query is just constructed using the extending class and returned. 
+     * If true, then the cached reference is consulted. If the cache is empty, then the query is constructed
+     * and used to seed the cache. 
+     * 
+     * @param query
+     * @param useCaching
+     * @return PreparedStatement
+     */
+    public PreparedStatement getPreparedStatement(Q query, boolean useCaching) {
 
-		if (useCaching) {
-			pStatement = cachedStatement.get();
-		}
+        PreparedStatement pStatement = null;
 
-		if (pStatement == null) {
-			try {
-				RegularStatement stmt = getQueryGen(query).call();
-				if (LOG.isDebugEnabled()) {
-					LOG.debug("Query: " + stmt.getQueryString());
-				}
-				pStatement = sessionRef.get().prepare(stmt.getQueryString());
-			} catch (Exception e) {
-				throw new RuntimeException(e);
-			}
-		}
+        if (useCaching) {
+            pStatement = cachedStatement.get();
+        }
 
-		if (useCaching && cachedStatement.get() == null) {
-			cachedStatement.set(pStatement);
-		}
-		return pStatement;
-	}
-	
-	/**
-	 * Extending classes must implement this with logic for constructing the java driver query from the given Astyanax query
-	 * @param query
-	 * @return Callable<RegularStatement>
-	 */
-	public abstract Callable<RegularStatement> getQueryGen(Q query);
+        if (pStatement == null) {
+            try {
+                RegularStatement stmt = getQueryGen(query).call();
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Query: " + stmt.getQueryString());
+                }
+                pStatement = sessionRef.get().prepare(stmt.getQueryString());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
 
-	/**
-	 * Extending classes must implement this with logic for binding the right Astyanax query data with the pre-constructed
-	 * prepared statement in the right order.
-	 * @param pStatement
-	 * @param query
-	 * @return BoundStatement
-	 */ 
-	public abstract BoundStatement bindValues(PreparedStatement pStatement, Q query);
+        if (useCaching && cachedStatement.get() == null) {
+            cachedStatement.set(pStatement);
+        }
+        return pStatement;
+    }
+
+    /**
+     * Extending classes must implement this with logic for constructing the java driver query from the given Astyanax query
+     * @param query
+     * @return Callable<RegularStatement>
+     */
+    public abstract Callable<RegularStatement> getQueryGen(Q query);
+
+    /**
+     * Extending classes must implement this with logic for binding the right Astyanax query data with the pre-constructed
+     * prepared statement in the right order.
+     * @param pStatement
+     * @param query
+     * @return BoundStatement
+     */ 
+    public abstract BoundStatement bindValues(PreparedStatement pStatement, Q query);
 }

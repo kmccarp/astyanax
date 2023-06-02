@@ -101,7 +101,7 @@ class MessageConsumerImpl implements MessageConsumer {
 
     @Override
     public List<MessageContext> readMessagesFromShard(String shardName, int itemsToPop) throws MessageQueueException, BusyLockException {
-        if(queue.lockManager != null) {
+        if (queue.lockManager != null) {
             return readMessagesFromShardUsingLockManager(shardName, itemsToPop);
         }
         return readMessagesFromShardUsingDefaultLock(shardName, itemsToPop);
@@ -142,11 +142,11 @@ class MessageConsumerImpl implements MessageConsumer {
             // 2. Read back lock columns and entries
             ColumnList<MessageQueueEntry> result = queue.keyspace.prepareQuery(queue.queueColumnFamily).setConsistencyLevel(queue.consistencyLevel).getKey(shardName)
                     .withColumnRange(ShardedDistributedMessageQueue.entrySerializer
-                                                                                   .buildRange()
-                                                                                   .greaterThanEquals((byte) MessageQueueEntryType.Lock.ordinal())
-                                                                                   .lessThanEquals((byte) MessageQueueEntryType.Lock.ordinal())
-                                                                                   .build()
-                                                                   )
+                            .buildRange()
+                            .greaterThanEquals((byte) MessageQueueEntryType.Lock.ordinal())
+                            .lessThanEquals((byte) MessageQueueEntryType.Lock.ordinal())
+                            .build()
+                    )
                     .execute()
                     .getResult();
             m = queue.keyspace.prepareMutationBatch().setConsistencyLevel(queue.consistencyLevel);
@@ -163,9 +163,11 @@ class MessageConsumerImpl implements MessageConsumer {
                     if (column.getLongValue() < curTimeMicros) {
                         queue.stats.incExpiredLockCount();
                         rowMutation.deleteColumn(lock);
-                    } else if (lock.getState() == MessageQueueEntryState.Acquired) {
+                    }
+                    else if (lock.getState() == MessageQueueEntryState.Acquired) {
                         throw new BusyLockException("Not first lock");
-                    } else {
+                    }
+                    else {
                         lockCount++;
                         if (lockCount == 1 && lock.getTimestamp().equals(lockColumn.getTimestamp())) {
                             lockAcquired = true;
@@ -279,30 +281,31 @@ class MessageConsumerImpl implements MessageConsumer {
     }
 
     private List<MessageContext> readMessagesInternal(String shardName,
-                                                      int itemsToPop,
-                                                      int lockColumnCount,
-                                                      MessageQueueEntry lockColumn,
-                                                      ColumnListMutation<MessageQueueEntry> rowMutation,
-                                                      MutationBatch m,
-                                                      long curTimeMicros) throws BusyLockException, MessageQueueException {
+            int itemsToPop,
+            int lockColumnCount,
+            MessageQueueEntry lockColumn,
+            ColumnListMutation<MessageQueueEntry> rowMutation,
+            MutationBatch m,
+            long curTimeMicros) throws BusyLockException, MessageQueueException {
 
         try {
             List<MessageContext> entries = Lists.newArrayList();
             RangeEndpoint re = ShardedDistributedMessageQueue.entrySerializer
-                                              .makeEndpoint((byte) MessageQueueEntryType.Message.ordinal(), Equality.EQUAL)
-                                              .append((byte) 0, Equality.EQUAL);
-            if(lockColumn!=null) {
+                    .makeEndpoint((byte) MessageQueueEntryType.Message.ordinal(), Equality.EQUAL)
+                    .append((byte) 0, Equality.EQUAL);
+            if (lockColumn != null) {
                 re.append(lockColumn.getTimestamp(), Equality.LESS_THAN_EQUALS);
-            } else {
+            }
+            else {
                 re.append(TimeUUIDUtils.getMicrosTimeUUID(curTimeMicros), Equality.LESS_THAN_EQUALS);
             }
 
             ColumnList<MessageQueueEntry> result = queue.keyspace.prepareQuery(queue.queueColumnFamily)
                     .setConsistencyLevel(queue.consistencyLevel).getKey(shardName).
                     withColumnRange(new RangeBuilder()
-                                        .setLimit(itemsToPop + (lockColumn == null? 0:(lockColumnCount + 1)))
-                                        .setEnd(re.toBytes())
-                                        .build()).execute().getResult();
+                    .setLimit(itemsToPop + (lockColumn == null ? 0 : (lockColumnCount + 1)))
+                    .setEnd(re.toBytes())
+                    .build()).execute().getResult();
             for (Column<MessageQueueEntry> column : result) {
                 if (itemsToPop == 0) {
                     break;
@@ -319,143 +322,147 @@ class MessageConsumerImpl implements MessageConsumer {
                         }
                         break;
                     case Message:
-                        {
-                            try {
-                                itemsToPop--;
-                                // First, we always want to remove the old item
-                                String messageId = queue.getCompositeKey(shardName, entry.getMessageId());
-                                rowMutation.deleteColumn(entry);
-                                // Next, parse the message metadata and add a timeout entry
-                                final Message message = queue.extractMessageFromColumn(column);
-                                // Update the message state
-                                if (message != null) {
-                                    MessageContext context = new MessageContext();
-                                    context.setMessage(message);
-                                    // Message has a trigger so we need to figure out if it is an
-                                    // unfinished repeating trigger and re-add it.
-                                    if (message.hasTrigger()) {
-                                        // Read back all messageIds associated with this key and check to see if we have duplicates.
-                                        String groupRowKey = queue.getCompositeKey(queue.getName(), message.getKey());
-                                        try {
-                                            // Use consistency level
-                                            ColumnList<MessageMetadataEntry> columns = queue.keyspace.prepareQuery(queue.keyIndexColumnFamily).getRow(groupRowKey).withColumnRange(ShardedDistributedMessageQueue.metadataSerializer.buildRange().greaterThanEquals((byte) MessageMetadataEntryType.MessageId.ordinal()).lessThanEquals((byte) MessageMetadataEntryType.MessageId.ordinal()).build()).execute().getResult();
-                                            MessageMetadataEntry mostRecentMessageMetadata = null;
-                                            long mostRecentTriggerTime = 0;
-                                            for (Column<MessageMetadataEntry> currMessageEntry : columns) {
-                                                MessageQueueEntry pendingMessageEntry = MessageQueueEntry.fromMetadata(currMessageEntry.getName());
-                                                if (currMessageEntry.getTtl() == 0) {
-                                                    long currMessageTriggerTime = pendingMessageEntry.getTimestamp(TimeUnit.MICROSECONDS);
-                                                    // First message we found, so treat as the most recent
-                                                    if (mostRecentMessageMetadata == null) {
-                                                        mostRecentMessageMetadata = currMessageEntry.getName();
+                    {
+                        try {
+                            itemsToPop--;
+                            // First, we always want to remove the old item
+                            String messageId = queue.getCompositeKey(shardName, entry.getMessageId());
+                            rowMutation.deleteColumn(entry);
+                            // Next, parse the message metadata and add a timeout entry
+                            final Message message = queue.extractMessageFromColumn(column);
+                            // Update the message state
+                            if (message != null) {
+                                MessageContext context = new MessageContext();
+                                context.setMessage(message);
+                                // Message has a trigger so we need to figure out if it is an
+                                // unfinished repeating trigger and re-add it.
+                                if (message.hasTrigger()) {
+                                    // Read back all messageIds associated with this key and check to see if we have duplicates.
+                                    String groupRowKey = queue.getCompositeKey(queue.getName(), message.getKey());
+                                    try {
+                                        // Use consistency level
+                                        ColumnList<MessageMetadataEntry> columns = queue.keyspace.prepareQuery(queue.keyIndexColumnFamily).getRow(groupRowKey).withColumnRange(ShardedDistributedMessageQueue.metadataSerializer.buildRange().greaterThanEquals((byte) MessageMetadataEntryType.MessageId.ordinal()).lessThanEquals((byte) MessageMetadataEntryType.MessageId.ordinal()).build()).execute().getResult();
+                                        MessageMetadataEntry mostRecentMessageMetadata = null;
+                                        long mostRecentTriggerTime = 0;
+                                        for (Column<MessageMetadataEntry> currMessageEntry : columns) {
+                                            MessageQueueEntry pendingMessageEntry = MessageQueueEntry.fromMetadata(currMessageEntry.getName());
+                                            if (currMessageEntry.getTtl() == 0) {
+                                                long currMessageTriggerTime = pendingMessageEntry.getTimestamp(TimeUnit.MICROSECONDS);
+                                                // First message we found, so treat as the most recent
+                                                if (mostRecentMessageMetadata == null) {
+                                                    mostRecentMessageMetadata = currMessageEntry.getName();
+                                                    mostRecentTriggerTime = currMessageTriggerTime;
+                                                }
+                                                else {
+                                                    // This message's trigger time is after what we thought was the most recent.
+                                                    // Discard the previous 'most' recent and accept this one instead
+                                                    if (currMessageTriggerTime > mostRecentTriggerTime) {
+                                                        LOG.warn("Need to discard : " + entry.getMessageId() + " => " + mostRecentMessageMetadata.getName());
+                                                        m.withRow(queue.keyIndexColumnFamily,
+                                                                queue.getCompositeKey(queue.getName(), message.getKey())).putEmptyColumn(mostRecentMessageMetadata, queue.metadataDeleteTTL);
                                                         mostRecentTriggerTime = currMessageTriggerTime;
-                                                    } else {
-                                                        // This message's trigger time is after what we thought was the most recent.
-                                                        // Discard the previous 'most' recent and accept this one instead
-                                                        if (currMessageTriggerTime > mostRecentTriggerTime) {
-                                                            LOG.warn("Need to discard : " + entry.getMessageId() + " => " + mostRecentMessageMetadata.getName());
-                                                            m.withRow(queue.keyIndexColumnFamily,
-                                                                    queue.getCompositeKey(queue.getName(), message.getKey())).putEmptyColumn(mostRecentMessageMetadata, queue.metadataDeleteTTL);
-                                                            mostRecentTriggerTime = currMessageTriggerTime;
-                                                            mostRecentMessageMetadata = currMessageEntry.getName();
-                                                        } else {
-                                                            LOG.warn("Need to discard : " + entry.getMessageId() + " => " + currMessageEntry.getName());
-                                                            m.withRow(queue.keyIndexColumnFamily,
-                                                                    queue.getCompositeKey(queue.getName(), message.getKey())).putEmptyColumn(currMessageEntry.getName(), queue.metadataDeleteTTL);
-                                                        }
+                                                        mostRecentMessageMetadata = currMessageEntry.getName();
+                                                    }
+                                                    else {
+                                                        LOG.warn("Need to discard : " + entry.getMessageId() + " => " + currMessageEntry.getName());
+                                                        m.withRow(queue.keyIndexColumnFamily,
+                                                                queue.getCompositeKey(queue.getName(), message.getKey())).putEmptyColumn(currMessageEntry.getName(), queue.metadataDeleteTTL);
                                                     }
                                                 }
                                             }
-                                            if (mostRecentMessageMetadata != null) {
-                                                if (!mostRecentMessageMetadata.getName().endsWith(entry.getMessageId())) {
-                                                    throw new DuplicateMessageException("Duplicate trigger for " + messageId);
-                                                }
-                                            }
-                                        } catch (NotFoundException e) {
-                                        } catch (ConnectionException e) {
-                                            throw new MessageQueueException("Error fetching row " + groupRowKey, e);
                                         }
-                                        // Update the trigger
-                                        final Message nextMessage;
-                                        Trigger trigger = message.getTrigger().nextTrigger();
-                                        if (trigger != null) {
-                                            nextMessage = message.clone();
-                                            nextMessage.setTrigger(trigger);
-                                            context.setNextMessage(nextMessage);
-                                            if (message.isAutoCommitTrigger()) {
-                                                queue.fillMessageMutation(m, nextMessage);
+                                        if (mostRecentMessageMetadata != null) {
+                                            if (!mostRecentMessageMetadata.getName().endsWith(entry.getMessageId())) {
+                                                throw new DuplicateMessageException("Duplicate trigger for " + messageId);
                                             }
                                         }
+                                    } catch (NotFoundException e) {
+                                    } catch (ConnectionException e) {
+                                        throw new MessageQueueException("Error fetching row " + groupRowKey, e);
                                     }
-                                    // Message has a key so we remove this item from the messages by key index.
-                                    // A timeout item will be added later
-                                    if (message.hasKey()) {
-                                        m.withRow(queue.keyIndexColumnFamily,
-                                                queue.getCompositeKey(queue.getName(), message.getKey()))
-                                                .putEmptyColumn(MessageMetadataEntry.newMessageId(messageId), queue.metadataDeleteTTL);
-                                        LOG.debug("Removing from key  :  " + queue.getCompositeKey(queue.getName(), message.getKey()) + " : " + messageId);
-                                        if (message.isKeepHistory()) {
-                                            MessageHistory history = context.getHistory();
-                                            history.setToken(entry.getTimestamp());
-                                            history.setStartTime(curTimeMicros);
-                                            history.setTriggerTime(message.getTrigger().getTriggerTime());
-                                            history.setStatus(MessageStatus.RUNNING);
-                                            try {
-                                                m.withRow(queue.historyColumnFamily, message.getKey()).putColumn(entry.getTimestamp(), queue.serializeToString(history)
-                                                        , queue.metadata.getHistoryTtl());
-                                            } catch (Exception e) {
-                                                LOG.warn("Error serializing history for key '" + message.getKey() + "'", e);
-                                            }
+                                    // Update the trigger
+                                    final Message nextMessage;
+                                    Trigger trigger = message.getTrigger().nextTrigger();
+                                    if (trigger != null) {
+                                        nextMessage = message.clone();
+                                        nextMessage.setTrigger(trigger);
+                                        context.setNextMessage(nextMessage);
+                                        if (message.isAutoCommitTrigger()) {
+                                            queue.fillMessageMutation(m, nextMessage);
                                         }
                                     }
-                                    // Message has a timeout so we add a timeout event.
-                                    if (message.getTimeout() > 0) {
-                                        MessageQueueEntry timeoutEntry = MessageQueueEntry.newMessageEntry((byte) 0,
-                                                TimeUUIDUtils.getMicrosTimeUUID(curTimeMicros
-                                                + TimeUnit.MICROSECONDS.convert(message.getTimeout(), TimeUnit.SECONDS)
-                                                + (queue.counter.incrementAndGet() % 1000)), MessageQueueEntryState.Busy);
-                                        message.setToken(timeoutEntry.getTimestamp());
-                                        message.setRandom(timeoutEntry.getRandom());
-                                        m.withRow(queue.queueColumnFamily, queue.getShardKey(message))
-                                                .putColumn(timeoutEntry, column.getStringValue(), queue.metadata.getRetentionTimeout());
-                                        MessageMetadataEntry messageIdEntry = MessageMetadataEntry.newMessageId(queue.getCompositeKey(queue.getShardKey(message), timeoutEntry.getMessageId()));
-                                        // Add the timeout column to the key
-                                        if (message.hasKey()) {
-                                            m.withRow(queue.keyIndexColumnFamily, queue.getCompositeKey(queue.getName(), message.getKey()))
-                                                    .putEmptyColumn(messageIdEntry, queue.metadata.getRetentionTimeout());
-                                        }
-                                        context.setAckMessageId(messageIdEntry.getName());
-                                    } else {
-                                        message.setToken(null);
-                                    }
-                                    // Update some stats
-                                    switch (entry.getState()) {
-                                        case Waiting:
-                                            queue.stats.incProcessCount();
-                                            break;
-                                        case Busy:
-                                            queue.stats.incReprocessCount();
-                                            break;
-                                        default:
-                                            LOG.warn("Unknown message state: " + entry.getState());
-                                            // TODO:
-                                            break;
-                                    }
-                                    entries.add(context);
-                                } else {
-                                    queue.stats.incInvalidMessageCount();
-                                    // TODO: Add to poison queue
                                 }
-                            } catch (DuplicateMessageException e) {
-                                // OK to ignore this error.  All the proper columns will have been deleted in the batch.
+                                // Message has a key so we remove this item from the messages by key index.
+                                // A timeout item will be added later
+                                if (message.hasKey()) {
+                                    m.withRow(queue.keyIndexColumnFamily,
+                                            queue.getCompositeKey(queue.getName(), message.getKey()))
+                                            .putEmptyColumn(MessageMetadataEntry.newMessageId(messageId), queue.metadataDeleteTTL);
+                                    LOG.debug("Removing from key  :  " + queue.getCompositeKey(queue.getName(), message.getKey()) + " : " + messageId);
+                                    if (message.isKeepHistory()) {
+                                        MessageHistory history = context.getHistory();
+                                        history.setToken(entry.getTimestamp());
+                                        history.setStartTime(curTimeMicros);
+                                        history.setTriggerTime(message.getTrigger().getTriggerTime());
+                                        history.setStatus(MessageStatus.RUNNING);
+                                        try {
+                                            m.withRow(queue.historyColumnFamily, message.getKey()).putColumn(entry.getTimestamp(), queue.serializeToString(history)
+                                            , queue.metadata.getHistoryTtl());
+                                        } catch (Exception e) {
+                                            LOG.warn("Error serializing history for key '" + message.getKey() + "'", e);
+                                        }
+                                    }
+                                }
+                                // Message has a timeout so we add a timeout event.
+                                if (message.getTimeout() > 0) {
+                                    MessageQueueEntry timeoutEntry = MessageQueueEntry.newMessageEntry((byte) 0,
+                                            TimeUUIDUtils.getMicrosTimeUUID(curTimeMicros
+                                                    + TimeUnit.MICROSECONDS.convert(message.getTimeout(), TimeUnit.SECONDS)
+                                                    + (queue.counter.incrementAndGet() % 1000)), MessageQueueEntryState.Busy);
+                                    message.setToken(timeoutEntry.getTimestamp());
+                                    message.setRandom(timeoutEntry.getRandom());
+                                    m.withRow(queue.queueColumnFamily, queue.getShardKey(message))
+                                            .putColumn(timeoutEntry, column.getStringValue(), queue.metadata.getRetentionTimeout());
+                                    MessageMetadataEntry messageIdEntry = MessageMetadataEntry.newMessageId(queue.getCompositeKey(queue.getShardKey(message), timeoutEntry.getMessageId()));
+                                    // Add the timeout column to the key
+                                    if (message.hasKey()) {
+                                        m.withRow(queue.keyIndexColumnFamily, queue.getCompositeKey(queue.getName(), message.getKey()))
+                                                .putEmptyColumn(messageIdEntry, queue.metadata.getRetentionTimeout());
+                                    }
+                                    context.setAckMessageId(messageIdEntry.getName());
+                                }
+                                else {
+                                    message.setToken(null);
+                                }
+                                // Update some stats
+                                switch (entry.getState()) {
+                                    case Waiting:
+                                        queue.stats.incProcessCount();
+                                        break;
+                                    case Busy:
+                                        queue.stats.incReprocessCount();
+                                        break;
+                                    default:
+                                        LOG.warn("Unknown message state: " + entry.getState());
+                                        // TODO:
+                                        break;
+                                }
+                                entries.add(context);
                             }
-                            break;
+                            else {
+                                queue.stats.incInvalidMessageCount();
+                                // TODO: Add to poison queue
+                            }
+                        } catch (DuplicateMessageException e) {
+                            // OK to ignore this error.  All the proper columns will have been deleted in the batch.
                         }
+                        break;
+                    }
                     default:
-                        {
-                            // TODO: Error: Unknown type
-                            break;
-                        }
+                    {
+                        // TODO: Error: Unknown type
+                        break;
+                    }
                 }
             }
             return entries;

@@ -28,7 +28,7 @@ import org.apache.thrift.TException;
 
 import com.netflix.astyanax.serializers.StringSerializer;
 
-public class ThriftCql3Query<K,C> extends AbstractThriftCqlQuery<K, C> {
+public class ThriftCql3Query<K, C> extends AbstractThriftCqlQuery<K, C> {
 
     ThriftCql3Query(ThriftColumnFamilyQueryImpl<K, C> cfQuery, String cql) {
         super(cfQuery, cql);
@@ -38,18 +38,18 @@ public class ThriftCql3Query<K,C> extends AbstractThriftCqlQuery<K, C> {
     protected org.apache.cassandra.thrift.CqlPreparedResult prepare_cql_query(Client client) throws InvalidRequestException, TException {
         return client.prepare_cql3_query(StringSerializer.get().toByteBuffer(cql), Compression.NONE);
     }
-    
+
     @Override
     protected org.apache.cassandra.thrift.CqlResult execute_prepared_cql_query(Client client, int id, List<ByteBuffer> values) throws InvalidRequestException, UnavailableException, TimedOutException, SchemaDisagreementException, TException {
         return client.execute_prepared_cql3_query(id, values, ThriftConverter.ToThriftConsistencyLevel(cl));
     }
-    
+
     @Override
     protected org.apache.cassandra.thrift.CqlResult execute_cql_query(Client client) throws InvalidRequestException, UnavailableException, TimedOutException, SchemaDisagreementException, TException {
         return client.execute_cql3_query(
-            StringSerializer.get().toByteBuffer(cql),
-            useCompression ? Compression.GZIP : Compression.NONE,
-                    ThriftConverter.ToThriftConsistencyLevel(cl));
+                StringSerializer.get().toByteBuffer(cql),
+                useCompression ? Compression.GZIP : Compression.NONE,
+                ThriftConverter.ToThriftConsistencyLevel(cl));
     }
 
 }

@@ -37,10 +37,10 @@ public class SetColumnMapper extends AbstractColumnMapper {
 
     public SetColumnMapper(Field field) {
         super(field);
-        
+
         ParameterizedType stringListType = (ParameterizedType) field.getGenericType();
         this.clazz = (Class<?>) stringListType.getActualTypeArguments()[0];
-        this.serializer       = SerializerTypeInferer.getSerializer(this.clazz);
+        this.serializer = SerializerTypeInferer.getSerializer(this.clazz);
     }
 
     @Override
@@ -51,27 +51,27 @@ public class SetColumnMapper extends AbstractColumnMapper {
     @Override
     public boolean fillMutationBatch(Object entity, ColumnListMutation<String> clm, String prefix) throws Exception {
         Set<?> set = (Set<?>) field.get(entity);
-        if(set == null) {
-            if(columnAnnotation.nullable())
+        if (set == null) {
+            if (columnAnnotation.nullable())
                 return false; // skip
             else
                 throw new IllegalArgumentException("cannot write non-nullable column with null value: " + columnName);
         }
-        
+
         for (Object entry : set) {
             clm.putEmptyColumn(prefix + columnName + "." + entry.toString(), null);
         }
         return true;
     }
-    
+
     @Override
     public boolean setField(Object entity, Iterator<String> name, com.netflix.astyanax.model.Column<String> column) throws Exception {
         Set<Object> set = (Set<Object>) field.get(entity);
         if (set == null) {
             set = Sets.newHashSet();
-            field.set(entity,  set);
+            field.set(entity, set);
         }
-        
+
         String value = name.next();
         if (name.hasNext())
             return false;

@@ -77,14 +77,14 @@ public interface ColumnDefinition {
      * @return
      */
     ColumnDefinition setKeysIndex();
-    
+
     /**
      * Enable a secondary index of custom type
      * @param type
      * @return
      */
     ColumnDefinition setIndexWithType(String type);
-    
+
     /**
      * Get the column name
      */
@@ -129,7 +129,7 @@ public interface ColumnDefinition {
      * @param defaultValue  Default value to return if option not found
      */
     String getOption(String name, String defaultValue);
-    
+
     /**
      * Set all extra options for this column.  Will override any previous values.
      * @param index_options
@@ -148,7 +148,7 @@ public interface ColumnDefinition {
      * Return list of valid field names
      */
     Collection<String> getFieldNames();
-    
+
     /**
      * Get metadata for all fields
      */
@@ -167,6 +167,6 @@ public interface ColumnDefinition {
      * @param value
      */
     ColumnDefinition setFieldValue(String name, Object value);
-    
+
     ColumnDefinition setFields(Map<String, Object> fields);
 }

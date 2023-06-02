@@ -245,7 +245,7 @@ public class ReverseIndexQuery<K, C, V> {
             @Override
             protected void internalRun() {
                 // Get the first range in the index
-            	RangeBuilder range = new RangeBuilder();
+                RangeBuilder range = new RangeBuilder();
                 if (startValue != null) {
                     range.setStart(Composites.newCompositeBuilder().greaterThanEquals().add(startValue, valSerializer)
                             .build());

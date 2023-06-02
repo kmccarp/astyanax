@@ -67,7 +67,7 @@ public class ObjectWriter implements Callable<ObjectMetadata> {
         this.ttl = ttl;
         return this;
     }
-    
+
     /**
      * additional attributes (e.g. MD5 hash of the value) 
      * that user want to save along with the meta data
@@ -175,11 +175,11 @@ public class ObjectWriter implements Callable<ObjectMetadata> {
             }
 
             ObjectMetadata objMetaData = new ObjectMetadata()
-                .setChunkCount(nChunksWritten.get())
-                .setObjectSize(nBytesWritten.get())
-                .setChunkSize(chunkSize)
-                .setTtl(ttl)
-                .setAttributes(attributes);
+                    .setChunkCount(nChunksWritten.get())
+                    .setObjectSize(nBytesWritten.get())
+                    .setChunkSize(chunkSize)
+                    .setTtl(ttl)
+                    .setAttributes(attributes);
             provider.writeMetadata(objectName, objMetaData);
             callback.onSuccess();
             return objMetaData;
@@ -211,7 +211,7 @@ public class ObjectWriter implements Callable<ObjectMetadata> {
      */
     private static int readFully(InputStream in, byte[] b, int off, int len) throws IOException {
         int total = 0;
-        for (;;) {
+        for (; ; ) {
             int got = in.read(b, off + total, len - total);
             if (got < 0) {
                 return (total == 0) ? -1 : total;

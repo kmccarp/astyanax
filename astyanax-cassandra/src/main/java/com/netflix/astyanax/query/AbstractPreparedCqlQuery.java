@@ -36,7 +36,7 @@ public abstract class AbstractPreparedCqlQuery<K, C> implements PreparedCqlQuery
     protected List<ByteBuffer> getValues() {
         return values;
     }
-    
+
     @Override
     public <V> PreparedCqlQuery<K, C> withByteBufferValue(V value, Serializer<V> serializer) {
         return withValue(serializer.toByteBuffer(value));

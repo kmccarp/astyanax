@@ -28,7 +28,7 @@ public interface ColumnMap<C> extends Iterable<Column<C>> {
      * @return
      */
     Map<C, Column<C>> asMap();
-    
+
     /**
      * Queries column by name
      * 

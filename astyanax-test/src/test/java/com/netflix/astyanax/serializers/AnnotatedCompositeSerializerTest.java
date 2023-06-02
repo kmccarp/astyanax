@@ -35,12 +35,12 @@ public class AnnotatedCompositeSerializerTest {
                 Foo2.class);
 
         Foo2 foo = new Foo2();
-        foo.bar  = Strings.repeat("b", 500);
+        foo.bar = Strings.repeat("b", 500);
         foo.test = Strings.repeat("b", 12);
 
         ByteBuffer byteBuffer = serializer.toByteBuffer(foo);
     }
-    
+
     public static class Foo2 {
         @Component(ordinal = 0)
         private Date updateTimestamp;

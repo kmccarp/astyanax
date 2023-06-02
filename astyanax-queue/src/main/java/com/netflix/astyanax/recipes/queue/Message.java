@@ -26,21 +26,21 @@ import com.netflix.astyanax.recipes.queue.triggers.Trigger;
 import com.netflix.astyanax.util.TimeUUIDUtils;
 
 public class Message {
-    
+
     private static final int DEFAULT_TIMEOUT_SECONDS = 120;
-    
+
     /**
      * Last execution time, this value changes as the task state is transitioned.  
      * The token is a timeUUID and represents the next execution/expiration time
      * within the queue.
      */
     private UUID  token;
-    
+
     /**
      * Random number associated with this message
      */
     private UUID  random;
-    
+
     /**
      * Execution time for the task in milliseconds
      */
@@ -50,17 +50,17 @@ public class Message {
      * Map of message parameters that are stored with the queued item
      */
     private Map<String, Object> parameters;
-    
+
     /**
      * Lower value priority tasks get executed first
      */
     private byte priority = 0;
-    
+
     /**
      * Timeout value in seconds
      */
     private int timeout = DEFAULT_TIMEOUT_SECONDS;
-    
+
     /**
      * Unique key for this message.
      */
@@ -80,22 +80,22 @@ public class Message {
      * True if the key is expected to be unique
      */
     private boolean hasUniqueKey = false;
-    
+
     /**
      * Set to true if next trigger should be committed when the messages is
      * popped as opposed to being sent when a messages is acked.
      */
     private boolean isAutoCommitTrigger = false;
-    
+
     public Message() {
-        
+
     }
-    
+
     public Message(UUID token, UUID random) {
         this.token = token;
         this.random = random;
     }
-    
+
     public UUID getToken() {
         return token;
     }
@@ -104,7 +104,7 @@ public class Message {
         this.token = token;
         return this;
     }
-    
+
     /**
      * Get the micros time encoded in the token
      * @return
@@ -131,11 +131,11 @@ public class Message {
         this.trigger = trigger;
         return this;
     }
-    
+
     public boolean hasTrigger() {
         return trigger != null;
     }
-    
+
     public Map<String, Object> getParameters() {
         return parameters;
     }
@@ -144,7 +144,7 @@ public class Message {
         this.parameters = parameters;
         return this;
     }
-    
+
     public Message addParameter(String key, Object value) {
         if (this.parameters == null)
             this.parameters = Maps.newHashMap();
@@ -159,7 +159,7 @@ public class Message {
     public int getTimeout() {
         return timeout;
     }
-    
+
     public boolean hasTimeout() {
         return timeout != 0;
     }
@@ -179,9 +179,9 @@ public class Message {
         this.timeout = timeout;
         return this;
     }
-    
+
     public Message setTimeout(long timeout, TimeUnit units) {
-        this.timeout = (int)TimeUnit.SECONDS.convert(timeout, units);
+        this.timeout = (int) TimeUnit.SECONDS.convert(timeout, units);
         return this;
     }
 
@@ -193,13 +193,13 @@ public class Message {
         this.key = key;
         return this;
     }
-    
+
     public Message setUniqueKey(String key) {
         this.key = key;
         this.hasUniqueKey = true;
         return this;
     }
-    
+
     public boolean hasKey() {
         return this.key != null;
     }
@@ -216,11 +216,11 @@ public class Message {
         this.taskClass = taskClass;
         return this;
     }
-    
+
     public boolean hasTaskClass() {
         return this.taskClass != null;
     }
-    
+
     public boolean isKeepHistory() {
         return isKeepHistory;
     }
@@ -229,16 +229,16 @@ public class Message {
         this.isKeepHistory = isKeepHistory;
         return this;
     }
-    
+
     public Message clone() {
         Message message = new Message();
-        message.token       = token;
-        message.trigger     = trigger;
-        message.parameters  = parameters;
-        message.priority    = priority;
-        message.timeout     = timeout;
-        message.key         = key;
-        message.taskClass   = taskClass;
+        message.token = token;
+        message.trigger = trigger;
+        message.parameters = parameters;
+        message.priority = priority;
+        message.timeout = timeout;
+        message.key = key;
+        message.taskClass = taskClass;
         message.isKeepHistory = isKeepHistory;
         return message;
     }
@@ -264,7 +264,7 @@ public class Message {
         if (trigger != null)
             sb.append(", trigger=" + trigger);
         if (parameters != null)
-            sb.append(", parameters=" + parameters);           
+            sb.append(", parameters=" + parameters);
         sb.append(", priority=" + priority);
         sb.append(", timeout=" + timeout);
         if (key != null)
@@ -275,7 +275,7 @@ public class Message {
             sb.append(", taskClass=" + taskClass);
         if (isKeepHistory)
             sb.append(", isKeepHistory=" + isKeepHistory);
-        
+
         sb.append("]");
         return sb.toString();
     }

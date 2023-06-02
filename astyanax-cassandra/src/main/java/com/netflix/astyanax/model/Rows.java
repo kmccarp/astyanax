@@ -32,7 +32,7 @@ public interface Rows<K, C> extends Iterable<Row<K, C>> {
      * @return
      */
     Collection<K> getKeys();
-    
+
     /**
      * Return the row for a specific key. Will return an exception if the result
      * set is a list and not a lookup.

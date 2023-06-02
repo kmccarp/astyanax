@@ -12,7 +12,7 @@ public final class ExponentialBackoffTest {
     public void testSleepTimeNeverNegative() throws NoSuchFieldException, IllegalAccessException {
         ExponentialBackoff backoff = new ExponentialBackoff(500, -1);
 
-        for(int i = 22; i < 1000; i++) {
+        for (int i = 22; i < 1000; i++) {
             setAttemptCount(backoff, i);
             assertTrue("Backoff at retry " + i + " was not positive", backoff.getSleepTimeMs() >= 0);
         }

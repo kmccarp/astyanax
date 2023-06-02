@@ -37,7 +37,7 @@ public class NodeDiscoveryMonitorManager {
     private static class LazyHolder {
         private static final NodeDiscoveryMonitorManager instance = new NodeDiscoveryMonitorManager();
     }
-    
+
     private HashMap<String, NodeDiscoveryMonitorMBean> monitors;
 
     private NodeDiscoveryMonitorManager() {

@@ -27,22 +27,23 @@ package com.netflix.astyanax.cql.test.utils;
  *
  */
 public class ClusterConfiguration {
-	
-    public static String TEST_CLUSTER_NAME  = "Test Cluster"; // use cass_sandbox
+
+    public static String TEST_CLUSTER_NAME = "Test Cluster"; // use cass_sandbox
     public static String TEST_KEYSPACE_NAME = "astyanaxunittests";
-    
+
     public static Driver TheDriver = Driver.JAVA_DRIVER;
+
     //public static Driver TheDriver = Driver.THRIFT;
     
     public static enum Driver {
-    	THRIFT, JAVA_DRIVER; 
+        THRIFT, JAVA_DRIVER;
     }
-    
+
     public static void setDriver(Driver driver) {
-    	TheDriver = driver;
+        TheDriver = driver;
     }
 
     public static Driver getDriver() {
-    	return TheDriver;
+        return TheDriver;
     }
 }

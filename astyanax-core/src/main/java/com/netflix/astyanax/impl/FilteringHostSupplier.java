@@ -59,10 +59,10 @@ public class FilteringHostSupplier implements Supplier<List<Host>> {
                 return sourceList;
             throw e;
         }
-        
+
         if (filterList.isEmpty())
             return sourceList;
-        
+
         // Generate a lookup of all alternate IP addresses for the hosts in the
         // filter list
         final Map<String, Host> lookup = Maps.newHashMap();
@@ -85,17 +85,17 @@ public class FilteringHostSupplier implements Supplier<List<Host>> {
                         }
                     }
                 }
-                
+
                 if (foundHost != null) {
                     host.setTokenRanges(foundHost.getTokenRanges());
                     return true;
                 }
-                
+
                 return false;
             }
         }));
-        
-        if (result.isEmpty()) 
+
+        if (result.isEmpty())
             return sourceList;
         return result;
     }

@@ -31,189 +31,189 @@ import com.netflix.astyanax.util.SingletonEmbeddedCassandra;
 
 public class ChunkedObjectRecipeTest {
 
-	private static final Logger LOG = LoggerFactory.getLogger(ChunkedObjectRecipeTest.class);
-	
-	public static ColumnFamily<String, String> CF_CHUNK = 
-			ColumnFamily.newColumnFamily("cfchunk", StringSerializer.get(), StringSerializer.get());
+    private static final Logger LOG = LoggerFactory.getLogger(ChunkedObjectRecipeTest.class);
 
-	private static final long   CASSANDRA_WAIT_TIME = 3000;
-	
-	private static final String TEST_CLUSTER_NAME  = "cass_sandbox";
-	private static final String TEST_KEYSPACE_NAME = "AstyanaxUnitTests_ChunkRecipe";
-	private static final String SEEDS = "localhost:9160";
+    public static ColumnFamily<String, String> CF_CHUNK =
+            ColumnFamily.newColumnFamily("cfchunk", StringSerializer.get(), StringSerializer.get());
 
-	/**
-	 * Interal
-	 */
-	private static Keyspace                  keyspace;
-	private static AstyanaxContext<Keyspace> keyspaceContext;
+    private static final long   CASSANDRA_WAIT_TIME = 3000;
 
-	@BeforeClass
-	public static void setup() throws Exception {
+    private static final String TEST_CLUSTER_NAME = "cass_sandbox";
+    private static final String TEST_KEYSPACE_NAME = "AstyanaxUnitTests_ChunkRecipe";
+    private static final String SEEDS = "localhost:9160";
 
-		SingletonEmbeddedCassandra.getInstance();
-		Thread.sleep(CASSANDRA_WAIT_TIME);
-		createKeyspace();
-	}
+    /**
+     * Interal
+     */
+    private static Keyspace                  keyspace;
+    private static AstyanaxContext<Keyspace> keyspaceContext;
 
-	@AfterClass
-	public static void teardown() throws Exception {
-		if (keyspaceContext != null)
-			keyspaceContext.shutdown();
+    @BeforeClass
+    public static void setup() throws Exception {
 
-		Thread.sleep(CASSANDRA_WAIT_TIME);
-	}
+        SingletonEmbeddedCassandra.getInstance();
+        Thread.sleep(CASSANDRA_WAIT_TIME);
+        createKeyspace();
+    }
 
-	public static void createKeyspace() throws Exception {
-		keyspaceContext = new AstyanaxContext.Builder()
-		.forCluster(TEST_CLUSTER_NAME)
-		.forKeyspace(TEST_KEYSPACE_NAME)
-		.withAstyanaxConfiguration(
-				new AstyanaxConfigurationImpl()
-				.setDiscoveryType(NodeDiscoveryType.RING_DESCRIBE)
-				.setConnectionPoolType(ConnectionPoolType.TOKEN_AWARE)
-				.setDiscoveryDelayInSeconds(60000))
-				.withConnectionPoolConfiguration(
-						new ConnectionPoolConfigurationImpl(TEST_CLUSTER_NAME
-								+ "_" + TEST_KEYSPACE_NAME)
-						.setSocketTimeout(30000)
-						.setMaxTimeoutWhenExhausted(2000)
-						.setMaxConnsPerHost(20)
-						.setInitConnsPerHost(10)
-						.setSeeds(SEEDS))
-						.withConnectionPoolMonitor(new CountingConnectionPoolMonitor())
-						.buildKeyspace(ThriftFamilyFactory.getInstance());
+    @AfterClass
+    public static void teardown() throws Exception {
+        if (keyspaceContext != null)
+            keyspaceContext.shutdown();
 
-		keyspaceContext.start();
-		keyspace = keyspaceContext.getClient();
+        Thread.sleep(CASSANDRA_WAIT_TIME);
+    }
 
-		try {
-			keyspace.dropKeyspace();
-		}
-		catch (Exception e) {
-			LOG.info(e.getMessage());
-		}
+    public static void createKeyspace() throws Exception {
+        keyspaceContext = new AstyanaxContext.Builder()
+                .forCluster(TEST_CLUSTER_NAME)
+                .forKeyspace(TEST_KEYSPACE_NAME)
+                .withAstyanaxConfiguration(
+                        new AstyanaxConfigurationImpl()
+                                .setDiscoveryType(NodeDiscoveryType.RING_DESCRIBE)
+                                .setConnectionPoolType(ConnectionPoolType.TOKEN_AWARE)
+                                .setDiscoveryDelayInSeconds(60000))
+                .withConnectionPoolConfiguration(
+                        new ConnectionPoolConfigurationImpl(TEST_CLUSTER_NAME
+                                + "_" + TEST_KEYSPACE_NAME)
+                                .setSocketTimeout(30000)
+                                .setMaxTimeoutWhenExhausted(2000)
+                                .setMaxConnsPerHost(20)
+                                .setInitConnsPerHost(10)
+                                .setSeeds(SEEDS))
+                .withConnectionPoolMonitor(new CountingConnectionPoolMonitor())
+                .buildKeyspace(ThriftFamilyFactory.getInstance());
 
-		keyspace.createKeyspace(ImmutableMap.<String, Object>builder()
-				.put("strategy_options", ImmutableMap.<String, Object>builder()
-						.put("replication_factor", "1")
-						.build())
-						.put("strategy_class",     "SimpleStrategy")
-						.build()
-				);
+        keyspaceContext.start();
+        keyspace = keyspaceContext.getClient();
+
+        try {
+            keyspace.dropKeyspace();
+        }
+        catch (Exception e) {
+            LOG.info(e.getMessage());
+        }
+
+        keyspace.createKeyspace(ImmutableMap.<String, Object>builder()
+                .put("strategy_options", ImmutableMap.<String, Object>builder()
+                        .put("replication_factor", "1")
+                        .build())
+                .put("strategy_class", "SimpleStrategy")
+                .build()
+        );
 
 
-		keyspace.createColumnFamily(CF_CHUNK,  null);
-	}
+        keyspace.createColumnFamily(CF_CHUNK, null);
+    }
 
-	@Test
-	public void testChunkedRecipe() throws Exception {
+    @Test
+    public void testChunkedRecipe() throws Exception {
 
-		CassandraChunkedStorageProvider provider = new CassandraChunkedStorageProvider(keyspace, CF_CHUNK);
+        CassandraChunkedStorageProvider provider = new CassandraChunkedStorageProvider(keyspace, CF_CHUNK);
 
-		StringBuilder sb = new StringBuilder();
-		for (int i=0; i<100; i++) {
-			sb.append("abcdefghijklmnopqrstuvwxyz_");
-		}
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 100; i++) {
+            sb.append("abcdefghijklmnopqrstuvwxyz_");
+        }
 
-		String input = sb.toString();
+        String input = sb.toString();
 
-		ByteArrayInputStream in = new ByteArrayInputStream(input.getBytes());
+        ByteArrayInputStream in = new ByteArrayInputStream(input.getBytes());
 
-		ObjectMetadata meta = ChunkedStorage.newWriter(provider, "MyObject", in)
-				.withChunkSize(100)
-				.call();
+        ObjectMetadata meta = ChunkedStorage.newWriter(provider, "MyObject", in)
+                .withChunkSize(100)
+                .call();
 
-		meta = ChunkedStorage.newInfoReader(provider, "MyObject").call();
-		System.out.println("Obj size: " + meta.getObjectSize().intValue());
-		System.out.println("Chunk count: " + meta.getChunkCount());
+        meta = ChunkedStorage.newInfoReader(provider, "MyObject").call();
+        System.out.println("Obj size: " + meta.getObjectSize().intValue());
+        System.out.println("Chunk count: " + meta.getChunkCount());
 
-		ByteArrayOutputStream os = new ByteArrayOutputStream(meta.getObjectSize().intValue());
+        ByteArrayOutputStream os = new ByteArrayOutputStream(meta.getObjectSize().intValue());
 
-		meta = ChunkedStorage.newReader(provider, "MyObject", os)
-				.withBatchSize(11)       // Randomize fetching blocks within a batch. 
-				.withConcurrencyLevel(3)
-				.call();
+        meta = ChunkedStorage.newReader(provider, "MyObject", os)
+                .withBatchSize(11)       // Randomize fetching blocks within a batch. 
+                .withConcurrencyLevel(3)
+                .call();
 
-		String output = os.toString();
+        String output = os.toString();
 
-		Assert.assertEquals(input, output);
+        Assert.assertEquals(input, output);
 
-		ChunkedStorage.newDeleter(provider, "MyObject").call();
+        ChunkedStorage.newDeleter(provider, "MyObject").call();
 
-		for (int i=0; i<meta.getChunkCount(); i++) {
-			ColumnList<String> result = keyspace.prepareQuery(CF_CHUNK).getKey("MyObject$" + i).execute().getResult();
-			Assert.assertTrue(result.isEmpty());
-		}
-		
-	}
-	
-	@Test
-	public void testChunkFailure() throws Exception {
+        for (int i = 0; i < meta.getChunkCount(); i++) {
+            ColumnList<String> result = keyspace.prepareQuery(CF_CHUNK).getKey("MyObject$" + i).execute().getResult();
+            Assert.assertTrue(result.isEmpty());
+        }
 
-		CassandraChunkedStorageProvider provider = new CassandraChunkedStorageProvider(keyspace, CF_CHUNK);
+    }
 
-		StringBuilder sb = new StringBuilder();
-		for (int i=0; i<100; i++) {
-			sb.append("abcdefghijklmnopqrstuvwxyz_");
-		}
+    @Test
+    public void testChunkFailure() throws Exception {
 
-		String input = sb.toString();
+        CassandraChunkedStorageProvider provider = new CassandraChunkedStorageProvider(keyspace, CF_CHUNK);
 
-		ByteArrayInputStream in = new ByteArrayInputStream(input.getBytes());
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 100; i++) {
+            sb.append("abcdefghijklmnopqrstuvwxyz_");
+        }
 
-		CallbackThatFails callback = new CallbackThatFails(26);
+        String input = sb.toString();
 
-		try {
-			ChunkedStorage.newWriter(provider, "MyObjectThatFails", in)
-				.withChunkSize(100)
-				.withCallback(callback)
-				.call();
-		Assert.fail("Should have received ex from ChunkedObjectWriter");
-		} catch (Exception e) {
-			
-		} finally {
-			Assert.assertFalse("callback.success: " + callback.success, callback.success);
-			Assert.assertTrue("callback.chunkException: " + callback.chunkException, callback.chunkException);
-			Assert.assertEquals("callback.failedChunk: " + callback.failedChunk, callback.chunkNumToFailOn, callback.failedChunk);
-		}
-	}
-	
-	private class CallbackThatFails implements ObjectWriteCallback {
-		
-		private int chunkNumToFailOn;
-		private boolean success = false;
-		private boolean chunkException = false;
-		private int failedChunk = -1;
-		
-		private CallbackThatFails(int chunk) {
-			chunkNumToFailOn = chunk;
-		}
-		
-		@Override
-		public void onSuccess() {
-			success = true;
-		}
-		
-		@Override
-		public void onFailure(Exception exception) {
-		}
-		
-		@Override
-		public void onChunkException(int chunk, Exception exception) {
-			chunkException = true;
-			failedChunk = chunk;
-		}
-		
-		@Override
-		public void onChunk(int chunk, int size) {
-			if (chunk == chunkNumToFailOn) {
-				try { 
-					Thread.sleep(500);
-				} catch (InterruptedException e) {
-				}
-				throw new RuntimeException("Failing for chunk: " + chunkNumToFailOn);
-			}
-		}
-	};
+        ByteArrayInputStream in = new ByteArrayInputStream(input.getBytes());
+
+        CallbackThatFails callback = new CallbackThatFails(26);
+
+        try {
+            ChunkedStorage.newWriter(provider, "MyObjectThatFails", in)
+                    .withChunkSize(100)
+                    .withCallback(callback)
+                    .call();
+            Assert.fail("Should have received ex from ChunkedObjectWriter");
+        } catch (Exception e) {
+
+        } finally {
+            Assert.assertFalse("callback.success: " + callback.success, callback.success);
+            Assert.assertTrue("callback.chunkException: " + callback.chunkException, callback.chunkException);
+            Assert.assertEquals("callback.failedChunk: " + callback.failedChunk, callback.chunkNumToFailOn, callback.failedChunk);
+        }
+    }
+
+    private class CallbackThatFails implements ObjectWriteCallback {
+
+        private int chunkNumToFailOn;
+        private boolean success = false;
+        private boolean chunkException = false;
+        private int failedChunk = -1;
+
+        private CallbackThatFails(int chunk) {
+            chunkNumToFailOn = chunk;
+        }
+
+        @Override
+        public void onSuccess() {
+            success = true;
+        }
+
+        @Override
+        public void onFailure(Exception exception) {
+        }
+
+        @Override
+        public void onChunkException(int chunk, Exception exception) {
+            chunkException = true;
+            failedChunk = chunk;
+        }
+
+        @Override
+        public void onChunk(int chunk, int size) {
+            if (chunk == chunkNumToFailOn) {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                }
+                throw new RuntimeException("Failing for chunk: " + chunkNumToFailOn);
+            }
+        }
+    }
 }

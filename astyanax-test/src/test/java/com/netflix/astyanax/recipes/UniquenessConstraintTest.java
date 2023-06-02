@@ -55,7 +55,7 @@ public class UniquenessConstraintTest {
                 .withConnectionPoolConfiguration(
                         new ConnectionPoolConfigurationImpl(TEST_CLUSTER_NAME)
                                 .setMaxConnsPerHost(1).setSeeds(
-                                        "localhost:7102"))
+                                "localhost:7102"))
                 .withConnectionPoolMonitor(new CountingConnectionPoolMonitor())
                 .buildCluster(ThriftFamilyFactory.getInstance());
 

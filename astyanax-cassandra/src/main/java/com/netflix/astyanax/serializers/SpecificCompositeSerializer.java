@@ -25,31 +25,31 @@ import com.netflix.astyanax.shaded.org.apache.cassandra.db.marshal.CompositeType
 import com.google.common.base.Preconditions;
 
 public class SpecificCompositeSerializer extends CompositeSerializer {
-	private final CompositeType type;
-	private List<String> comparators;
+    private final CompositeType type;
+    private List<String> comparators;
 
-	public SpecificCompositeSerializer(CompositeType type) {
-		Preconditions.checkNotNull(type);
-		this.type = type;
-		comparators = new ArrayList<String>( type.types.size() );
-		for ( AbstractType<?> compType : type.types ) {
-			String typeName = compType.toString();
-			comparators.add( ComparatorType.getShadedTypeName(typeName) );
-		}
-	}
+    public SpecificCompositeSerializer(CompositeType type) {
+        Preconditions.checkNotNull(type);
+        this.type = type;
+        comparators = new ArrayList<String>( type.types.size() );
+        for (AbstractType<?> compType : type.types) {
+            String typeName = compType.toString();
+            comparators.add(ComparatorType.getShadedTypeName(typeName));
+        }
+    }
 
-	@Override
-	public ByteBuffer fromString(String string) {
-		return type.fromString(string);
-	}
+    @Override
+    public ByteBuffer fromString(String string) {
+        return type.fromString(string);
+    }
 
-	@Override
-	public String getString(ByteBuffer byteBuffer) {
-		return type.getString(byteBuffer);
-	}
+    @Override
+    public String getString(ByteBuffer byteBuffer) {
+        return type.getString(byteBuffer);
+    }
 
-	@Override
-	public List<String> getComparators() {
-		return comparators;
-	}
+    @Override
+    public List<String> getComparators() {
+        return comparators;
+    }
 }

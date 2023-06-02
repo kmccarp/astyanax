@@ -58,7 +58,7 @@ import com.netflix.astyanax.serializers.ByteBufferOutputStream;
  */
 public abstract class AbstractThriftMutationBatchImpl implements MutationBatch {
     private static final long UNSET_TIMESTAMP = -1;
-    
+
     protected long              timestamp;
     private ConsistencyLevel    consistencyLevel;
     private Clock               clock;
@@ -69,19 +69,19 @@ public abstract class AbstractThriftMutationBatchImpl implements MutationBatch {
 
     private Map<ByteBuffer, Map<String, List<Mutation>>> mutationMap = Maps.newLinkedHashMap();
     private Map<KeyAndColumnFamily, ColumnListMutation<?>> rowLookup = Maps.newHashMap();
-    
+
     private static class KeyAndColumnFamily {
         private final String      columnFamily;
         private final ByteBuffer  key;
-        
+
         public KeyAndColumnFamily(String columnFamily, ByteBuffer key) {
             this.columnFamily = columnFamily;
             this.key = key;
         }
-        
+
         public int compareTo(Object obj) {
             if (obj instanceof KeyAndColumnFamily) {
-                KeyAndColumnFamily other = (KeyAndColumnFamily)obj;
+                KeyAndColumnFamily other = (KeyAndColumnFamily) obj;
                 int result = columnFamily.compareTo(other.columnFamily);
                 if (result == 0) {
                     result = key.compareTo(other.key);
@@ -90,7 +90,7 @@ public abstract class AbstractThriftMutationBatchImpl implements MutationBatch {
             }
             return -1;
         }
-        
+
         @Override
         public int hashCode() {
             final int prime = 31;
@@ -112,29 +112,31 @@ public abstract class AbstractThriftMutationBatchImpl implements MutationBatch {
             if (columnFamily == null) {
                 if (other.columnFamily != null)
                     return false;
-            } else if (!columnFamily.equals(other.columnFamily))
+            }
+            else if (!columnFamily.equals(other.columnFamily))
                 return false;
             if (key == null) {
                 if (other.key != null)
                     return false;
-            } else if (!key.equals(other.key))
+            }
+            else if (!key.equals(other.key))
                 return false;
             return true;
         }
     }
-    
+
     public AbstractThriftMutationBatchImpl(Clock clock, ConsistencyLevel consistencyLevel, RetryPolicy retry) {
-        this.clock            = clock;
-        this.timestamp        = UNSET_TIMESTAMP;
+        this.clock = clock;
+        this.timestamp = UNSET_TIMESTAMP;
         this.consistencyLevel = consistencyLevel;
-        this.retry            = retry;
+        this.retry = retry;
     }
 
     @Override
     public <K, C> ColumnListMutation<C> withRow(ColumnFamily<K, C> columnFamily, K rowKey) {
         Preconditions.checkNotNull(columnFamily, "columnFamily cannot be null");
         Preconditions.checkNotNull(rowKey, "Row key cannot be null");
-        
+
         // Upon adding the first row into the mutation get the latest time from the clock
         if (timestamp == UNSET_TIMESTAMP)
             timestamp = clock.getCurrentTime();
@@ -143,7 +145,7 @@ public abstract class AbstractThriftMutationBatchImpl implements MutationBatch {
         if (!bbKey.hasRemaining()) {
             throw new RuntimeException("Row key cannot be empty");
         }
-        
+
         KeyAndColumnFamily kacf = new KeyAndColumnFamily(columnFamily.getName(), bbKey);
         ColumnListMutation<C> clm = (ColumnListMutation<C>) rowLookup.get(kacf);
         if (clm == null) {
@@ -152,13 +154,13 @@ public abstract class AbstractThriftMutationBatchImpl implements MutationBatch {
                 innerMutationMap = Maps.newHashMap();
                 mutationMap.put(bbKey, innerMutationMap);
             }
-    
+
             List<Mutation> innerMutationList = innerMutationMap.get(columnFamily.getName());
             if (innerMutationList == null) {
                 innerMutationList = Lists.newArrayList();
                 innerMutationMap.put(columnFamily.getName(), innerMutationList);
             }
-            
+
             clm = new ThriftColumnFamilyMutationImpl<C>(timestamp, innerMutationList, columnFamily.getColumnSerializer());
             rowLookup.put(kacf, clm);
         }
@@ -224,9 +226,9 @@ public abstract class AbstractThriftMutationBatchImpl implements MutationBatch {
             throw new Exception("Mutation is empty");
         }
 
-        ByteBufferOutputStream out       = new ByteBufferOutputStream();
+        ByteBufferOutputStream out = new ByteBufferOutputStream();
         TIOStreamTransport     transport = new TIOStreamTransport(out);
-        batch_mutate_args      args      = new batch_mutate_args();
+        batch_mutate_args      args = new batch_mutate_args();
         args.setMutation_map(mutationMap);
 
         try {
@@ -312,25 +314,25 @@ public abstract class AbstractThriftMutationBatchImpl implements MutationBatch {
     public MutationBatch setTimestamp(long timestamp) {
         return withTimestamp(timestamp);
     }
-    
+
     @Override
     public MutationBatch withTimestamp(long timestamp) {
         this.timestamp = timestamp;
         return this;
     }
-    
+
     @Override
     public MutationBatch lockCurrentTimestamp() {
         this.timestamp = clock.getCurrentTime();
         return this;
     }
-    
+
     @Override
     public MutationBatch setConsistencyLevel(ConsistencyLevel consistencyLevel) {
         this.consistencyLevel = consistencyLevel;
         return this;
     }
-    
+
     @Override
     public MutationBatch withConsistencyLevel(ConsistencyLevel consistencyLevel) {
         this.consistencyLevel = consistencyLevel;
@@ -346,7 +348,7 @@ public abstract class AbstractThriftMutationBatchImpl implements MutationBatch {
         this.pinnedHost = host;
         return this;
     }
-    
+
     @Override
     public MutationBatch withRetryPolicy(RetryPolicy retry) {
         this.retry = retry;
@@ -358,7 +360,7 @@ public abstract class AbstractThriftMutationBatchImpl implements MutationBatch {
         this.wal = manager;
         return this;
     }
-    
+
     @Override
     public MutationBatch withAtomicBatch(boolean condition) {
         useAtomicBatch = condition;
@@ -368,7 +370,7 @@ public abstract class AbstractThriftMutationBatchImpl implements MutationBatch {
     public boolean useAtomicBatch() {
         return useAtomicBatch;
     }
-    
+
     public Host getPinnedHost() {
         return this.pinnedHost;
     }
@@ -376,7 +378,7 @@ public abstract class AbstractThriftMutationBatchImpl implements MutationBatch {
     public RetryPolicy getRetryPolicy() {
         return this.retry;
     }
-    
+
     public WriteAheadLog getWriteAheadLog() {
         return this.wal;
     }

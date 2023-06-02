@@ -122,26 +122,26 @@ public class AstyanaxContext<T> {
 
         protected <T> ConnectionPool<T> createConnectionPool(ConnectionFactory<T> connectionFactory) {
             ConnectionPool<T> connectionPool = null;
-            
+
             // HACK to get the CqlFamilyFactory working with AstyanaxContext
             if (connectionFactory.getClass().getName().contains("CqlFamilyFactory")) {
-            	return new ConnectionPoolProxy<T>(cpConfig, connectionFactory, monitor);
+                return new ConnectionPoolProxy<T>(cpConfig, connectionFactory, monitor);
             }
-            
+
             switch (asConfig.getConnectionPoolType()) {
-            	
-            case TOKEN_AWARE:
-                connectionPool = new TokenAwareConnectionPoolImpl<T>(cpConfig, connectionFactory, monitor);
-                break;
 
-            case BAG:
-                connectionPool = new BagOfConnectionsConnectionPoolImpl<T>(cpConfig, connectionFactory, monitor);
-                break;
+                case TOKEN_AWARE:
+                    connectionPool = new TokenAwareConnectionPoolImpl<T>(cpConfig, connectionFactory, monitor);
+                    break;
 
-            case ROUND_ROBIN:
-            default:
-                connectionPool = new RoundRobinConnectionPoolImpl<T>(cpConfig, connectionFactory, monitor);
-                break;
+                case BAG:
+                    connectionPool = new BagOfConnectionsConnectionPoolImpl<T>(cpConfig, connectionFactory, monitor);
+                    break;
+
+                case ROUND_ROBIN:
+                default:
+                    connectionPool = new RoundRobinConnectionPoolImpl<T>(cpConfig, connectionFactory, monitor);
+                    break;
             }
 
             if (hostSupplier != null) {
@@ -153,7 +153,7 @@ public class AstyanaxContext<T> {
 
         public <T> AstyanaxContext<Keyspace> buildKeyspace(AstyanaxTypeFactory<T> factory) {
             this.cpConfig.initialize();
-            
+
             ConnectionPool<T> cp = createConnectionPool(factory.createConnectionFactory(asConfig, cpConfig, tracerFactory,
                     monitor));
             this.cp = cp;
@@ -163,28 +163,28 @@ public class AstyanaxContext<T> {
             Supplier<List<Host>> supplier = null;
 
             switch (getNodeDiscoveryType()) {
-            case DISCOVERY_SERVICE:
-                Preconditions.checkNotNull(hostSupplier, "Missing host name supplier");
-                supplier = hostSupplier;
-                break;
+                case DISCOVERY_SERVICE:
+                    Preconditions.checkNotNull(hostSupplier, "Missing host name supplier");
+                    supplier = hostSupplier;
+                    break;
 
-            case RING_DESCRIBE:
-                supplier = new RingDescribeHostSupplier(keyspace, cpConfig.getPort(), cpConfig.getLocalDatacenter());
-                break;
-
-            case TOKEN_AWARE:
-                if (hostSupplier == null) {
+                case RING_DESCRIBE:
                     supplier = new RingDescribeHostSupplier(keyspace, cpConfig.getPort(), cpConfig.getLocalDatacenter());
-                }
-                else {
-                    supplier = new FilteringHostSupplier(new RingDescribeHostSupplier(keyspace, cpConfig.getPort(), cpConfig.getLocalDatacenter()),
-                            hostSupplier);
-                }
-                break;
+                    break;
 
-            case NONE:
-                supplier = null;
-                break;
+                case TOKEN_AWARE:
+                    if (hostSupplier == null) {
+                        supplier = new RingDescribeHostSupplier(keyspace, cpConfig.getPort(), cpConfig.getLocalDatacenter());
+                    }
+                    else {
+                        supplier = new FilteringHostSupplier(new RingDescribeHostSupplier(keyspace, cpConfig.getPort(), cpConfig.getLocalDatacenter()),
+                                hostSupplier);
+                    }
+                    break;
+
+                case NONE:
+                    supplier = null;
+                    break;
             }
 
             if (supplier != null) {
@@ -197,7 +197,7 @@ public class AstyanaxContext<T> {
 
         public <T> AstyanaxContext<Cluster> buildCluster(AstyanaxTypeFactory<T> factory) {
             this.cpConfig.initialize();
-            
+
             ConnectionPool<T> cp = createConnectionPool(factory.createConnectionFactory(asConfig, cpConfig, tracerFactory,
                     monitor));
             this.cp = cp;

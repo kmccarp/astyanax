@@ -77,7 +77,7 @@ public interface Serializer<T> {
     List<ByteBuffer> toBytesList(Collection<T> list);
 
     List<ByteBuffer> toBytesList(Iterable<T> list);
-    
+
     List<T> fromBytesList(List<ByteBuffer> list);
 
     ComparatorType getComparatorType();

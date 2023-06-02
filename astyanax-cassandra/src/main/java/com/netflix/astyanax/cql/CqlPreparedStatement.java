@@ -37,35 +37,35 @@ public interface CqlPreparedStatement extends Execution<CqlStatementResult> {
      * @return
      */
     CqlPreparedStatement withValue(ByteBuffer value);
-    
+
     /**
      * Add a list of ByteBuffer values
      * @param value
      * @return
      */
     CqlPreparedStatement withValues(List<ByteBuffer> value);
-    
+
     /**
      * Set the next parameter value to this String
      * @param value
      * @return
      */
     CqlPreparedStatement withStringValue(String value);
-    
+
     /**
      * Set the next parameter value to this Integer
      * @param value
      * @return
      */
     CqlPreparedStatement withIntegerValue(Integer value);
-    
+
     /**
      * Set the next parameter value to this Boolean
      * @param value
      * @return
      */
     CqlPreparedStatement withBooleanValue(Boolean value);
-    
+
     /**
      * Set the next parameter value to this Double
      * @param value
@@ -93,7 +93,7 @@ public interface CqlPreparedStatement extends Execution<CqlStatementResult> {
      * @return
      */
     CqlPreparedStatement withShortValue(Short value);
-    
+
     /**
      * Set the next parameter value to this UUID
      * @param value

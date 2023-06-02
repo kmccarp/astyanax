@@ -23,7 +23,7 @@ package com.netflix.astyanax.cql.reads.model;
  * @param <T>
  */
 public class CqlRangeBuilder<T> {
-	
+
     private T start = null;
     private T end = null;
     private int limit = -1;
@@ -33,13 +33,13 @@ public class CqlRangeBuilder<T> {
     private String columnName = "column1";
 
     public CqlRangeBuilder<T> withRange(CqlRangeImpl<T> oldRange) {
-    	if (oldRange != null) {
-    		this.start = oldRange.getCqlStart();
-    		this.end = oldRange.getCqlEnd();
-    		this.limit = oldRange.getLimit();
-    		this.reversed = oldRange.isReversed();
-    		this.fetchSize = oldRange.getFetchSize();
-    	}
+        if (oldRange != null) {
+            this.start = oldRange.getCqlStart();
+            this.end = oldRange.getCqlEnd();
+            this.limit = oldRange.getLimit();
+            this.reversed = oldRange.isReversed();
+            this.fetchSize = oldRange.getFetchSize();
+        }
         return this;
     }
 
@@ -49,16 +49,16 @@ public class CqlRangeBuilder<T> {
     }
 
     public int getLimit() {
-    	return this.limit;
+        return this.limit;
     }
-    
+
     public CqlRangeBuilder<T> setReversed(boolean reversed) {
         this.reversed = reversed;
         return this;
     }
-    
+
     public boolean getReversed() {
-    	return this.reversed;
+        return this.reversed;
     }
 
     public CqlRangeBuilder<T> setStart(T value) {
@@ -67,37 +67,37 @@ public class CqlRangeBuilder<T> {
     }
 
     public T getStart() {
-    	return this.start;
+        return this.start;
     }
-    
+
     public CqlRangeBuilder<T> setEnd(T value) {
         end = value;
         return this;
     }
 
     public T getEnd() {
-    	return this.end;
+        return this.end;
     }
-    
+
     public CqlRangeBuilder<T> setColumn(String name) {
-    	this.columnName = name;
-    	return this;
+        this.columnName = name;
+        return this;
     }
 
     public String getColumn() {
-    	return this.columnName;
+        return this.columnName;
     }
-    
+
     public CqlRangeBuilder<T> setFetchSize(int count) {
         this.fetchSize = count;
         return this;
     }
 
     public int getFetchSize() {
-    	return this.fetchSize;
+        return this.fetchSize;
     }
 
     public CqlRangeImpl<T> build() {
-    	return new CqlRangeImpl<T>(columnName, start, end, limit, reversed, fetchSize);
+        return new CqlRangeImpl<T>(columnName, start, end, limit, reversed, fetchSize);
     }
 }

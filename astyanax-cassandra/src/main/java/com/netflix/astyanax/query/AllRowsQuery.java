@@ -91,7 +91,7 @@ public interface AllRowsQuery<K, C> extends Execution<Rows<K, C>> {
      * @param manager
      */
     AllRowsQuery<K, C> setCheckpointManager(CheckpointManager manager);
-    
+
     /**
      * If true will repeat the last token in the previous block.
      * 
@@ -106,7 +106,7 @@ public interface AllRowsQuery<K, C> extends Execution<Rows<K, C>> {
      * @param flag
      */
     AllRowsQuery<K, C> setIncludeEmptyRows(boolean flag);
-    
+
     /**
      * Specify a non-contiguous set of columns to retrieve.
      * 
@@ -171,10 +171,10 @@ public interface AllRowsQuery<K, C> extends Execution<Rows<K, C>> {
      * @param numberOfThreads
      */
     AllRowsQuery<K, C> setConcurrencyLevel(int numberOfThreads);
-    
+
     @Deprecated
     AllRowsQuery<K, C> setThreadCount(int numberOfThreads);
-    
+
     /**
      * Execute the operation in a separate thread for each token range and
      * provide the results in a callback.
@@ -194,7 +194,7 @@ public interface AllRowsQuery<K, C> extends Execution<Rows<K, C>> {
      * @param startToken
      * @param endToken
      */
-	AllRowsQuery<K, C> forTokenRange(BigInteger startToken, BigInteger endToken);
-	
-	AllRowsQuery<K, C> forTokenRange(String startToken, String endToken);
+    AllRowsQuery<K, C> forTokenRange(BigInteger startToken, BigInteger endToken);
+
+    AllRowsQuery<K, C> forTokenRange(String startToken, String endToken);
 }

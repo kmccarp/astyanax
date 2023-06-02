@@ -22,10 +22,10 @@ public class TokenGenerator {
     public static final BigInteger MAXIMUM = new BigInteger("" + 2).pow(127);
 
     public static String initialToken(int size, int position) {
-        return TokenGenerator.initialToken(size,position,MINIMUM,MAXIMUM);
+        return TokenGenerator.initialToken(size, position, MINIMUM, MAXIMUM);
     }
 
-    public static String initialToken(int size, int position, BigInteger minInitialToken, BigInteger maxInitialToken ) {
+    public static String initialToken(int size, int position, BigInteger minInitialToken, BigInteger maxInitialToken) {
         BigInteger decValue = minInitialToken;
         if (position != 0)
             decValue = maxInitialToken.multiply(new BigInteger("" + position)).divide(new BigInteger("" + size));
@@ -40,7 +40,7 @@ public class TokenGenerator {
         bigInt = bigInt.subtract(new BigInteger("1"));
         return bigInt.toString();
     }
-    
+
     public static BigInteger tokenDifference(BigInteger startToken, BigInteger endToken) {
         if (startToken.compareTo(endToken) < 0) {
             return endToken.subtract(startToken);
@@ -49,11 +49,11 @@ public class TokenGenerator {
             return endToken.add(MAXIMUM).subtract(startToken);
         }
     }
-    
+
     public static BigInteger tokenDifference(String startToken, String endToken) {
         return tokenDifference(new BigInteger(startToken), new BigInteger(endToken));
     }
-    
+
     public static String getMaximumToken() {
         return MAXIMUM.toString();
     }

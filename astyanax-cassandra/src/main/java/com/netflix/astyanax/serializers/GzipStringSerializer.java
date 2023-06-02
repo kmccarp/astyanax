@@ -68,7 +68,7 @@ public class GzipStringSerializer extends AbstractSerializer<String> {
                     dup.array(), 0, dup.limit()));
 
             baos = new ByteArrayOutputStream();
-            for (int value = 0; value != -1;) {
+            for (int value = 0; value != -1; ) {
                 value = gzipInputStream.read();
                 if (value != -1) {
                     baos.write(value);

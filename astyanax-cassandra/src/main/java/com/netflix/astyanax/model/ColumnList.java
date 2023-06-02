@@ -35,7 +35,7 @@ public interface ColumnList<C> extends Iterable<Column<C>> {
      * Return the column names
      */
     Collection<C> getColumnNames();
-    
+
     /**
      * Queries column by name
      * 
@@ -59,7 +59,7 @@ public interface ColumnList<C> extends Iterable<Column<C>> {
      * @return
      */
     String getCompressedStringValue(C columnName, String defaultValue);
-    
+
     /**
      * Return value as an integer
      * 
@@ -111,7 +111,7 @@ public interface ColumnList<C> extends Iterable<Column<C>> {
      * @return
      */
     <T> T getValue(C columnName, Serializer<T> serializer, T defaultValue);
-    
+
     /**
      * Get the value as a date object
      * 

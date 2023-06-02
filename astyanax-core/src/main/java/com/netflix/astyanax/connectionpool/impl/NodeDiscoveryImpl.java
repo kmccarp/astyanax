@@ -42,7 +42,7 @@ import com.netflix.astyanax.connectionpool.NodeDiscovery;
  */
 public class NodeDiscoveryImpl implements NodeDiscovery {
 
-	private final ConnectionPool<?> connectionPool;
+    private final ConnectionPool<?> connectionPool;
     private final ScheduledExecutorService executor;
     private boolean bOwnedExecutor = false;
     private final int interval;
@@ -54,32 +54,32 @@ public class NodeDiscoveryImpl implements NodeDiscovery {
     private final AtomicLong errorCounter = new AtomicLong();
 
     public NodeDiscoveryImpl(
-            String name, 
-            int interval, 
+            String name,
+            int interval,
             Supplier<List<Host>> hostSupplier,
             ConnectionPool<?> connectionPool) {
-        this(name, interval, hostSupplier, connectionPool, 
-              Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setDaemon(true).build()));
-        
+        this(name, interval, hostSupplier, connectionPool,
+                Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setDaemon(true).build()));
+
         bOwnedExecutor = true;
     }
-    
+
     public NodeDiscoveryImpl(
-            String name, 
-            int interval, 
+            String name,
+            int interval,
             Supplier<List<Host>> hostSupplier,
             ConnectionPool<?> connectionPool,
             ScheduledExecutorService executor) {
         this.connectionPool = connectionPool;
-        this.interval       = interval;
-        this.hostSupplier   = hostSupplier;
-        this.name           = name;
-        this.executor       = executor;
+        this.interval = interval;
+        this.hostSupplier = hostSupplier;
+        this.name = name;
+        this.executor = executor;
     }
 
     /**
-	 * 
-	 */
+     * 
+     */
     @Override
     public void start() {
         update();
@@ -104,7 +104,7 @@ public class NodeDiscoveryImpl implements NodeDiscovery {
 
     private void update() {
         try {
-        	connectionPool.setHosts(hostSupplier.get());
+            connectionPool.setHosts(hostSupplier.get());
             refreshCounter.incrementAndGet();
             lastUpdateTime.set(new DateTime());
         }

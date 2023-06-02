@@ -57,7 +57,7 @@ public abstract class AbstractExecuteWithFailoverImpl<CL, R> implements ExecuteW
     private int attemptCounter = 0;
     private final ConnectionPoolMonitor monitor;
     protected final ConnectionPoolConfiguration config;
-    
+
     /**
      * Public constructor
      * @param config
@@ -66,53 +66,53 @@ public abstract class AbstractExecuteWithFailoverImpl<CL, R> implements ExecuteW
      */
     public AbstractExecuteWithFailoverImpl(ConnectionPoolConfiguration config, ConnectionPoolMonitor monitor)
             throws ConnectionException {
-    	this.monitor = monitor;
-    	this.config = config;
+        this.monitor = monitor;
+        this.config = config;
         startTime = poolStartTime = System.currentTimeMillis();
     }
-    
+
     /**
      * @return {@link Host}
      */
-	final public Host getCurrentHost() {
-		HostConnectionPool<CL> pool = getCurrentHostConnectionPool();
-		if (pool != null)
-			return pool.getHost();
-		else 
-			return Host.NO_HOST;
-	}
-	
-	/**
-	 * @return {@link HostConnectionPool}
-	 */
-	abstract public HostConnectionPool<CL> getCurrentHostConnectionPool();
+    final public Host getCurrentHost() {
+        HostConnectionPool<CL> pool = getCurrentHostConnectionPool();
+        if (pool != null)
+            return pool.getHost();
+        else
+            return Host.NO_HOST;
+    }
 
-	/**
-	 * @param operation
-	 * @return {@link Connection}
-	 * @throws ConnectionException
-	 */
+    /**
+     * @return {@link HostConnectionPool}
+     */
+    abstract public HostConnectionPool<CL> getCurrentHostConnectionPool();
+
+    /**
+     * @param operation
+     * @return {@link Connection}
+     * @throws ConnectionException
+     */
     abstract public Connection<CL> borrowConnection(Operation<CL, R> operation) throws ConnectionException;
 
     /**
      * @return boolean
      */
-	abstract public boolean canRetry();
-	
-	/**
-	 * Basic impl that repeatedly borrows a conn and tries to execute the operation while maintaining metrics for 
-	 * success, conn attempts, failures and latencies for operation executions
-	 * 
-	 * @param operation
-	 * @return {@link OperationResult}
-	 */
-	@Override
-	public OperationResult<R> tryOperation(Operation<CL, R> operation) throws ConnectionException {
-	    Operation<CL, R> filteredOperation = config.getOperationFilterFactory().attachFilter(operation);
-	    
+    abstract public boolean canRetry();
+
+    /**
+     * Basic impl that repeatedly borrows a conn and tries to execute the operation while maintaining metrics for 
+     * success, conn attempts, failures and latencies for operation executions
+     * 
+     * @param operation
+     * @return {@link OperationResult}
+     */
+    @Override
+    public OperationResult<R> tryOperation(Operation<CL, R> operation) throws ConnectionException {
+        Operation<CL, R> filteredOperation = config.getOperationFilterFactory().attachFilter(operation);
+
         while (true) {
             attemptCounter++;
-            
+
             try {
                 connection = borrowConnection(filteredOperation);
                 startTime = System.currentTimeMillis();
@@ -124,34 +124,34 @@ public abstract class AbstractExecuteWithFailoverImpl<CL, R> implements ExecuteW
             catch (Exception e) {
                 ConnectionException ce = (e instanceof ConnectionException) ? (ConnectionException) e
                         : new UnknownException(e);
-            	try {
-            		informException(ce);
+                try {
+                    informException(ce);
                     monitor.incFailover(ce.getHost(), ce);
-            	}
-            	catch (ConnectionException ex) {
+                }
+                catch (ConnectionException ex) {
                     monitor.incOperationFailure(getCurrentHost(), ex);
                     throw ex;
-            	}
+                }
             }
             finally {
-            	releaseConnection();
+                releaseConnection();
             }
         }
     }
 
-	protected void releaseConnection() {
+    protected void releaseConnection() {
         if (connection != null) {
-	    	connection.getHostConnectionPool().returnConnection(connection);
-	        connection = null;
-	    }
-	}
-    
+            connection.getHostConnectionPool().returnConnection(connection);
+            connection = null;
+        }
+    }
+
     private void informException(ConnectionException connectionException) throws ConnectionException {
         connectionException
-            .setHost(getCurrentHost())
-        	.setLatency(System.currentTimeMillis() - startTime)
-        	.setAttempt(this.attemptCounter)
-        	.setLatencyWithPool(System.currentTimeMillis() - poolStartTime);
+                .setHost(getCurrentHost())
+                .setLatency(System.currentTimeMillis() - startTime)
+                .setAttempt(this.attemptCounter)
+                .setLatencyWithPool(System.currentTimeMillis() - poolStartTime);
 
         if (connectionException instanceof IsRetryableException) {
             if (!canRetry()) {
@@ -162,5 +162,5 @@ public abstract class AbstractExecuteWithFailoverImpl<CL, R> implements ExecuteW
             // Most likely an operation error
             throw connectionException;
         }
-    }		
+    }
 }

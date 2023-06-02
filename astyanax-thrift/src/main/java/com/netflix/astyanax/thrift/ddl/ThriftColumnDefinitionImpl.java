@@ -34,7 +34,7 @@ import com.netflix.astyanax.thrift.ThriftTypes;
 
 public class ThriftColumnDefinitionImpl implements ColumnDefinition {
     private final static Map<String, FieldMetadata> fieldsMetadata = Maps.newHashMap();
-    
+
     private final ColumnDef columnDef;
 
     static {
@@ -42,12 +42,12 @@ public class ThriftColumnDefinitionImpl implements ColumnDefinition {
             fieldsMetadata.put(
                     field.getValue().fieldName,
                     new FieldMetadata(
-                        field.getKey().name(), 
-                        ThriftTypes.values()[field.getValue().valueMetaData.type].name(),
-                        field.getValue().valueMetaData.isContainer()));
+                            field.getKey().name(),
+                            ThriftTypes.values()[field.getValue().valueMetaData.type].name(),
+                            field.getValue().valueMetaData.isContainer()));
         }
     }
-    
+
     public ThriftColumnDefinitionImpl() {
         this.columnDef = new ColumnDef();
     }
@@ -64,25 +64,25 @@ public class ThriftColumnDefinitionImpl implements ColumnDefinition {
     public Map<String, String> getOptions() {
         return columnDef.getIndex_options();
     }
-    
+
     @Override
-    public ColumnDefinition setOptions(Map<String, String> index_options ) {
+    public ColumnDefinition setOptions(Map<String, String> index_options) {
         columnDef.setIndex_options(index_options);
         return this;
     }
-    
+
     @Override
     public ColumnDefinition setName(String name) {
         columnDef.setName(name.getBytes());
         return this;
     }
-    
+
     @Override
     public ColumnDefinition setName(ByteBuffer name) {
         columnDef.setName(name.duplicate());
         return this;
     }
-    
+
     @Override
     public ColumnDefinition setName(byte[] name) {
         columnDef.setName(name);
@@ -138,7 +138,7 @@ public class ThriftColumnDefinitionImpl implements ColumnDefinition {
         this.columnDef.setIndex_type(IndexType.KEYS);
         return this;
     }
-    
+
     @Override
     public ColumnDefinition setKeysIndex() {
         this.columnDef.setIndex_type(IndexType.KEYS);
@@ -160,7 +160,7 @@ public class ThriftColumnDefinitionImpl implements ColumnDefinition {
         }
         return defaultValue;
     }
-    
+
     @Override
     public String setOption(String name, String value) {
         if (this.columnDef.getIndex_options() == null) {
@@ -168,17 +168,17 @@ public class ThriftColumnDefinitionImpl implements ColumnDefinition {
         }
         return this.columnDef.getIndex_options().put(name, value);
     }
-    
+
     @Override
     public Collection<String> getFieldNames() {
         return this.fieldsMetadata.keySet();
     }
-    
+
     @Override
     public Object getFieldValue(String name) {
         return columnDef.getFieldValue(_Fields.valueOf(name));
     }
-    
+
     @Override
     public ColumnDefinition setFieldValue(String name, Object value) {
         columnDef.setFieldValue(_Fields.valueOf(name), value);
@@ -203,7 +203,7 @@ public class ThriftColumnDefinitionImpl implements ColumnDefinition {
                 }
             }
         }
-        
+
         return this;
     }
 }

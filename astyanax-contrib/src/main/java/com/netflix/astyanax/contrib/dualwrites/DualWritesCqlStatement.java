@@ -62,7 +62,7 @@ public class DualWritesCqlStatement implements CqlStatement {
 
     @Override
     public OperationResult<CqlStatementResult> execute() throws ConnectionException {
-        
+
         WriteMetadata writeMd = new WriteMetadata(ksMd, null, null);
         return execStrategy.wrapExecutions(primary, secondary, Collections.singletonList(writeMd)).execute();
     }

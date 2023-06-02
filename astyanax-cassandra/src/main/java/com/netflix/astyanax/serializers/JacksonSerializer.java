@@ -28,7 +28,7 @@ public class JacksonSerializer<T> extends AbstractSerializer<T> {
         mapper.getSerializationConfig().withSerializationInclusion(JsonSerialize.Inclusion.NON_EMPTY);
         mapper.enableDefaultTyping();
     }
-    
+
     private final Class<T> clazz;
 
     public JacksonSerializer(Class<T> clazz) {

@@ -40,9 +40,10 @@ public class ThriftCqlRowsImpl<K, C> implements Rows<K, C> {
             if (keyBytes == null || keyBytes.length == 0) {
                 this.rows.add(new ThriftRowImpl<K, C>(null, null,
                         new ThriftColumnListImpl<C>(row.getColumns(), colSer)));
-            } else {
+            }
+            else {
                 this.rows.add(new ThriftRowImpl<K, C>(keySer
-                        .fromBytes(keyBytes), ByteBuffer.wrap(keyBytes),
+                                .fromBytes(keyBytes), ByteBuffer.wrap(keyBytes),
                         new ThriftColumnListImpl<C>(row.getColumns(), colSer)));
             }
         }

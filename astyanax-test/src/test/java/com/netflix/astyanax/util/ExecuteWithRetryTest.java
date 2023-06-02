@@ -13,7 +13,7 @@ public class ExecuteWithRetryTest {
             this.execution = execution;
         }
 
-    };
+    }
 
     @Test
     public void testRetry() {

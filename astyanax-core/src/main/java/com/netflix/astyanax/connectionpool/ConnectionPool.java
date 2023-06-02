@@ -71,7 +71,7 @@ public interface ConnectionPool<CL> {
      * @return Get all pools
      */
     List<HostConnectionPool<CL>> getPools();
-    
+
     /**
      * Set the complete set of hosts in the ring
      * @param hosts
@@ -107,12 +107,12 @@ public interface ConnectionPool<CL> {
      * Setup the connection pool and start any maintenance threads
      */
     void start();
-    
+
     /**
      * @return Return the internal topology which represents the partitioning of data across hosts in the pool
      */
     Topology<CL> getTopology();
-    
+
     /**
      * @return Return the partitioner used by this pool.  
      */

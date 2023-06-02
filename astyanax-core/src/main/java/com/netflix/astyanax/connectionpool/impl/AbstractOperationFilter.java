@@ -32,19 +32,19 @@ import com.netflix.astyanax.connectionpool.exceptions.ConnectionException;
  * @param <CL>
  * @param <R>
  */
-public class AbstractOperationFilter<CL, R> implements Operation<CL, R>{
+public class AbstractOperationFilter<CL, R> implements Operation<CL, R> {
 
     private Operation<CL, R> next;
-    
+
     public AbstractOperationFilter(Operation<CL, R> next) {
         this.next = next;
     }
-    
+
     @Override
     public R execute(CL client, ConnectionContext state) throws ConnectionException {
         return next.execute(client, state);
     }
-    
+
     @Override
     public ByteBuffer getRowKey() {
         return next.getRowKey();

@@ -43,107 +43,108 @@ import com.netflix.astyanax.cql.util.AsyncOperationResult;
  */
 public class DirectCqlPreparedStatement implements CqlPreparedStatement {
 
-	private final Session session;
-	private final PreparedStatement pStmt; 
-	private final List<Object> bindValues = new ArrayList<Object>(); 
-	
-	public DirectCqlPreparedStatement(Session session, PreparedStatement pStmt) {
-		this.session = session;
-		this.pStmt = pStmt;
-	}
+    private final Session session;
+    private final PreparedStatement pStmt;
+    private final List<Object> bindValues = new ArrayList<Object>();
 
-	@Override
-	public OperationResult<CqlStatementResult> execute() throws ConnectionException {
-		
-		BoundStatement bStmt = pStmt.bind(bindValues.toArray());
-		ResultSet resultSet = session.execute(bStmt);
-		
-		CqlStatementResult result = new DirectCqlStatementResultImpl(resultSet);
-		return new CqlOperationResultImpl<CqlStatementResult>(resultSet, result);
-	}
+    public DirectCqlPreparedStatement(Session session, PreparedStatement pStmt) {
+        this.session = session;
+        this.pStmt = pStmt;
+    }
 
-	@Override
-	public ListenableFuture<OperationResult<CqlStatementResult>> executeAsync() throws ConnectionException {
+    @Override
+    public OperationResult<CqlStatementResult> execute() throws ConnectionException {
 
-		BoundStatement bStmt = pStmt.bind(bindValues.toArray());
-		ResultSetFuture rsFuture = session.executeAsync(bStmt);
+        BoundStatement bStmt = pStmt.bind(bindValues.toArray());
+        ResultSet resultSet = session.execute(bStmt);
 
-		return new AsyncOperationResult<CqlStatementResult>(rsFuture) {
+        CqlStatementResult result = new DirectCqlStatementResultImpl(resultSet);
+        return new CqlOperationResultImpl<CqlStatementResult>(resultSet, result);
+    }
 
-			@Override
-			public OperationResult<CqlStatementResult> getOperationResult(ResultSet rs) {
-				CqlStatementResult result = new DirectCqlStatementResultImpl(rs);
-				return new CqlOperationResultImpl<CqlStatementResult>(rs, result);			}
-		};
-	}
+    @Override
+    public ListenableFuture<OperationResult<CqlStatementResult>> executeAsync() throws ConnectionException {
 
-	@Override
-	public <V> CqlPreparedStatement withByteBufferValue(V value, Serializer<V> serializer) {
-		bindValues.add(value);
-		return this;
-	}
+        BoundStatement bStmt = pStmt.bind(bindValues.toArray());
+        ResultSetFuture rsFuture = session.executeAsync(bStmt);
 
-	@Override
-	public CqlPreparedStatement withValue(ByteBuffer value) {
-		bindValues.add(value);
-		return this;
-	}
+        return new AsyncOperationResult<CqlStatementResult>(rsFuture) {
 
-	@Override
-	public CqlPreparedStatement withValues(List<ByteBuffer> values) {
-		bindValues.addAll(values);
-		return this;
-	}
+            @Override
+            public OperationResult<CqlStatementResult> getOperationResult(ResultSet rs) {
+                CqlStatementResult result = new DirectCqlStatementResultImpl(rs);
+                return new CqlOperationResultImpl<CqlStatementResult>(rs, result);
+            }
+        };
+    }
 
-	@Override
-	public CqlPreparedStatement withStringValue(String value) {
-		bindValues.add(value);
-		return this;
-	}
+    @Override
+    public <V> CqlPreparedStatement withByteBufferValue(V value, Serializer<V> serializer) {
+        bindValues.add(value);
+        return this;
+    }
 
-	@Override
-	public CqlPreparedStatement withIntegerValue(Integer value) {
-		bindValues.add(value);
-		return this;
-	}
+    @Override
+    public CqlPreparedStatement withValue(ByteBuffer value) {
+        bindValues.add(value);
+        return this;
+    }
 
-	@Override
-	public CqlPreparedStatement withBooleanValue(Boolean value) {
-		bindValues.add(value);
-		return this;
-	}
+    @Override
+    public CqlPreparedStatement withValues(List<ByteBuffer> values) {
+        bindValues.addAll(values);
+        return this;
+    }
 
-	@Override
-	public CqlPreparedStatement withDoubleValue(Double value) {
-		bindValues.add(value);
-		return this;
-	}
+    @Override
+    public CqlPreparedStatement withStringValue(String value) {
+        bindValues.add(value);
+        return this;
+    }
 
-	@Override
-	public CqlPreparedStatement withLongValue(Long value) {
-		bindValues.add(value);
-		return this;
-	}
+    @Override
+    public CqlPreparedStatement withIntegerValue(Integer value) {
+        bindValues.add(value);
+        return this;
+    }
 
-	@Override
-	public CqlPreparedStatement withFloatValue(Float value) {
-		bindValues.add(value);
-		return this;
-	}
+    @Override
+    public CqlPreparedStatement withBooleanValue(Boolean value) {
+        bindValues.add(value);
+        return this;
+    }
 
-	@Override
-	public CqlPreparedStatement withShortValue(Short value) {
-		bindValues.add(value);
-		return this;
-	}
+    @Override
+    public CqlPreparedStatement withDoubleValue(Double value) {
+        bindValues.add(value);
+        return this;
+    }
 
-	@Override
-	public CqlPreparedStatement withUUIDValue(UUID value) {
-		bindValues.add(value);
-		return this;
-	}
-	
-	public PreparedStatement getInnerPreparedStatement() {
-		return pStmt;
-	}
+    @Override
+    public CqlPreparedStatement withLongValue(Long value) {
+        bindValues.add(value);
+        return this;
+    }
+
+    @Override
+    public CqlPreparedStatement withFloatValue(Float value) {
+        bindValues.add(value);
+        return this;
+    }
+
+    @Override
+    public CqlPreparedStatement withShortValue(Short value) {
+        bindValues.add(value);
+        return this;
+    }
+
+    @Override
+    public CqlPreparedStatement withUUIDValue(UUID value) {
+        bindValues.add(value);
+        return this;
+    }
+
+    public PreparedStatement getInnerPreparedStatement() {
+        return pStmt;
+    }
 }

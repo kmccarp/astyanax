@@ -31,76 +31,78 @@ import com.google.common.collect.Sets;
 import com.netflix.astyanax.ColumnListMutation;
 
 class CompositeColumnMapper extends AbstractColumnMapper {
-	private final Class<?> clazz;
-	private final Map<String, ColumnMapper> columnList;
-	private final List<ColumnMapper> nonNullableFields;
-	
-	CompositeColumnMapper(final Field field) {
-	    super(field);
-		this.clazz = field.getType();
-		// clazz should be annotated with @Entity
-		Entity entityAnnotation = clazz.getAnnotation(Entity.class);
-		if(entityAnnotation == null)
-			throw new IllegalArgumentException("class is NOT annotated with @javax.persistence.Entity: " + clazz.getName());
+    private final Class<?> clazz;
+    private final Map<String, ColumnMapper> columnList;
+    private final List<ColumnMapper> nonNullableFields;
 
-		columnList = Maps.newHashMapWithExpectedSize(clazz.getDeclaredFields().length);
-		nonNullableFields = Lists.newArrayList();
-		
-		Set<String> usedColumnNames = Sets.newHashSet();
-		for (Field childField : clazz.getDeclaredFields()) {
-			// extract @Column annotated fields
-			Column annotation = childField.getAnnotation(Column.class);
-			if ((annotation != null)) {
-				childField.setAccessible(true);
-				ColumnMapper columnMapper = null;
-				Entity compositeAnnotation = childField.getType().getAnnotation(Entity.class);
-				if(compositeAnnotation == null) {
-					columnMapper = new LeafColumnMapper(childField);
-				} else {
-					columnMapper = new CompositeColumnMapper(childField);
-				}
-				Preconditions.checkArgument(!usedColumnNames.contains(columnMapper.getColumnName().toLowerCase()), 
-						String.format("duplicate case-insensitive column name: %s", columnMapper.getColumnName()));
-				columnList.put(columnMapper.getColumnName(), columnMapper);
-				usedColumnNames.add(columnMapper.getColumnName().toLowerCase());
-				
-	            if (!annotation.nullable()) {
-	                nonNullableFields.add(columnMapper);
-	            }
-			}
-		}
-	}
+    CompositeColumnMapper(final Field field) {
+        super(field);
+        this.clazz = field.getType();
+        // clazz should be annotated with @Entity
+        Entity entityAnnotation = clazz.getAnnotation(Entity.class);
+        if (entityAnnotation == null)
+            throw new IllegalArgumentException("class is NOT annotated with @javax.persistence.Entity: " + clazz.getName());
 
-	@Override
-	public String toString() {
-		return String.format("CompositeColumnMapper(%s)", clazz);
-	}
+        columnList = Maps.newHashMapWithExpectedSize(clazz.getDeclaredFields().length);
+        nonNullableFields = Lists.newArrayList();
 
-	@Override
-	public String getColumnName() {
-		return columnName;
-	}
+        Set<String> usedColumnNames = Sets.newHashSet();
+        for (Field childField : clazz.getDeclaredFields()) {
+            // extract @Column annotated fields
+            Column annotation = childField.getAnnotation(Column.class);
+            if ((annotation != null)) {
+                childField.setAccessible(true);
+                ColumnMapper columnMapper = null;
+                Entity compositeAnnotation = childField.getType().getAnnotation(Entity.class);
+                if (compositeAnnotation == null) {
+                    columnMapper = new LeafColumnMapper(childField);
+                }
+                else {
+                    columnMapper = new CompositeColumnMapper(childField);
+                }
+                Preconditions.checkArgument(!usedColumnNames.contains(columnMapper.getColumnName().toLowerCase()),
+                        String.format("duplicate case-insensitive column name: %s", columnMapper.getColumnName()));
+                columnList.put(columnMapper.getColumnName(), columnMapper);
+                usedColumnNames.add(columnMapper.getColumnName().toLowerCase());
 
-	@Override
-	public boolean fillMutationBatch(Object entity, ColumnListMutation<String> clm, String prefix) throws Exception {
-		Object childEntity = field.get(entity);
-		if(childEntity == null) {
-			if(columnAnnotation.nullable()) {
-				return false; // skip. cannot write null column
-			} else {
-				throw new IllegalArgumentException("cannot write non-nullable column with null value: " + columnName);
-			}
-		}
-		
-		prefix += getColumnName() + ".";
-		boolean hasNonNullChildField = false;
-		for (ColumnMapper mapper : columnList.values()) {
-			boolean childFilled = mapper.fillMutationBatch(childEntity, clm, prefix);
-			if(childFilled)
-				hasNonNullChildField = true;
-		}
-		return hasNonNullChildField;
-	}
+                if (!annotation.nullable()) {
+                    nonNullableFields.add(columnMapper);
+                }
+            }
+        }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("CompositeColumnMapper(%s)", clazz);
+    }
+
+    @Override
+    public String getColumnName() {
+        return columnName;
+    }
+
+    @Override
+    public boolean fillMutationBatch(Object entity, ColumnListMutation<String> clm, String prefix) throws Exception {
+        Object childEntity = field.get(entity);
+        if (childEntity == null) {
+            if (columnAnnotation.nullable()) {
+                return false; // skip. cannot write null column
+            }
+            else {
+                throw new IllegalArgumentException("cannot write non-nullable column with null value: " + columnName);
+            }
+        }
+
+        prefix += getColumnName() + ".";
+        boolean hasNonNullChildField = false;
+        for (ColumnMapper mapper : columnList.values()) {
+            boolean childFilled = mapper.fillMutationBatch(childEntity, clm, prefix);
+            if (childFilled)
+                hasNonNullChildField = true;
+        }
+        return hasNonNullChildField;
+    }
 
     @Override
     public boolean setField(Object entity, Iterator<String> name, com.netflix.astyanax.model.Column<String> column) throws Exception {
@@ -109,11 +111,11 @@ class CompositeColumnMapper extends AbstractColumnMapper {
             childEntity = clazz.newInstance();
             field.set(entity, childEntity);
         }
-        
+
         ColumnMapper mapper = this.columnList.get(name.next());
         if (mapper == null)
             return false;
-        
+
         return mapper.setField(childEntity, name, column);
     }
 

@@ -61,28 +61,28 @@ import com.netflix.astyanax.thrift.model.ThriftRowsSliceImpl;
 
 public class ThriftAllRowsQueryImpl<K, C> implements AllRowsQuery<K, C> {
     private final static Logger LOG = LoggerFactory.getLogger(ThriftAllRowsQueryImpl.class);
-    
-    private final ThriftColumnFamilyQueryImpl<K,C> query;
+
+    private final ThriftColumnFamilyQueryImpl<K, C> query;
     protected SlicePredicate predicate = new SlicePredicate().setSlice_range(ThriftUtils.createAllInclusiveSliceRange());
     protected CheckpointManager checkpointManager = new EmptyCheckpointManager();
-    
+
     protected ColumnFamily<K, C> columnFamily;
     private ExceptionCallback exceptionCallback;
-    private int     blockSize       = 100;
+    private int     blockSize = 100;
     private boolean repeatLastToken = true;
     private Integer nThreads;
     private String  startToken      ;
     private String  endToken        ;
     private Boolean includeEmptyRows;
-    
+
     public ThriftAllRowsQueryImpl(ThriftColumnFamilyQueryImpl<K, C> query) {
         this.columnFamily = query.columnFamily;
         this.query = query;
     }
-    
+
     protected List<org.apache.cassandra.thrift.KeySlice> getNextBlock(final KeyRange range) {
         ThriftKeyspaceImpl keyspace = query.keyspace;
-        
+
         while (true) {
             try {
                 return keyspace.connectionPool.executeWithFailover(
@@ -92,11 +92,11 @@ public class ThriftAllRowsQueryImpl<K, C> implements AllRowsQuery<K, C> {
                             @Override
                             public List<org.apache.cassandra.thrift.KeySlice> internalExecute(Client client, ConnectionContext context)
                                     throws Exception {
-                                
+
                                 List<KeySlice> slice = client.get_range_slices(
                                         new ColumnParent().setColumn_family(columnFamily.getName()), predicate,
                                         range, ThriftConverter.ToThriftConsistencyLevel(query.consistencyLevel));
-                                
+
                                 return slice;
                             }
 
@@ -130,7 +130,7 @@ public class ThriftAllRowsQueryImpl<K, C> implements AllRowsQuery<K, C> {
 
     @Override
     public OperationResult<Rows<K, C>> execute() throws ConnectionException {
-        return new OperationResultImpl<Rows<K, C>>(Host.NO_HOST, 
+        return new OperationResultImpl<Rows<K, C>>(Host.NO_HOST,
                 new ThriftAllRowsImpl<K, C>(query.keyspace.getPartitioner(), this, columnFamily), 0);
     }
 
@@ -164,8 +164,8 @@ public class ThriftAllRowsQueryImpl<K, C> implements AllRowsQuery<K, C> {
             ranges = Lists.newArrayList();
             int nThreads = this.getConcurrencyLevel();
             List<TokenRange> tokens = partitioner.splitTokenRange(
-                    startToken == null ? partitioner.getMinToken() : startToken, 
-                    endToken == null   ? partitioner.getMaxToken() : endToken, 
+                    startToken == null ? partitioner.getMinToken() : startToken,
+                    endToken == null ? partitioner.getMaxToken() : endToken,
                     nThreads);
             for (TokenRange range : tokens) {
                 try {
@@ -183,7 +183,7 @@ public class ThriftAllRowsQueryImpl<K, C> implements AllRowsQuery<K, C> {
             }
         }
         else {
-            ranges = Lists.transform(keyspace.describeRing(true), new Function<TokenRange, Pair<String, String>> () {
+            ranges = Lists.transform(keyspace.describeRing(true), new Function<TokenRange, Pair<String, String>>() {
                 @Override
                 public Pair<String, String> apply(TokenRange input) {
                     return Pair.create(input.getStartToken(), input.getEndToken());
@@ -201,7 +201,7 @@ public class ThriftAllRowsQueryImpl<K, C> implements AllRowsQuery<K, C> {
 
             query.executor.submit(new Callable<Void>() {
                 private boolean firstBlock = true;
-                
+
                 @Override
                 public Void call() throws Exception {
                     if (error.get() == null && internalRun()) {
@@ -251,7 +251,7 @@ public class ThriftAllRowsQueryImpl<K, C> implements AllRowsQuery<K, C> {
                                     ks.remove(0);
                                 }
                             }
-                            
+
                             if (bIgnoreTombstones) {
                                 Iterator<KeySlice> iter = ks.iterator();
                                 while (iter.hasNext()) {
@@ -269,7 +269,7 @@ public class ThriftAllRowsQueryImpl<K, C> implements AllRowsQuery<K, C> {
                                 error.set(ce);
                                 return false;
                             }
-                            
+
                             if (bContinue) {
                                 // Determine the start token for the next page
                                 String token = partitioner.getTokenForKey(lastRow.bufferForKey()).toString();
@@ -315,7 +315,7 @@ public class ThriftAllRowsQueryImpl<K, C> implements AllRowsQuery<K, C> {
             throw error.get();
         }
     }
-    
+
     public AllRowsQuery<K, C> setExceptionCallback(ExceptionCallback cb) {
         exceptionCallback = cb;
         return this;
@@ -330,7 +330,7 @@ public class ThriftAllRowsQueryImpl<K, C> implements AllRowsQuery<K, C> {
         setConcurrencyLevel(numberOfThreads);
         return this;
     }
-    
+
     @Override
     public AllRowsQuery<K, C> setConcurrencyLevel(int numberOfThreads) {
         this.nThreads = numberOfThreads;
@@ -421,7 +421,7 @@ public class ThriftAllRowsQueryImpl<K, C> implements AllRowsQuery<K, C> {
     protected Integer getConcurrencyLevel() {
         return this.nThreads;
     }
-    
+
     public AllRowsQuery<K, C> setIncludeEmptyRows(boolean flag) {
         this.includeEmptyRows = flag;
         return this;
@@ -430,26 +430,26 @@ public class ThriftAllRowsQueryImpl<K, C> implements AllRowsQuery<K, C> {
     public String getStartToken() {
         return this.startToken;
     }
-    
+
     public String getEndToken() {
         return this.endToken;
     }
-    
+
     @Override
     public AllRowsQuery<K, C> forTokenRange(BigInteger startToken, BigInteger endToken) {
         return forTokenRange(startToken.toString(), endToken.toString());
     }
-    
+
     public AllRowsQuery<K, C> forTokenRange(String startToken, String endToken) {
         this.startToken = startToken;
         this.endToken = endToken;
         return this;
     }
-    
+
     SlicePredicate getPredicate() {
         return predicate;
     }
-    
+
     Boolean getIncludeEmptyRows() {
         return this.includeEmptyRows;
     }

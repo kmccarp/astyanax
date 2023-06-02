@@ -36,38 +36,38 @@ import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class ThriftKeyspaceAllRowsTest {
-    
+
     private static Logger LOG = LoggerFactory.getLogger(ThriftKeyspaceAllRowsTest.class);
 
     private static Keyspace                  keyspace;
     private static AstyanaxContext<Keyspace> keyspaceContext;
 
-    private static String TEST_CLUSTER_NAME  = "cass_sandbox";
+    private static String TEST_CLUSTER_NAME = "cass_sandbox";
     private static String TEST_KEYSPACE_NAME = "AstyanaxUnitTests";
     private static final String SEEDS = "localhost:9160";
     private static final long   CASSANDRA_WAIT_TIME = 3000;
     private static final long   LOTS_OF_ROWS_COUNT = 1000;
-    
-    public static ColumnFamily<Long, String> CF_ALL_ROWS = 
-            ColumnFamily.newColumnFamily("AllRows1",       LongSerializer.get(), StringSerializer.get());
 
-    public static ColumnFamily<Long, String> CF_ALL_ROWS_TOMBSTONE = 
-            ColumnFamily.newColumnFamily("AllRowsTombstone1",       LongSerializer.get(), StringSerializer.get());
+    public static ColumnFamily<Long, String> CF_ALL_ROWS =
+            ColumnFamily.newColumnFamily("AllRows1", LongSerializer.get(), StringSerializer.get());
 
-    public static ColumnFamily<Long, String> CF_LOTS_OF_ROWS = 
-            new ColumnFamily<Long, String>("LotsOfRows1",       LongSerializer.get(), StringSerializer.get());
+    public static ColumnFamily<Long, String> CF_ALL_ROWS_TOMBSTONE =
+            ColumnFamily.newColumnFamily("AllRowsTombstone1", LongSerializer.get(), StringSerializer.get());
 
-    public static ColumnFamily<Long, String> CF_CHECKPOINTS = 
-            new ColumnFamily<Long, String>("Checkpoints",       LongSerializer.get(), StringSerializer.get());
+    public static ColumnFamily<Long, String> CF_LOTS_OF_ROWS =
+            new ColumnFamily<Long, String>("LotsOfRows1", LongSerializer.get(), StringSerializer.get());
+
+    public static ColumnFamily<Long, String> CF_CHECKPOINTS =
+            new ColumnFamily<Long, String>("Checkpoints", LongSerializer.get(), StringSerializer.get());
 
     @BeforeClass
     public static void setup() throws Exception {
         System.out.println("TESTING THRIFT KEYSPACE");
 
         SingletonEmbeddedCassandra.getInstance();
-        
+
         Thread.sleep(CASSANDRA_WAIT_TIME);
-        
+
         createKeyspace();
     }
 
@@ -75,7 +75,7 @@ public class ThriftKeyspaceAllRowsTest {
     public static void teardown() throws Exception {
         if (keyspaceContext != null)
             keyspaceContext.shutdown();
-        
+
         Thread.sleep(CASSANDRA_WAIT_TIME);
     }
 
@@ -96,35 +96,35 @@ public class ThriftKeyspaceAllRowsTest {
                                 .setMaxConnsPerHost(20)
                                 .setInitConnsPerHost(10)
                                 .setSeeds(SEEDS)
-                                )
+                )
                 .withConnectionPoolMonitor(new CountingConnectionPoolMonitor())
                 .buildKeyspace(ThriftFamilyFactory.getInstance());
 
         keyspaceContext.start();
-        
+
         keyspace = keyspaceContext.getEntity();
-        
+
         try {
             keyspace.dropKeyspace();
         }
         catch (Exception e) {
             LOG.info(e.getMessage());
         }
-        
+
         keyspace.createKeyspace(ImmutableMap.<String, Object>builder()
                 .put("strategy_options", ImmutableMap.<String, Object>builder()
                         .put("replication_factor", "1")
                         .build())
-                .put("strategy_class",     "SimpleStrategy")
+                .put("strategy_class", "SimpleStrategy")
                 .build()
-                );
-        
-       
-        keyspace.createColumnFamily(CF_ALL_ROWS,            null);
-        keyspace.createColumnFamily(CF_ALL_ROWS_TOMBSTONE,  null);
-        keyspace.createColumnFamily(CF_LOTS_OF_ROWS,        null);
-        keyspace.createColumnFamily(CF_CHECKPOINTS,         null);
-        
+        );
+
+
+        keyspace.createColumnFamily(CF_ALL_ROWS, null);
+        keyspace.createColumnFamily(CF_ALL_ROWS_TOMBSTONE, null);
+        keyspace.createColumnFamily(CF_LOTS_OF_ROWS, null);
+        keyspace.createColumnFamily(CF_CHECKPOINTS, null);
+
         KeyspaceDefinition ki = keyspaceContext.getEntity().describeKeyspace();
         System.out.println("Describe Keyspace: " + ki.getName());
 
@@ -134,248 +134,248 @@ public class ThriftKeyspaceAllRowsTest {
             // Add 10 rows
             for (long i = 0; i < 10; i++) {
                 m.withRow(CF_ALL_ROWS, i)
-                    .putColumn("A", 1)
-                    .putColumn("B", 1)
-                    ;
+                        .putColumn("A", 1)
+                        .putColumn("B", 1)
+                ;
             }
             // Add 10 rows
             for (long i = 10; i < 20; i++) {
                 m.withRow(CF_ALL_ROWS, i)
-                    .putColumn("B", 1)
-                    .putColumn("C", 1)
-                    ;
+                        .putColumn("B", 1)
+                        .putColumn("C", 1)
+                ;
             }
             // Add 10 rows
             for (long i = 20; i < 30; i++) {
                 m.withRow(CF_ALL_ROWS, i)
-                    .putColumn("B", 1)
-                    .putColumn("C", 1)
-                    ;
+                        .putColumn("B", 1)
+                        .putColumn("C", 1)
+                ;
             }
             for (long i = 0; i < 100; i++) {
                 m.withRow(CF_ALL_ROWS_TOMBSTONE, i)
-                 .delete()
+                        .delete()
                 ;
             }
             m.execute();
-            
+
             m = keyspace.prepareMutationBatch();
             // Delete 7
             for (long i = 0; i < 20; i += 3) {
                 m.withRow(CF_ALL_ROWS, i)
-                    .delete();
+                        .delete();
             }
             // Delete 10
-            for (long i = 20; i < 30; i ++ ) {
+            for (long i = 20; i < 30; i++) {
                 m.withRow(CF_ALL_ROWS, i)
-                    .delete();
+                        .delete();
             }
-            
+
             // CF_ALL_ROWS should have 13 rows + 17 tombstones
             
-            m.execute();            
-            
+            m.execute();
+
             // Add 10,000 rows
             m = keyspace.prepareMutationBatch();
             for (long i = 0; i < LOTS_OF_ROWS_COUNT; i++) {
                 m.withRow(CF_LOTS_OF_ROWS, i).putColumn("DATA", "TEST" + i);
             }
             m.execute();
-            
-            
+
+
         } catch (Exception e) {
             System.out.println(e.getMessage());
             Assert.fail();
         }
     }
-    
+
     public static <K, C> Set<K> getKeySet(Rows<K, C> rows) {
         Set<K> set = new TreeSet<K>();
         for (Row<K, C> row : rows) {
-            if (set.contains(row.getKey())) 
+            if (set.contains(row.getKey()))
                 Assert.fail("Duplicate key found : " + row.getKey());
             LOG.info("Row: " + row.getKey());
             set.add(row.getKey());
         }
         return set;
     }
-    
+
     @Test
     public void testGetAll() {
         try {
             OperationResult<Rows<Long, String>> rows = keyspace.prepareQuery(CF_ALL_ROWS)
-                .getAllRows()
-                .setRowLimit(5)
-                .setExceptionCallback(new ExceptionCallback() {
-                    @Override
-                    public boolean onException(ConnectionException e) {
-                        Assert.fail(e.getMessage());
-                        return true;
-                    }
-                })
-                .execute();
-            
+                    .getAllRows()
+                    .setRowLimit(5)
+                    .setExceptionCallback(new ExceptionCallback() {
+                        @Override
+                        public boolean onException(ConnectionException e) {
+                            Assert.fail(e.getMessage());
+                            return true;
+                        }
+                    })
+                    .execute();
+
             for (Row<Long, String> row : rows.getResult()) {
                 LOG.info("Row: " + row.getKey() + " count=" + row.getColumns().size());
             }
             Set<Long> set = getKeySet(rows.getResult());
             LOG.info(set.toString());
-            Assert.assertEquals(13,  set.size());
+            Assert.assertEquals(13, set.size());
         } catch (ConnectionException e) {
             Assert.fail();
         }
     }
-    
-   @Test
+
+    @Test
     public void testGetAllDefaults() {
         try {
             OperationResult<Rows<Long, String>> rows = keyspace.prepareQuery(CF_ALL_ROWS)
-                .getAllRows()
+                    .getAllRows()
 //                  .setRowLimit(5)
-                .setExceptionCallback(new ExceptionCallback() {
-                    @Override
-                    public boolean onException(ConnectionException e) {
-                        Assert.fail(e.getMessage());
-                        return true;
-                    }
-                })
-                .execute();
-            
+                    .setExceptionCallback(new ExceptionCallback() {
+                        @Override
+                        public boolean onException(ConnectionException e) {
+                            Assert.fail(e.getMessage());
+                            return true;
+                        }
+                    })
+                    .execute();
+
             Set<Long> set = getKeySet(rows.getResult());
             LOG.info(set.toString());
-            Assert.assertEquals(13,  set.size());
+            Assert.assertEquals(13, set.size());
         } catch (ConnectionException e) {
             Assert.fail();
         }
     }
-    
+
     @Test
     public void testGetAllWithTombstones() {
         try {
             OperationResult<Rows<Long, String>> rows = keyspace.prepareQuery(CF_ALL_ROWS_TOMBSTONE)
-                .getAllRows()
-                .setRepeatLastToken(false)
-                .setRowLimit(5)
-                .execute();
-            
+                    .getAllRows()
+                    .setRepeatLastToken(false)
+                    .setRowLimit(5)
+                    .execute();
+
             Set<Long> set = getKeySet(rows.getResult());
             LOG.info("All columns row count: " + set.size() + " " + set.toString());
             Assert.assertEquals(0, set.size());
         } catch (ConnectionException e) {
             Assert.fail();
         }
-        
+
         try {
             OperationResult<Rows<Long, String>> rows = keyspace.prepareQuery(CF_ALL_ROWS_TOMBSTONE)
-                .getAllRows()
-                .setRepeatLastToken(false)
-                .setIncludeEmptyRows(true)
-                .setRowLimit(5)
-                .execute();
-            
+                    .getAllRows()
+                    .setRepeatLastToken(false)
+                    .setIncludeEmptyRows(true)
+                    .setRowLimit(5)
+                    .execute();
+
             Set<Long> set = getKeySet(rows.getResult());
             LOG.info("All columns row count: " + set.size() + " " + set.toString());
             Assert.assertEquals(100, set.size());
         } catch (ConnectionException e) {
             Assert.fail();
         }
-        
+
         try {
             OperationResult<Rows<Long, String>> rows = keyspace.prepareQuery(CF_ALL_ROWS)
-                .getAllRows()
-                .setRepeatLastToken(false)
-                .setRowLimit(5)
-                .execute();
-            
+                    .getAllRows()
+                    .setRepeatLastToken(false)
+                    .setRowLimit(5)
+                    .execute();
+
             Set<Long> set = getKeySet(rows.getResult());
             LOG.info("All columns row count: " + set.size() + " " + set.toString());
             Assert.assertEquals(13, set.size());
         } catch (ConnectionException e) {
             Assert.fail();
         }
-        
+
         try {
             OperationResult<Rows<Long, String>> rows = keyspace.prepareQuery(CF_ALL_ROWS)
-                .getAllRows()
-                .withColumnSlice("A")
-                .setRepeatLastToken(false)
-                .setRowLimit(5)
-                .execute();
-            
+                    .getAllRows()
+                    .withColumnSlice("A")
+                    .setRepeatLastToken(false)
+                    .setRowLimit(5)
+                    .execute();
+
             Set<Long> set = getKeySet(rows.getResult());
             LOG.info("Column='A' Row count: " + set.size() + " " + set.toString());
             Assert.assertEquals(6, set.size());
         } catch (ConnectionException e) {
             Assert.fail();
         }
-        
+
         try {
             OperationResult<Rows<Long, String>> rows = keyspace.prepareQuery(CF_ALL_ROWS)
-                .getAllRows()
-                .withColumnSlice("B")
-                .setRepeatLastToken(false)
-                .setRowLimit(5)
-                .execute();
-            
+                    .getAllRows()
+                    .withColumnSlice("B")
+                    .setRepeatLastToken(false)
+                    .setRowLimit(5)
+                    .execute();
+
             Set<Long> set = getKeySet(rows.getResult());
             LOG.info("Column='B' Row count: " + set.size() + " " + set.toString());
             Assert.assertEquals(13, set.size());
         } catch (ConnectionException e) {
             Assert.fail();
         }
-        
+
         try {
             OperationResult<Rows<Long, String>> rows = keyspace.prepareQuery(CF_ALL_ROWS)
-                .getAllRows()
-                .withColumnRange(new RangeBuilder().setLimit(1).build())
-                .setRowLimit(5)
-                .setRepeatLastToken(false)
-                .execute();
-            
+                    .getAllRows()
+                    .withColumnRange(new RangeBuilder().setLimit(1).build())
+                    .setRowLimit(5)
+                    .setRepeatLastToken(false)
+                    .execute();
+
             Set<Long> set = getKeySet(rows.getResult());
             LOG.info("Limit 1 row count: " + set.size() + " " + set.toString());
             Assert.assertEquals(13, set.size());
         } catch (ConnectionException e) {
             Assert.fail();
         }
-        
+
         try {
             OperationResult<Rows<Long, String>> rows = keyspace.prepareQuery(CF_ALL_ROWS)
-                .getAllRows()
-                .withColumnRange(new RangeBuilder().setLimit(0).build())
-                .setRepeatLastToken(false)
-                .setRowLimit(5)
-                .execute();
-            
+                    .getAllRows()
+                    .withColumnRange(new RangeBuilder().setLimit(0).build())
+                    .setRepeatLastToken(false)
+                    .setRowLimit(5)
+                    .execute();
+
             Set<Long> set = getKeySet(rows.getResult());
             LOG.info("Limit 0 row count: " + set.size() + " " + set.toString());
             Assert.assertEquals(30, set.size());
         } catch (ConnectionException e) {
             Assert.fail();
         }
-        
+
         try {
             OperationResult<Rows<Long, String>> rows = keyspace.prepareQuery(CF_ALL_ROWS)
-                .getAllRows()
-                .setRepeatLastToken(false)
-                .setRowLimit(5)
-                .execute();
-            
+                    .getAllRows()
+                    .setRepeatLastToken(false)
+                    .setRowLimit(5)
+                    .execute();
+
             Set<Long> set = getKeySet(rows.getResult());
             LOG.info("All columns row count: " + set.size() + " " + set.toString());
             Assert.assertEquals(13, set.size());
         } catch (ConnectionException e) {
             Assert.fail();
         }
-        
+
         try {
             OperationResult<Rows<Long, String>> rows = keyspace.prepareQuery(CF_ALL_ROWS)
-                .getAllRows()
-                .setIncludeEmptyRows(true)
-                .setRepeatLastToken(false)
-                .setRowLimit(5)
-                .execute();
-            
+                    .getAllRows()
+                    .setIncludeEmptyRows(true)
+                    .setRepeatLastToken(false)
+                    .setRowLimit(5)
+                    .execute();
+
             Set<Long> set = getKeySet(rows.getResult());
             LOG.info("IncludeEmpty Row count: " + set.size() + " " + set.toString());
             Assert.assertEquals(30, set.size());
@@ -383,10 +383,10 @@ public class ThriftKeyspaceAllRowsTest {
             Assert.fail();
         }
     }
-    
-    public static class ToKeySetCallback<K,C> implements RowCallback<K, C> {
+
+    public static class ToKeySetCallback<K, C> implements RowCallback<K, C> {
         private Set<K> set = new TreeSet<K>();
-        
+
         @Override
         public synchronized void success(Rows<K, C> rows) {
             set.addAll(getKeySet(rows));
@@ -397,12 +397,12 @@ public class ThriftKeyspaceAllRowsTest {
             // TODO Auto-generated method stub
             return false;
         }
-        
+
         public Set<K> get() {
             return set;
         }
     }
-    
+
 //    @Test
 //    public void testCCS() {
 //        String clusterName = "cass_ccs";
@@ -450,137 +450,137 @@ public class ThriftKeyspaceAllRowsTest {
         try {
             ToKeySetCallback callback = new ToKeySetCallback();
             keyspace.prepareQuery(CF_ALL_ROWS_TOMBSTONE)
-                .getAllRows()
-                .setRepeatLastToken(false)
-                .setRowLimit(5)
-                .executeWithCallback(callback);
-            
+                    .getAllRows()
+                    .setRepeatLastToken(false)
+                    .setRowLimit(5)
+                    .executeWithCallback(callback);
+
             Set<Long> set = callback.get();
             LOG.info("All columns row count: " + set.size() + " " + set.toString());
             Assert.assertEquals(0, set.size());
         } catch (ConnectionException e) {
             Assert.fail();
         }
-        
+
         try {
             ToKeySetCallback callback = new ToKeySetCallback();
             keyspace.prepareQuery(CF_ALL_ROWS_TOMBSTONE)
-                .getAllRows()
-                .setRepeatLastToken(false)
-                .setIncludeEmptyRows(true)
-                .setRowLimit(5)
-                .executeWithCallback(callback);
-            
+                    .getAllRows()
+                    .setRepeatLastToken(false)
+                    .setIncludeEmptyRows(true)
+                    .setRowLimit(5)
+                    .executeWithCallback(callback);
+
             Set<Long> set = callback.get();
             LOG.info("All columns row count: " + set.size() + " " + set.toString());
             Assert.assertEquals(100, set.size());
         } catch (ConnectionException e) {
             Assert.fail();
         }
-        
+
         try {
             ToKeySetCallback callback = new ToKeySetCallback();
             keyspace.prepareQuery(CF_ALL_ROWS)
-                .getAllRows()
-                .setRepeatLastToken(false)
-                .setRowLimit(5)
-                .executeWithCallback(callback);
-            
+                    .getAllRows()
+                    .setRepeatLastToken(false)
+                    .setRowLimit(5)
+                    .executeWithCallback(callback);
+
             Set<Long> set = callback.get();
             LOG.info("All columns row count: " + set.size() + " " + set.toString());
             Assert.assertEquals(13, set.size());
         } catch (ConnectionException e) {
             Assert.fail();
         }
-        
+
         try {
             ToKeySetCallback callback = new ToKeySetCallback();
             keyspace.prepareQuery(CF_ALL_ROWS)
-                .getAllRows()
-                .withColumnSlice("A")
-                .setRepeatLastToken(false)
-                .setRowLimit(5)
-                .executeWithCallback(callback);
-            
+                    .getAllRows()
+                    .withColumnSlice("A")
+                    .setRepeatLastToken(false)
+                    .setRowLimit(5)
+                    .executeWithCallback(callback);
+
             Set<Long> set = callback.get();
             LOG.info("Column='A' Row count: " + set.size() + " " + set.toString());
             Assert.assertEquals(6, set.size());
         } catch (ConnectionException e) {
             Assert.fail();
         }
-        
+
         try {
             ToKeySetCallback callback = new ToKeySetCallback();
             keyspace.prepareQuery(CF_ALL_ROWS)
-                .getAllRows()
-                .withColumnSlice("B")
-                .setRepeatLastToken(false)
-                .setRowLimit(5)
-                .executeWithCallback(callback);
-            
+                    .getAllRows()
+                    .withColumnSlice("B")
+                    .setRepeatLastToken(false)
+                    .setRowLimit(5)
+                    .executeWithCallback(callback);
+
             Set<Long> set = callback.get();
             LOG.info("Column='B' Row count: " + set.size() + " " + set.toString());
             Assert.assertEquals(13, set.size());
         } catch (ConnectionException e) {
             Assert.fail();
         }
-        
+
         try {
             ToKeySetCallback callback = new ToKeySetCallback();
             keyspace.prepareQuery(CF_ALL_ROWS)
-                .getAllRows()
-                .withColumnRange(new RangeBuilder().setLimit(1).build())
-                .setRowLimit(5)
-                .setRepeatLastToken(false)
-                .executeWithCallback(callback);
-            
+                    .getAllRows()
+                    .withColumnRange(new RangeBuilder().setLimit(1).build())
+                    .setRowLimit(5)
+                    .setRepeatLastToken(false)
+                    .executeWithCallback(callback);
+
             Set<Long> set = callback.get();
             LOG.info("Limit 1 row count: " + set.size() + " " + set.toString());
             Assert.assertEquals(13, set.size());
         } catch (ConnectionException e) {
             Assert.fail();
         }
-        
+
         try {
             ToKeySetCallback callback = new ToKeySetCallback();
             keyspace.prepareQuery(CF_ALL_ROWS)
-                .getAllRows()
-                .withColumnRange(new RangeBuilder().setLimit(0).build())
-                .setRepeatLastToken(false)
-                .setRowLimit(5)
-                .executeWithCallback(callback);
-            
+                    .getAllRows()
+                    .withColumnRange(new RangeBuilder().setLimit(0).build())
+                    .setRepeatLastToken(false)
+                    .setRowLimit(5)
+                    .executeWithCallback(callback);
+
             Set<Long> set = callback.get();
             LOG.info("Limit 0 row count: " + set.size() + " " + set.toString());
             Assert.assertEquals(30, set.size());
         } catch (ConnectionException e) {
             Assert.fail();
         }
-        
+
         try {
             ToKeySetCallback callback = new ToKeySetCallback();
             keyspace.prepareQuery(CF_ALL_ROWS)
-                .getAllRows()
-                .setRepeatLastToken(false)
-                .setRowLimit(5)
-                .executeWithCallback(callback);
-            
+                    .getAllRows()
+                    .setRepeatLastToken(false)
+                    .setRowLimit(5)
+                    .executeWithCallback(callback);
+
             Set<Long> set = callback.get();
             LOG.info("All columns row count: " + set.size() + " " + set.toString());
             Assert.assertEquals(13, set.size());
         } catch (ConnectionException e) {
             Assert.fail();
         }
-        
+
         try {
             ToKeySetCallback callback = new ToKeySetCallback();
             keyspace.prepareQuery(CF_ALL_ROWS)
-                .getAllRows()
-                .setIncludeEmptyRows(true)
-                .setRepeatLastToken(false)
-                .setRowLimit(5)
-                .executeWithCallback(callback);
-            
+                    .getAllRows()
+                    .setIncludeEmptyRows(true)
+                    .setRepeatLastToken(false)
+                    .setRowLimit(5)
+                    .executeWithCallback(callback);
+
             Set<Long> set = callback.get();
             LOG.info("IncludeEmpty Row count: " + set.size() + " " + set.toString());
             Assert.assertEquals(30, set.size());
@@ -588,164 +588,164 @@ public class ThriftKeyspaceAllRowsTest {
             Assert.fail();
         }
     }
-    
-    
-    @Test 
+
+
+    @Test
     public void testGetAllWithCallback() {
         try {
             final AtomicLong counter = new AtomicLong();
-            
-            keyspace.prepareQuery(CF_ALL_ROWS)
-                .getAllRows()
-                .setRowLimit(3)
-                .setRepeatLastToken(false)
-                .withColumnRange(new RangeBuilder().setLimit(2).build())
-                .executeWithCallback(new RowCallback<Long, String>() {
-                    @Override
-                    public void success(Rows<Long, String> rows) {
-                        for (Row<Long, String> row : rows) {
-                            LOG.info("ROW: " + row.getKey() + " " + row.getColumns().size());
-                            counter.incrementAndGet();
-                        }
-                    }
 
-                    @Override
-                    public boolean failure(ConnectionException e) {
-                        LOG.error(e.getMessage(), e);
-                        return false;
-                    }
-                });
+            keyspace.prepareQuery(CF_ALL_ROWS)
+                    .getAllRows()
+                    .setRowLimit(3)
+                    .setRepeatLastToken(false)
+                    .withColumnRange(new RangeBuilder().setLimit(2).build())
+                    .executeWithCallback(new RowCallback<Long, String>() {
+                        @Override
+                        public void success(Rows<Long, String> rows) {
+                            for (Row<Long, String> row : rows) {
+                                LOG.info("ROW: " + row.getKey() + " " + row.getColumns().size());
+                                counter.incrementAndGet();
+                            }
+                        }
+
+                        @Override
+                        public boolean failure(ConnectionException e) {
+                            LOG.error(e.getMessage(), e);
+                            return false;
+                        }
+                    });
             LOG.info("Read " + counter.get() + " keys");
         } catch (ConnectionException e) {
             Assert.fail();
         }
     }
-    
-    @Test 
+
+    @Test
     public void testGetAllWithCallbackThreads() {
         try {
             final AtomicLong counter = new AtomicLong();
-            
-            keyspace.prepareQuery(CF_ALL_ROWS)
-                .getAllRows()
-                .setRowLimit(3)
-                .setRepeatLastToken(false)
-                .setConcurrencyLevel(4)
-                .executeWithCallback(new RowCallback<Long, String>() {
-                    @Override
-                    public void success(Rows<Long, String> rows) {
-                        LOG.info(Thread.currentThread().getName());
-                        for (Row<Long, String> row : rows) {
-                            counter.incrementAndGet();
-                        }
-                    }
 
-                    @Override
-                    public boolean failure(ConnectionException e) {
-                        LOG.error(e.getMessage(), e);
-                        return false;
-                    }
-                });
+            keyspace.prepareQuery(CF_ALL_ROWS)
+                    .getAllRows()
+                    .setRowLimit(3)
+                    .setRepeatLastToken(false)
+                    .setConcurrencyLevel(4)
+                    .executeWithCallback(new RowCallback<Long, String>() {
+                        @Override
+                        public void success(Rows<Long, String> rows) {
+                            LOG.info(Thread.currentThread().getName());
+                            for (Row<Long, String> row : rows) {
+                                counter.incrementAndGet();
+                            }
+                        }
+
+                        @Override
+                        public boolean failure(ConnectionException e) {
+                            LOG.error(e.getMessage(), e);
+                            return false;
+                        }
+                    });
             LOG.info("Read " + counter.get() + " keys");
         } catch (ConnectionException e) {
             LOG.info("Error getting all rows with callback", e);
             Assert.fail();
         }
     }
-    
-    @Test 
+
+    @Test
     public void testGetAllWithCallbackThreadsAndCheckpoints() throws Exception {
         try {
             final AtomicLong counter = new AtomicLong();
-            
+
             final CheckpointManager manager = new AstyanaxCheckpointManager(keyspace, CF_CHECKPOINTS.getName(), 123L);
-            
+
             // Read rows in 4 threads
             keyspace.prepareQuery(CF_LOTS_OF_ROWS)
-                .getAllRows()
-                .setRowLimit(10)
-                .setRepeatLastToken(true)
-                .setConcurrencyLevel(4)
-                .setCheckpointManager(manager)
-                .executeWithCallback(new RowCallback<Long, String>() {
-                    @Override
-                    public void success(Rows<Long, String> rows) {
-                        try {
-                            LOG.info("Checkpoint: " + manager.getCheckpoints());
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                    .getAllRows()
+                    .setRowLimit(10)
+                    .setRepeatLastToken(true)
+                    .setConcurrencyLevel(4)
+                    .setCheckpointManager(manager)
+                    .executeWithCallback(new RowCallback<Long, String>() {
+                        @Override
+                        public void success(Rows<Long, String> rows) {
+                            try {
+                                LOG.info("Checkpoint: " + manager.getCheckpoints());
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                            LOG.info(Thread.currentThread().getName());
+                            for (Row<Long, String> row : rows) {
+                                LOG.info(Thread.currentThread().getName() + " " + row.getKey());
+                                counter.incrementAndGet();
+                            }
                         }
-                        LOG.info(Thread.currentThread().getName());
-                        for (Row<Long, String> row : rows) {
-                            LOG.info(Thread.currentThread().getName() + " " + row.getKey());
-                            counter.incrementAndGet();
+
+                        @Override
+                        public boolean failure(ConnectionException e) {
+                            LOG.error(e.getMessage(), e);
+                            return false;
                         }
-                    }
-            
-                    @Override
-                    public boolean failure(ConnectionException e) {
-                        LOG.error(e.getMessage(), e);
-                        return false;
-                    }
-                });
-               
-            Assert.assertEquals(LOTS_OF_ROWS_COUNT,  counter.get());
+                    });
+
+            Assert.assertEquals(LOTS_OF_ROWS_COUNT, counter.get());
             LOG.info("Read " + counter.get() + " keys");
             LOG.info(manager.getCheckpoints().toString());
-            
+
             keyspace.prepareQuery(CF_LOTS_OF_ROWS)
-                .getAllRows()
-                .setRowLimit(10)
-                .setRepeatLastToken(true)
-                .setConcurrencyLevel(4)
-                .setCheckpointManager(manager)
-                .executeWithCallback(new RowCallback<Long, String>() {
-                    @Override
-                    public void success(Rows<Long, String> rows) {
-                        Assert.fail("All rows should have been processed");
-                    }
-    
-                    @Override
-                    public boolean failure(ConnectionException e) {
-                        LOG.error(e.getMessage(), e);
-                        return false;
-                    }
-                });
+                    .getAllRows()
+                    .setRowLimit(10)
+                    .setRepeatLastToken(true)
+                    .setConcurrencyLevel(4)
+                    .setCheckpointManager(manager)
+                    .executeWithCallback(new RowCallback<Long, String>() {
+                        @Override
+                        public void success(Rows<Long, String> rows) {
+                            Assert.fail("All rows should have been processed");
+                        }
+
+                        @Override
+                        public boolean failure(ConnectionException e) {
+                            LOG.error(e.getMessage(), e);
+                            return false;
+                        }
+                    });
         } catch (ConnectionException e) {
             LOG.error("Failed to run test", e);
             Assert.fail();
         }
     }
 
-	@Test
-	public void testTokenRangeTest() {
-		try {
-			OperationResult<Rows<Long, String>> rows = keyspace.prepareQuery(CF_ALL_ROWS)
-					.getAllRows()
-					.setRowLimit(5)
-					.setExceptionCallback(new ExceptionCallback() {
-						@Override
-						public boolean onException(ConnectionException e) {
-							Assert.fail(e.getMessage());
-							return true;
-						}
-					})
-					.forTokenRange("9452287970026068429538183539771339207", "37809151880104273718152734159085356828")
-					.execute();
+    @Test
+    public void testTokenRangeTest() {
+        try {
+            OperationResult<Rows<Long, String>> rows = keyspace.prepareQuery(CF_ALL_ROWS)
+                    .getAllRows()
+                    .setRowLimit(5)
+                    .setExceptionCallback(new ExceptionCallback() {
+                        @Override
+                        public boolean onException(ConnectionException e) {
+                            Assert.fail(e.getMessage());
+                            return true;
+                        }
+                    })
+                    .forTokenRange("9452287970026068429538183539771339207", "37809151880104273718152734159085356828")
+                    .execute();
 
-			Iterator<Row<Long, String>> itr = rows.getResult().iterator();
+            Iterator<Row<Long, String>> itr = rows.getResult().iterator();
 
-			while (itr.hasNext()) {
-				Row<Long, String> row = itr.next();
-				LOG.info("Row: " + row.getKey() + " count=" + row.getColumns().size());
-			}
+            while (itr.hasNext()) {
+                Row<Long, String> row = itr.next();
+                LOG.info("Row: " + row.getKey() + " count=" + row.getColumns().size());
+            }
 
-			Set<Long> set = getKeySet(rows.getResult());
-			LOG.info(set.toString());
-			// only a subset of the rows should have been returned
-			Assert.assertEquals(4,  set.size());
-		} catch (ConnectionException e) {
-			Assert.fail();
-		}
-	}
+            Set<Long> set = getKeySet(rows.getResult());
+            LOG.info(set.toString());
+            // only a subset of the rows should have been returned
+            Assert.assertEquals(4, set.size());
+        } catch (ConnectionException e) {
+            Assert.fail();
+        }
+    }
 }

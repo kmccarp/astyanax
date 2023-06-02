@@ -19,6 +19,6 @@ public enum MessageStatus {
     WAITING,
     RUNNING,
     DONE,
-    FAILED, 
+    FAILED,
     SKIPPED
 }

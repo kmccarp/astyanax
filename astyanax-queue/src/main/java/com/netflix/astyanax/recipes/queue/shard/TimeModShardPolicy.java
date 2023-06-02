@@ -32,7 +32,7 @@ public class TimeModShardPolicy implements ModShardPolicy {
     public static ModShardPolicy getInstance() {
         return instance;
     }
-    
+
     @Override
     public int getMessageShard(Message message, MessageQueueMetadata settings) {
         return (int) (message.getTokenTime() % settings.getShardCount());

@@ -36,86 +36,86 @@ import com.netflix.astyanax.serializers.StringSerializer;
 
 public class RowUniquenessConstraintTest extends KeyspaceTests {
 
-	public static ColumnFamily<Long, String> CF_UNIQUE_CONSTRAINT = ColumnFamily
-			.newColumnFamily(
-					"cfunique", 
-					LongSerializer.get(),
-					StringSerializer.get());
+    public static ColumnFamily<Long, String> CF_UNIQUE_CONSTRAINT = ColumnFamily
+            .newColumnFamily(
+                    "cfunique",
+                    LongSerializer.get(),
+                    StringSerializer.get());
 
-	@BeforeClass
-	public static void init() throws Exception {
-		initContext();
-		keyspace.createColumnFamily(CF_UNIQUE_CONSTRAINT, null);
-		CF_UNIQUE_CONSTRAINT.describe(keyspace);
-	}
+    @BeforeClass
+    public static void init() throws Exception {
+        initContext();
+        keyspace.createColumnFamily(CF_UNIQUE_CONSTRAINT, null);
+        CF_UNIQUE_CONSTRAINT.describe(keyspace);
+    }
 
-	@AfterClass
-	public static void tearDown() throws Exception {
-		keyspace.dropColumnFamily(CF_UNIQUE_CONSTRAINT);
-	}
+    @AfterClass
+    public static void tearDown() throws Exception {
+        keyspace.dropColumnFamily(CF_UNIQUE_CONSTRAINT);
+    }
 
 
-	Supplier<String> UniqueColumnSupplier = new Supplier<String>() {
+    Supplier<String> UniqueColumnSupplier = new Supplier<String>() {
 
-		@Override
-		public String get() {
-			return UUID.randomUUID().toString();
-		}
-	};
+        @Override
+        public String get() {
+            return UUID.randomUUID().toString();
+        }
+    };
 
-	@Test
-	public void testUnique() throws Exception {
+    @Test
+    public void testUnique() throws Exception {
 
-		RowUniquenessConstraint<Long, String> unique = 
-				new RowUniquenessConstraint<Long, String>(keyspace, CF_UNIQUE_CONSTRAINT, 1L, UniqueColumnSupplier)
-				.withConsistencyLevel(ConsistencyLevel.CL_ONE);
+        RowUniquenessConstraint<Long, String> unique =
+                new RowUniquenessConstraint<Long, String>(keyspace, CF_UNIQUE_CONSTRAINT, 1L, UniqueColumnSupplier)
+                        .withConsistencyLevel(ConsistencyLevel.CL_ONE);
 
-		unique.acquire();
+        unique.acquire();
 
-		try { 
-			unique = new RowUniquenessConstraint<Long, String>(keyspace, CF_UNIQUE_CONSTRAINT, 1L, UniqueColumnSupplier)
-					.withConsistencyLevel(ConsistencyLevel.CL_ONE);
-			unique.acquire();
-			Assert.fail("Should have gotten a non-unique ex");
-		} catch (NotUniqueException e) {
-			System.out.println(e.getMessage());
-		}
-	}
+        try {
+            unique = new RowUniquenessConstraint<Long, String>(keyspace, CF_UNIQUE_CONSTRAINT, 1L, UniqueColumnSupplier)
+                    .withConsistencyLevel(ConsistencyLevel.CL_ONE);
+            unique.acquire();
+            Assert.fail("Should have gotten a non-unique ex");
+        } catch (NotUniqueException e) {
+            System.out.println(e.getMessage());
+        }
+    }
 
-	@Test
-	public void testUniqueAndRelease() throws Exception {
+    @Test
+    public void testUniqueAndRelease() throws Exception {
 
-		RowUniquenessConstraint<Long, String> unique = 
-				new RowUniquenessConstraint<Long, String>(keyspace, CF_UNIQUE_CONSTRAINT, 2L, UniqueColumnSupplier)
-				.withConsistencyLevel(ConsistencyLevel.CL_ONE);
+        RowUniquenessConstraint<Long, String> unique =
+                new RowUniquenessConstraint<Long, String>(keyspace, CF_UNIQUE_CONSTRAINT, 2L, UniqueColumnSupplier)
+                        .withConsistencyLevel(ConsistencyLevel.CL_ONE);
 
-		unique.acquire();
-		unique.release();
+        unique.acquire();
+        unique.release();
 
-		unique = new RowUniquenessConstraint<Long, String>(keyspace, CF_UNIQUE_CONSTRAINT, 2L, UniqueColumnSupplier)
-				.withConsistencyLevel(ConsistencyLevel.CL_ONE);
-		unique.acquire();
-	}
+        unique = new RowUniquenessConstraint<Long, String>(keyspace, CF_UNIQUE_CONSTRAINT, 2L, UniqueColumnSupplier)
+                .withConsistencyLevel(ConsistencyLevel.CL_ONE);
+        unique.acquire();
+    }
 
-	@Test
-	public void testUniquenessWithCustomMutation() throws Exception {
+    @Test
+    public void testUniquenessWithCustomMutation() throws Exception {
 
-		ColumnList<String> result = keyspace.prepareQuery(CF_UNIQUE_CONSTRAINT).getRow(10L).execute().getResult();
-		Assert.assertTrue(result.isEmpty());
+        ColumnList<String> result = keyspace.prepareQuery(CF_UNIQUE_CONSTRAINT).getRow(10L).execute().getResult();
+        Assert.assertTrue(result.isEmpty());
 
-		RowUniquenessConstraint<Long, String> unique = 
-				new RowUniquenessConstraint<Long, String>(keyspace, CF_UNIQUE_CONSTRAINT, 3L, UniqueColumnSupplier)
-				.withConsistencyLevel(ConsistencyLevel.CL_ONE);
+        RowUniquenessConstraint<Long, String> unique =
+                new RowUniquenessConstraint<Long, String>(keyspace, CF_UNIQUE_CONSTRAINT, 3L, UniqueColumnSupplier)
+                        .withConsistencyLevel(ConsistencyLevel.CL_ONE);
 
-		unique.acquireAndApplyMutation(new Function<MutationBatch, Boolean>() {
-			public Boolean apply(MutationBatch input) {
+        unique.acquireAndApplyMutation(new Function<MutationBatch, Boolean>() {
+            public Boolean apply(MutationBatch input) {
 
-				input.withRow(CF_UNIQUE_CONSTRAINT, 10L).putEmptyColumn("MyCustomColumn", null);
-				return true;
-			}
-		});
+                input.withRow(CF_UNIQUE_CONSTRAINT, 10L).putEmptyColumn("MyCustomColumn", null);
+                return true;
+            }
+        });
 
-		result = keyspace.prepareQuery(CF_UNIQUE_CONSTRAINT).getRow(10L).execute().getResult();
-		Assert.assertFalse(result.isEmpty());
-	}
+        result = keyspace.prepareQuery(CF_UNIQUE_CONSTRAINT).getRow(10L).execute().getResult();
+        Assert.assertFalse(result.isEmpty());
+    }
 }

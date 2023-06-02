@@ -33,12 +33,12 @@ import com.netflix.astyanax.retry.RetryPolicy;
 import com.netflix.astyanax.serializers.StringSerializer;
 
 class ThriftCqlStatement implements CqlStatement {
-    
+
     private ThriftKeyspaceImpl keyspace;
     private ByteBuffer  query;
     private Compression compression = Compression.NONE;
     private RetryPolicy retry;
-    
+
     public ThriftCqlStatement(ThriftKeyspaceImpl keyspace) {
         this.keyspace = keyspace;
         this.retry = keyspace.getConfig().getRetryPolicy().duplicate();
@@ -66,7 +66,7 @@ class ThriftCqlStatement implements CqlStatement {
         query = StringSerializer.get().toByteBuffer(cql);
         return this;
     }
-    
+
     public CqlStatement withCompression(Boolean flag) {
         if (flag)
             compression = Compression.GZIP;

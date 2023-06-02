@@ -50,10 +50,10 @@ public abstract class AbstractThriftColumnMutationImpl implements ColumnMutation
 
 
     public AbstractThriftColumnMutationImpl(ByteBuffer key, ByteBuffer column, AstyanaxConfiguration config) {
-        this.key    = key;
+        this.key = key;
         this.column = column;
-        this.clock  = config.getClock();
-        this.retry  = config.getRetryPolicy().duplicate();
+        this.clock = config.getClock();
+        this.retry = config.getRetryPolicy().duplicate();
         this.writeConsistencyLevel = config.getDefaultWriteConsistencyLevel();
     }
 
@@ -62,7 +62,7 @@ public abstract class AbstractThriftColumnMutationImpl implements ColumnMutation
         this.retry = retry;
         return this;
     }
-    
+
     @Override
     public ColumnMutation setConsistencyLevel(ConsistencyLevel consistencyLevel) {
         writeConsistencyLevel = consistencyLevel;
@@ -74,7 +74,7 @@ public abstract class AbstractThriftColumnMutationImpl implements ColumnMutation
         this.clock = new ConstantClock(timestamp);
         return this;
     }
-    
+
     @Override
     public Execution<Void> putValue(String value, Integer ttl) {
         return insertValue(StringSerializer.get().toByteBuffer(value), ttl);
@@ -89,12 +89,12 @@ public abstract class AbstractThriftColumnMutationImpl implements ColumnMutation
     public Execution<Void> putValue(byte value, Integer ttl) {
         return insertValue(ByteSerializer.get().toByteBuffer(value), ttl);
     }
-    
+
     @Override
     public Execution<Void> putValue(short value, Integer ttl) {
         return insertValue(ShortSerializer.get().toByteBuffer(value), ttl);
     }
-    
+
     @Override
     public Execution<Void> putValue(int value, Integer ttl) {
         return insertValue(IntegerSerializer.get().toByteBuffer(value), ttl);
@@ -119,7 +119,7 @@ public abstract class AbstractThriftColumnMutationImpl implements ColumnMutation
     public Execution<Void> putValue(Date value, Integer ttl) {
         return insertValue(DateSerializer.get().toByteBuffer(value), ttl);
     }
-    
+
     @Override
     public Execution<Void> putValue(float value, Integer ttl) {
         return insertValue(FloatSerializer.get().toByteBuffer(value), ttl);

@@ -22,11 +22,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Documented
-@Target({ ElementType.FIELD })
+@Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Serializer {
-	/**
-	 * Fully qualified class name of custom Serializer
-	 */
-	Class<?> value();
+    /**
+     * Fully qualified class name of custom Serializer
+     */
+    Class<?> value();
 }

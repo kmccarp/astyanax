@@ -38,11 +38,11 @@ import com.netflix.astyanax.model.RangeEndpoint;
  * @param <T>
  */
 public class AnnotatedCompositeSerializer<T> extends AbstractSerializer<T> {
-    private static final byte       END_OF_COMPONENT    = 0;
-    private static final ByteBuffer EMPTY_BYTE_BUFFER   = ByteBuffer.allocate(0);
+    private static final byte       END_OF_COMPONENT = 0;
+    private static final ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.allocate(0);
     private static final int        DEFAULT_BUFFER_SIZE = 128;
-    private static final int        COMPONENT_OVERHEAD  = 3;
-    
+    private static final int        COMPONENT_OVERHEAD = 3;
+
     /**
      * Serializer for a single component within the Pojo
      * 
@@ -73,23 +73,23 @@ public class AnnotatedCompositeSerializer<T> extends AbstractSerializer<T> {
         }
 
         public void deserialize(Object obj, ByteBuffer value) throws IllegalArgumentException, IllegalAccessException {
-           	field.set(obj, serializer.fromByteBuffer(value));
+            field.set(obj, serializer.fromByteBuffer(value));
         }
-        
-        public void setFieldValueDirectly(Object obj, Object value) { 
-        	try {
-               	field.set(obj, value);
-        	} catch (Exception e) {
-        		throw new RuntimeException(e);
-        	}
+
+        public void setFieldValueDirectly(Object obj, Object value) {
+            try {
+                field.set(obj, value);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
 
         public Object getFieldValueDirectly(Object obj) {
-        	try {
-        		return field.get(obj);
-        	} catch (Exception e) {
-        		throw new RuntimeException(e);
-        	}
+            try {
+                return field.get(obj);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
 
         public ByteBuffer serializeValue(Object value) {
@@ -101,42 +101,42 @@ public class AnnotatedCompositeSerializer<T> extends AbstractSerializer<T> {
         public int compareTo(ComponentSerializer<?> other) {
             return this.ordinal - other.ordinal;
         }
-        
+
         public Serializer<P> getSerializer() {
-        	return this.serializer;
+            return this.serializer;
         }
     }
 
     private final List<ComponentSerializer<?>> components;
     private final Class<T> clazz;
     private final int bufferSize;
-    
+
     public AnnotatedCompositeSerializer<T> clone() {
-    	AnnotatedCompositeSerializer<T> clone = new AnnotatedCompositeSerializer<T>(this.clazz, this.bufferSize, false);
-    	return clone;
+        AnnotatedCompositeSerializer<T> clone = new AnnotatedCompositeSerializer<T>(this.clazz, this.bufferSize, false);
+        return clone;
     }
-    
+
     public AnnotatedCompositeSerializer(Class<T> clazz, boolean includeParentFields) {
         this(clazz, DEFAULT_BUFFER_SIZE, includeParentFields);
-	}
+    }
 
     public AnnotatedCompositeSerializer(Class<T> clazz) {
         this(clazz, DEFAULT_BUFFER_SIZE, false);
     }
-    
+
     public AnnotatedCompositeSerializer(Class<T> clazz, int bufferSize) {
-		this(clazz, bufferSize, false);
-	}
+        this(clazz, bufferSize, false);
+    }
 
     public AnnotatedCompositeSerializer(Class<T> clazz, int bufferSize, boolean includeParentFields) {
-        this.clazz      = clazz;
+        this.clazz = clazz;
         this.components = new ArrayList<ComponentSerializer<?>>();
         this.bufferSize = bufferSize;
 
         for (Field field : getFields(clazz, includeParentFields)) {
             Component annotation = field.getAnnotation(Component.class);
             if (annotation != null) {
-				Serializer s = SerializerTypeInferer.getSerializer(field.getType());
+                Serializer s = SerializerTypeInferer.getSerializer(field.getType());
                 components.add(makeComponent(field, s, annotation.ordinal()));
             }
         }
@@ -144,21 +144,21 @@ public class AnnotatedCompositeSerializer<T> extends AbstractSerializer<T> {
         Collections.sort(this.components);
     }
 
-	private List<Field> getFields(Class clazz, boolean recursively) {
-		List<Field> allFields = new ArrayList<Field>();
-		if (clazz.getDeclaredFields() != null && clazz.getDeclaredFields().length > 0) {
-			allFields.addAll(Arrays.asList(clazz.getDeclaredFields()));
-		}
-		if (recursively && clazz.getSuperclass() != null && !clazz.getSuperclass().equals(Object.class)) {
-			allFields.addAll(getFields(clazz.getSuperclass(), true));
-		}
-		return allFields;
-	}
+    private List<Field> getFields(Class clazz, boolean recursively) {
+        List<Field> allFields = new ArrayList<Field>();
+        if (clazz.getDeclaredFields() != null && clazz.getDeclaredFields().length > 0) {
+            allFields.addAll(Arrays.asList(clazz.getDeclaredFields()));
+        }
+        if (recursively && clazz.getSuperclass() != null && !clazz.getSuperclass().equals(Object.class)) {
+            allFields.addAll(getFields(clazz.getSuperclass(), true));
+        }
+        return allFields;
+    }
 
     @Override
     public ByteBuffer toByteBuffer(T obj) {
         ByteBuffer bb = ByteBuffer.allocate(bufferSize);
-        
+
         for (ComponentSerializer<?> serializer : components) {
             try {
                 // First, serialize the ByteBuffer for this component
@@ -181,7 +181,7 @@ public class AnnotatedCompositeSerializer<T> extends AbstractSerializer<T> {
                 bb.put(END_OF_COMPONENT);
             }
             catch (Exception e) {
-				e.printStackTrace();
+                e.printStackTrace();
                 throw new RuntimeException(e);
             }
         }
@@ -282,7 +282,7 @@ public class AnnotatedCompositeSerializer<T> extends AbstractSerializer<T> {
             private ByteBuffer out = ByteBuffer.allocate(bufferSize);
             private int position = 0;
             private boolean done = false;
-            
+
             @Override
             public RangeEndpoint append(Object value, Equality equality) {
                 ComponentSerializer<?> serializer = components.get(position);
@@ -329,13 +329,13 @@ public class AnnotatedCompositeSerializer<T> extends AbstractSerializer<T> {
         return endpoint;
     }
 
-	public List<ComponentSerializer<?>> getComponents() {
-		return components;
-	}
+    public List<ComponentSerializer<?>> getComponents() {
+        return components;
+    }
 
-	public Class<T> getClazz() {
-		return clazz;
-	}
-    
-    
+    public Class<T> getClazz() {
+        return clazz;
+    }
+
+
 }

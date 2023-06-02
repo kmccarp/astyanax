@@ -44,15 +44,15 @@ public class RowUniquenessConstraint<K, C> implements UniquenessConstraint {
     private final C          uniqueColumn;
     private final K          key;
     private ConsistencyLevel consistencyLevel = ConsistencyLevel.CL_LOCAL_QUORUM;
-    private ByteBuffer       data             = null;
-    private Integer          ttl              = null;
+    private ByteBuffer       data = null;
+    private Integer          ttl = null;
 
     public RowUniquenessConstraint(Keyspace keyspace, ColumnFamily<K, C> columnFamily, K key,
             Supplier<C> uniqueColumnSupplier) {
-        this.keyspace     = keyspace;
+        this.keyspace = keyspace;
         this.columnFamily = columnFamily;
         this.uniqueColumn = uniqueColumnSupplier.get();
-        this.key          = key;
+        this.key = key;
     }
 
     public RowUniquenessConstraint<K, C> withTtl(Integer ttl) {
@@ -64,7 +64,7 @@ public class RowUniquenessConstraint<K, C> implements UniquenessConstraint {
         this.consistencyLevel = consistencyLevel;
         return this;
     }
-    
+
     /**
      * Specify the data value to add to the column.  
      * @param data
@@ -74,17 +74,17 @@ public class RowUniquenessConstraint<K, C> implements UniquenessConstraint {
         this.data = data;
         return this;
     }
-    
+
     public RowUniquenessConstraint<K, C> withData(String data) {
         this.data = StringSerializer.get().fromString(data);
         return this;
     }
-    
+
     @Override
     public void acquire() throws NotUniqueException, Exception {
         acquireAndApplyMutation(null);
     }
-    
+
     /**
      * @deprecated  Use acquireAndExecuteMutation instead to avoid timestamp issues
      */
@@ -100,7 +100,7 @@ public class RowUniquenessConstraint<K, C> implements UniquenessConstraint {
             }
         });
     }
-    
+
     @Override
     public void acquireAndApplyMutation(Function<MutationBatch, Boolean> callback) throws NotUniqueException, Exception {
         try {
@@ -126,7 +126,7 @@ public class RowUniquenessConstraint<K, C> implements UniquenessConstraint {
             m = keyspace.prepareMutationBatch().setConsistencyLevel(consistencyLevel);
             if (callback != null)
                 callback.apply(m);
-            
+
             if (data == null) {
                 m.withRow(columnFamily, key).putEmptyColumn(uniqueColumn, null);
             }
@@ -138,7 +138,8 @@ public class RowUniquenessConstraint<K, C> implements UniquenessConstraint {
         catch (Exception e) {
             release();
             throw e;
-        }    }
+        }
+    }
 
     @Override
     public void release() throws Exception {
@@ -146,7 +147,7 @@ public class RowUniquenessConstraint<K, C> implements UniquenessConstraint {
         m.withRow(columnFamily, key).deleteColumn(uniqueColumn);
         m.execute();
     }
-    
+
     /**
      * Read the data stored with the unique row.  This data is normally a 'foreign' key to
      * another column family.
@@ -156,11 +157,11 @@ public class RowUniquenessConstraint<K, C> implements UniquenessConstraint {
     public ByteBuffer readData() throws Exception {
         ColumnList<C> result = keyspace
                 .prepareQuery(columnFamily)
-                    .setConsistencyLevel(consistencyLevel)
-                    .getKey(key)
+                .setConsistencyLevel(consistencyLevel)
+                .getKey(key)
                 .execute()
-                    .getResult();
-        
+                .getResult();
+
         boolean hasColumn = false;
         ByteBuffer data = null;
         for (Column<C> column : result) {
@@ -172,13 +173,13 @@ public class RowUniquenessConstraint<K, C> implements UniquenessConstraint {
                 data = column.getByteBufferValue();
             }
         }
-        
+
         if (!hasColumn) {
             throw new NotFoundException(this.key.toString() + " has no uniquness lock");
         }
         return data;
     }
-    
+
     public String readDataAsString() throws Exception {
         return StringSerializer.get().fromByteBuffer(readData());
     }

@@ -42,7 +42,7 @@ public abstract class AbstractColumnListMutation<C> implements ColumnListMutatio
     public AbstractColumnListMutation(long timestamp) {
         this.timestamp = timestamp;
     }
-    
+
     @Override
     public ColumnListMutation<C> putColumn(C columnName, String value, Integer ttl) {
         return putColumn(columnName, value, StringSerializer.get(), ttl);
@@ -80,7 +80,7 @@ public abstract class AbstractColumnListMutation<C> implements ColumnListMutatio
             return this;
         return putColumn(columnName, value, valueSerializer, ttl);
     }
-    
+
     @Override
     public ColumnListMutation<C> putColumn(final C columnName, final byte[] value) {
         return putColumn(columnName, value, null);
@@ -101,7 +101,7 @@ public abstract class AbstractColumnListMutation<C> implements ColumnListMutatio
         }
         return this;
     }
-    
+
     @Override
     public ColumnListMutation<C> putColumn(C columnName, byte value, Integer ttl) {
         return putColumn(columnName, value, ByteSerializer.get(), ttl);
@@ -111,7 +111,7 @@ public abstract class AbstractColumnListMutation<C> implements ColumnListMutatio
     public ColumnListMutation<C> putColumn(final C columnName, final byte value) {
         return putColumn(columnName, value, null);
     }
-    
+
     @Override
     public ColumnListMutation<C> putColumnIfNotNull(C columnName, Byte value, Integer ttl) {
         if (value != null) {
@@ -127,7 +127,7 @@ public abstract class AbstractColumnListMutation<C> implements ColumnListMutatio
         }
         return this;
     }
-    
+
     @Override
     public ColumnListMutation<C> putColumn(C columnName, short value, Integer ttl) {
         return putColumn(columnName, value, ShortSerializer.get(), ttl);
@@ -137,7 +137,7 @@ public abstract class AbstractColumnListMutation<C> implements ColumnListMutatio
     public ColumnListMutation<C> putColumn(final C columnName, final short value) {
         return putColumn(columnName, value, null);
     }
-    
+
     @Override
     public ColumnListMutation<C> putColumnIfNotNull(C columnName, Short value, Integer ttl) {
         if (value != null) {
@@ -241,7 +241,7 @@ public abstract class AbstractColumnListMutation<C> implements ColumnListMutatio
     public ColumnListMutation<C> putColumn(final C columnName, final ByteBuffer value) {
         return putColumn(columnName, value, null);
     }
-    
+
     @Override
     public ColumnListMutation<C> putColumnIfNotNull(C columnName, ByteBuffer value) {
         if (value != null) {
@@ -361,7 +361,7 @@ public abstract class AbstractColumnListMutation<C> implements ColumnListMutatio
         }
         return this;
     }
-    
+
     @Override
     public ColumnListMutation<C> putEmptyColumn(final C columnName) {
         return putEmptyColumn(columnName, null);
@@ -378,16 +378,16 @@ public abstract class AbstractColumnListMutation<C> implements ColumnListMutatio
         this.defaultTtl = ttl;
         return this;
     }
-    
+
     @Override
     public ColumnListMutation<C> putCompressedColumn(C columnName, String value, Integer ttl) {
         Preconditions.checkNotNull(value, "Can't insert null value");
-        
+
         if (value == null) {
             putEmptyColumn(columnName, ttl);
             return this;
         }
-        
+
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         GZIPOutputStream gzip;
         try {
@@ -422,7 +422,7 @@ public abstract class AbstractColumnListMutation<C> implements ColumnListMutatio
     public Integer getDefaultTtl() {
         return defaultTtl;
     }
-    
+
     public long getTimestamp() {
         return timestamp;
     }

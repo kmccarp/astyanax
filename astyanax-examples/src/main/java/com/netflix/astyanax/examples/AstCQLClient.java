@@ -48,160 +48,160 @@ import java.util.Properties;
  * @author Marko Asplund
  */
 public class AstCQLClient {
-  private static final Logger logger = LoggerFactory.getLogger(AstCQLClient.class);
-  
-  private AstyanaxContext<Keyspace> keyspaceContext;
-  private Keyspace keyspace;
-  private ColumnFamily<Integer, String> EMP_CF;
-  private static final String KEYSPACE_NAME = "test1";
-  private static final String EMP_CF_NAME = "employees1";
-  private static final String INSERT_STATEMENT =
-      String.format("INSERT INTO %s (%s, %s, %s, %s) VALUES (?, ?, ?, ?);",
-          EMP_CF_NAME, COL_NAME_EMPID, COL_NAME_DEPTID, COL_NAME_FIRST_NAME, COL_NAME_LAST_NAME);
-  private static final String CREATE_STATEMENT =
-      String.format("CREATE TABLE %s (%s int, %s int, %s varchar, %s varchar, PRIMARY KEY (%s, %s))",
-          EMP_CF_NAME, COL_NAME_EMPID, COL_NAME_DEPTID, COL_NAME_FIRST_NAME, COL_NAME_LAST_NAME,
-          COL_NAME_EMPID, COL_NAME_DEPTID);
+    private static final Logger logger = LoggerFactory.getLogger(AstCQLClient.class);
 
-  public void init() {
-    logger.debug("init()");
-    
-    keyspaceContext = new AstyanaxContext.Builder()
-    .forCluster("Test Cluster")
-    .forKeyspace(KEYSPACE_NAME)
-    .withAstyanaxConfiguration(new AstyanaxConfigurationImpl()      
-        .setDiscoveryType(NodeDiscoveryType.RING_DESCRIBE)
-    )
-    .withConnectionPoolConfiguration(new ConnectionPoolConfigurationImpl("MyConnectionPool")
-        .setPort(9160)
-        .setMaxConnsPerHost(1)
-        .setSeeds("127.0.0.1:9160")
-    )
-    .withAstyanaxConfiguration(new AstyanaxConfigurationImpl()      
-        .setCqlVersion("3.0.0")
-        .setTargetCassandraVersion("1.2"))
-    .withConnectionPoolMonitor(new CountingConnectionPoolMonitor())
-    .buildKeyspace(ThriftFamilyFactory.getInstance());
+    private AstyanaxContext<Keyspace> keyspaceContext;
+    private Keyspace keyspace;
+    private ColumnFamily<Integer, String> EMP_CF;
+    private static final String KEYSPACE_NAME = "test1";
+    private static final String EMP_CF_NAME = "employees1";
+    private static final String INSERT_STATEMENT =
+            String.format("INSERT INTO %s (%s, %s, %s, %s) VALUES (?, ?, ?, ?);",
+                    EMP_CF_NAME, COL_NAME_EMPID, COL_NAME_DEPTID, COL_NAME_FIRST_NAME, COL_NAME_LAST_NAME);
+    private static final String CREATE_STATEMENT =
+            String.format("CREATE TABLE %s (%s int, %s int, %s varchar, %s varchar, PRIMARY KEY (%s, %s))",
+                    EMP_CF_NAME, COL_NAME_EMPID, COL_NAME_DEPTID, COL_NAME_FIRST_NAME, COL_NAME_LAST_NAME,
+                    COL_NAME_EMPID, COL_NAME_DEPTID);
 
-    keyspaceContext.start();
+    public void init() {
+        logger.debug("init()");
 
-    // Create keyspace if it doesn't already exist.
-    // Don't do in production; better to create from cqlsh to avoid parallel issues from eventual consistency.
-    Keyspace ks = createKeyspaceIfNotExists();
+        keyspaceContext = new AstyanaxContext.Builder()
+                .forCluster("Test Cluster")
+                .forKeyspace(KEYSPACE_NAME)
+                .withAstyanaxConfiguration(new AstyanaxConfigurationImpl()
+                        .setDiscoveryType(NodeDiscoveryType.RING_DESCRIBE)
+                )
+                .withConnectionPoolConfiguration(new ConnectionPoolConfigurationImpl("MyConnectionPool")
+                        .setPort(9160)
+                        .setMaxConnsPerHost(1)
+                        .setSeeds("127.0.0.1:9160")
+                )
+                .withAstyanaxConfiguration(new AstyanaxConfigurationImpl()
+                        .setCqlVersion("3.0.0")
+                        .setTargetCassandraVersion("1.2"))
+                .withConnectionPoolMonitor(new CountingConnectionPoolMonitor())
+                .buildKeyspace(ThriftFamilyFactory.getInstance());
 
-    keyspace = keyspaceContext.getEntity();
-    
-    EMP_CF = ColumnFamily.newColumnFamily(
-        EMP_CF_NAME, 
-        IntegerSerializer.get(), 
-        StringSerializer.get());
+        keyspaceContext.start();
 
-    // Create column family if it doesn't already exist.
-    // Don't do in production; better to create from cqlsh to avoid parallel issues from eventual consistency.
-    createColumnFamilyIfNotExists();
-  }
+        // Create keyspace if it doesn't already exist.
+        // Don't do in production; better to create from cqlsh to avoid parallel issues from eventual consistency.
+        Keyspace ks = createKeyspaceIfNotExists();
 
-  private Keyspace createKeyspaceIfNotExists() {
-    // Don't do in production; better to create from cqlsh to avoid parallel issues from eventual consistency.
-    Keyspace ks = null;
-    try {
-      ks = keyspaceContext.getClient();
+        keyspace = keyspaceContext.getEntity();
 
-      Properties props = new Properties();
-      props.setProperty("name", KEYSPACE_NAME);
-      props.setProperty("strategy_class", "SimpleStrategy");
-      props.setProperty("strategy_options.replication_factor", "1");
+        EMP_CF = ColumnFamily.newColumnFamily(
+                EMP_CF_NAME,
+                IntegerSerializer.get(),
+                StringSerializer.get());
 
-      ks.createKeyspaceIfNotExists(props);
-      KeyspaceDefinition ksDef = ks.describeKeyspace();
-    } catch (Exception e) {
-      logger.info("Didn't (re)create keyspace, message={}", e.getMessage());
+        // Create column family if it doesn't already exist.
+        // Don't do in production; better to create from cqlsh to avoid parallel issues from eventual consistency.
+        createColumnFamilyIfNotExists();
     }
-    return ks;
-  }
 
-  public void insert(int empId, int deptId, String firstName, String lastName) {
-    try {
-      @SuppressWarnings("unused")
-      OperationResult<CqlResult<Integer, String>> result = keyspace
-          .prepareQuery(EMP_CF)
-              .withCql(INSERT_STATEMENT)
-          .asPreparedStatement()
-              .withIntegerValue(empId)
-              .withIntegerValue(deptId)
-              .withStringValue(firstName)
-              .withStringValue(lastName)
-          .execute();
-    } catch (ConnectionException e) {
-      logger.error("failed to write data to C*", e);
-      throw new RuntimeException("failed to write data to C*", e);
-    }
-    logger.debug("insert ok");
-  }
-  
-  public void insertDynamicProperties(int id, String[] ... entries) {
-    MutationBatch m = keyspace.prepareMutationBatch();
+    private Keyspace createKeyspaceIfNotExists() {
+        // Don't do in production; better to create from cqlsh to avoid parallel issues from eventual consistency.
+        Keyspace ks = null;
+        try {
+            ks = keyspaceContext.getClient();
 
-    ColumnListMutation<String> clm = m.withRow(EMP_CF, id);
-    for(String[] kv : entries) {
-      clm.putColumn(kv[0], kv[1], null);
-    }
-    
-    try {
-      @SuppressWarnings("unused")
-      OperationResult<Void> result = m.execute();
-    } catch (ConnectionException e) {
-      logger.error("failed to write data to C*", e);
-      throw new RuntimeException("failed to write data to C*", e);
-    }
-    logger.debug("insert ok");
-  }
+            Properties props = new Properties();
+            props.setProperty("name", KEYSPACE_NAME);
+            props.setProperty("strategy_class", "SimpleStrategy");
+            props.setProperty("strategy_options.replication_factor", "1");
 
-  
-  public void createColumnFamilyIfNotExists() {
-    // Don't do in production; better to create from cqlsh to avoid parallel issues from eventual consistency.
-    logger.debug("CQL: "+CREATE_STATEMENT);
-    try {
-      @SuppressWarnings("unused")
-      OperationResult<CqlResult<Integer, String>> result = keyspace
-          .prepareQuery(EMP_CF)
-          .withCql(CREATE_STATEMENT)
-          .execute();
-    } catch (Exception e) {
-      logger.info("Didn't (re)create column family, message={}", e.getMessage());
+            ks.createKeyspaceIfNotExists(props);
+            KeyspaceDefinition ksDef = ks.describeKeyspace();
+        } catch (Exception e) {
+            logger.info("Didn't (re)create keyspace, message={}", e.getMessage());
+        }
+        return ks;
     }
-  }
 
-  public void read(int empId) {
-    logger.debug("read()");
-    try {
-      OperationResult<CqlResult<Integer, String>> result
-        = keyspace.prepareQuery(EMP_CF)
-          .withCql(String.format("SELECT * FROM %s WHERE %s=%d;", EMP_CF_NAME, COL_NAME_EMPID, empId))
-          .execute();
-      for (Row<Integer, String> row : result.getResult().getRows()) {
-        logger.debug("row: "+row.getKey()+","+row); // why is rowKey null?
+    public void insert(int empId, int deptId, String firstName, String lastName) {
+        try {
+            @SuppressWarnings("unused")
+            OperationResult<CqlResult<Integer, String>> result = keyspace
+                    .prepareQuery(EMP_CF)
+                    .withCql(INSERT_STATEMENT)
+                    .asPreparedStatement()
+                    .withIntegerValue(empId)
+                    .withIntegerValue(deptId)
+                    .withStringValue(firstName)
+                    .withStringValue(lastName)
+                    .execute();
+        } catch (ConnectionException e) {
+            logger.error("failed to write data to C*", e);
+            throw new RuntimeException("failed to write data to C*", e);
+        }
+        logger.debug("insert ok");
+    }
+
+    public void insertDynamicProperties(int id, String[] ... entries) {
+        MutationBatch m = keyspace.prepareMutationBatch();
+
+        ColumnListMutation<String> clm = m.withRow(EMP_CF, id);
+        for (String[] kv : entries) {
+            clm.putColumn(kv[0], kv[1], null);
+        }
+
+        try {
+            @SuppressWarnings("unused")
+            OperationResult<Void> result = m.execute();
+        } catch (ConnectionException e) {
+            logger.error("failed to write data to C*", e);
+            throw new RuntimeException("failed to write data to C*", e);
+        }
+        logger.debug("insert ok");
+    }
+
+
+    public void createColumnFamilyIfNotExists() {
+        // Don't do in production; better to create from cqlsh to avoid parallel issues from eventual consistency.
+        logger.debug("CQL: " + CREATE_STATEMENT);
+        try {
+            @SuppressWarnings("unused")
+            OperationResult<CqlResult<Integer, String>> result = keyspace
+                    .prepareQuery(EMP_CF)
+                    .withCql(CREATE_STATEMENT)
+                    .execute();
+        } catch (Exception e) {
+            logger.info("Didn't (re)create column family, message={}", e.getMessage());
+        }
+    }
+
+    public void read(int empId) {
+        logger.debug("read()");
+        try {
+            OperationResult<CqlResult<Integer, String>> result
+                    = keyspace.prepareQuery(EMP_CF)
+                    .withCql(String.format("SELECT * FROM %s WHERE %s=%d;", EMP_CF_NAME, COL_NAME_EMPID, empId))
+                    .execute();
+            for (Row<Integer, String> row : result.getResult().getRows()) {
+                logger.debug("row: " + row.getKey() + "," + row); // why is rowKey null?
         
-        ColumnList<String> cols = row.getColumns();
-        logger.debug("emp");
-        logger.debug("- emp id: "+cols.getIntegerValue(COL_NAME_EMPID, null));
-        logger.debug("- dept: "+cols.getIntegerValue(COL_NAME_DEPTID, null));
-        logger.debug("- firstName: "+cols.getStringValue(COL_NAME_FIRST_NAME, null));
-        logger.debug("- lastName: "+cols.getStringValue(COL_NAME_LAST_NAME, null));
-      }
-    } catch (ConnectionException e) {
-      logger.error("failed to read from C*", e);
-      throw new RuntimeException("failed to read from C*", e);
+                ColumnList<String> cols = row.getColumns();
+                logger.debug("emp");
+                logger.debug("- emp id: " + cols.getIntegerValue(COL_NAME_EMPID, null));
+                logger.debug("- dept: " + cols.getIntegerValue(COL_NAME_DEPTID, null));
+                logger.debug("- firstName: " + cols.getStringValue(COL_NAME_FIRST_NAME, null));
+                logger.debug("- lastName: " + cols.getStringValue(COL_NAME_LAST_NAME, null));
+            }
+        } catch (ConnectionException e) {
+            logger.error("failed to read from C*", e);
+            throw new RuntimeException("failed to read from C*", e);
+        }
     }
-  }
-  
-  public static void main(String[] args) {
-    logger.debug("main");
-    AstCQLClient c = new AstCQLClient();
-    c.init();
+
+    public static void main(String[] args) {
+        logger.debug("main");
+        AstCQLClient c = new AstCQLClient();
+        c.init();
 //    c.createCF();
-    c.insert(222, 333, "Eric", "Cartman");
-    c.read(222);
-  }
+        c.insert(222, 333, "Eric", "Cartman");
+        c.read(222);
+    }
 
 }

@@ -33,129 +33,131 @@ import com.netflix.astyanax.cql.ConsistencyLevelMapping;
  */
 public class ChangeConsistencyLevelRetryPolicy extends JavaDriverBasedRetryPolicy {
 
-	// Policies for specific conditions
-	private boolean retryOnAllConditions = true;
-	private boolean retryOnReads = false;
-	private boolean retryOnWrites = false;
-	private boolean retryOnUnavailable = false;
-	
-	// The retry count
-	private int retryCount = 0;
-	// the next consistency level to use.
-	private ConsistencyLevel nextConsistencyLevel;
-	// throw when giving up or ignore failures
-	private boolean suppressFinalFailure = false;
+    // Policies for specific conditions
+    private boolean retryOnAllConditions = true;
+    private boolean retryOnReads = false;
+    private boolean retryOnWrites = false;
+    private boolean retryOnUnavailable = false;
 
-	public ChangeConsistencyLevelRetryPolicy() { 
-	}
-	
-	public ChangeConsistencyLevelRetryPolicy retryOnAllConditions(boolean condition) {
-		retryOnAllConditions = condition;
-		return this;
-	}
-	
-	public ChangeConsistencyLevelRetryPolicy retryOnReadTimeouts(boolean condition) {
-		retryOnReads = condition;
-		retryOnAllConditions = false;
-		return this;
-	}
+    // The retry count
+    private int retryCount = 0;
+    // the next consistency level to use.
+    private ConsistencyLevel nextConsistencyLevel;
+    // throw when giving up or ignore failures
+    private boolean suppressFinalFailure = false;
 
-	public ChangeConsistencyLevelRetryPolicy retryOnWriteTimeouts(boolean condition) {
-		retryOnWrites = condition;
-		retryOnAllConditions = false;
-		return this;
-	}
+    public ChangeConsistencyLevelRetryPolicy() {
+    }
 
-	public ChangeConsistencyLevelRetryPolicy retryOnUnavailable(boolean condition) {
-		retryOnUnavailable = condition;
-		retryOnAllConditions = false;
-		return this;
-	}
-	
-	public ChangeConsistencyLevelRetryPolicy withNumRetries(int retries) {
-		retryCount = retries;
-		return this;
-	}
+    public ChangeConsistencyLevelRetryPolicy retryOnAllConditions(boolean condition) {
+        retryOnAllConditions = condition;
+        return this;
+    }
 
-	public ChangeConsistencyLevelRetryPolicy withNextConsistencyLevel(com.netflix.astyanax.model.ConsistencyLevel cl) {
-		nextConsistencyLevel = ConsistencyLevelMapping.getCL(cl);
-		return this;
-	}
-	
-	public ChangeConsistencyLevelRetryPolicy suppressFinalFailure(boolean condition) {
-		suppressFinalFailure = condition;
-		return this;
-	}
+    public ChangeConsistencyLevelRetryPolicy retryOnReadTimeouts(boolean condition) {
+        retryOnReads = condition;
+        retryOnAllConditions = false;
+        return this;
+    }
 
-	private com.datastax.driver.core.policies.RetryPolicy jdRetry = new com.datastax.driver.core.policies.RetryPolicy() {
+    public ChangeConsistencyLevelRetryPolicy retryOnWriteTimeouts(boolean condition) {
+        retryOnWrites = condition;
+        retryOnAllConditions = false;
+        return this;
+    }
 
-		@Override
-		public RetryDecision onReadTimeout(Statement query, ConsistencyLevel cl, 
-										  int requiredResponses, int receivedResponses,
-										  boolean dataRetrieved, int nbRetry) {
-			
-			boolean shouldRetry = retryOnAllConditions || retryOnReads;
-			return checkRetry(query, cl, shouldRetry);
-		}
+    public ChangeConsistencyLevelRetryPolicy retryOnUnavailable(boolean condition) {
+        retryOnUnavailable = condition;
+        retryOnAllConditions = false;
+        return this;
+    }
 
-		@Override
-		public RetryDecision onWriteTimeout(Statement query, ConsistencyLevel cl,
-											WriteType writeType, int requiredAcks, int receivedAcks,
-											int nbRetry) {
-			
-			boolean shouldRetry = retryOnAllConditions || retryOnWrites;
-			return checkRetry(query, cl, shouldRetry);
-		}
+    public ChangeConsistencyLevelRetryPolicy withNumRetries(int retries) {
+        retryCount = retries;
+        return this;
+    }
 
-		@Override
-		public RetryDecision onUnavailable(Statement query, ConsistencyLevel cl,
-										   int requiredReplica, int aliveReplica, int nbRetry) {
+    public ChangeConsistencyLevelRetryPolicy withNextConsistencyLevel(com.netflix.astyanax.model.ConsistencyLevel cl) {
+        nextConsistencyLevel = ConsistencyLevelMapping.getCL(cl);
+        return this;
+    }
 
-			boolean shouldRetry = retryOnAllConditions || retryOnUnavailable;
-			return checkRetry(query, cl, shouldRetry);
-		}
+    public ChangeConsistencyLevelRetryPolicy suppressFinalFailure(boolean condition) {
+        suppressFinalFailure = condition;
+        return this;
+    }
 
-		@Override
-		public RetryDecision onRequestError(Statement query, ConsistencyLevel cl, DriverException e, int nbRetry) {
-			boolean shouldRetry = retryOnAllConditions || retryOnUnavailable;
-			return checkRetry(query, cl, shouldRetry);
-		}
+    private com.datastax.driver.core.policies.RetryPolicy jdRetry = new com.datastax.driver.core.policies.RetryPolicy() {
 
-		@Override
-		public void init(Cluster cluster) {
-			// Do nothing
-		}
+        @Override
+        public RetryDecision onReadTimeout(Statement query, ConsistencyLevel cl,
+                int requiredResponses, int receivedResponses,
+                boolean dataRetrieved, int nbRetry) {
 
-		@Override
-		public void close() {
-			// Do nothing
-		}
-	};
+            boolean shouldRetry = retryOnAllConditions || retryOnReads;
+            return checkRetry(query, cl, shouldRetry);
+        }
 
-	@Override
-	public com.datastax.driver.core.policies.RetryPolicy getJDRetryPolicy() {
-		return jdRetry;
-	}
+        @Override
+        public RetryDecision onWriteTimeout(Statement query, ConsistencyLevel cl,
+                WriteType writeType, int requiredAcks, int receivedAcks,
+                int nbRetry) {
 
-	private RetryDecision checkRetry(Statement query, ConsistencyLevel cl, boolean shouldRetry) {
-		
-		if (!shouldRetry || retryCount <= 0) {
-			// We are out of retries. 
-			if (suppressFinalFailure) {
-				return RetryDecision.ignore();
-			} else {
-				return RetryDecision.rethrow();
-			}
-		}
-		
-		// Ok we should retry and have some tries left.
-		retryCount--;    // Note this retry
-		
-		// Check if the consistency level needs to be changed
-		if (nextConsistencyLevel != null) {
-			return RetryDecision.retry(nextConsistencyLevel);
-		} else {
-			return RetryDecision.retry(cl);
-		}
-	}
+            boolean shouldRetry = retryOnAllConditions || retryOnWrites;
+            return checkRetry(query, cl, shouldRetry);
+        }
+
+        @Override
+        public RetryDecision onUnavailable(Statement query, ConsistencyLevel cl,
+                int requiredReplica, int aliveReplica, int nbRetry) {
+
+            boolean shouldRetry = retryOnAllConditions || retryOnUnavailable;
+            return checkRetry(query, cl, shouldRetry);
+        }
+
+        @Override
+        public RetryDecision onRequestError(Statement query, ConsistencyLevel cl, DriverException e, int nbRetry) {
+            boolean shouldRetry = retryOnAllConditions || retryOnUnavailable;
+            return checkRetry(query, cl, shouldRetry);
+        }
+
+        @Override
+        public void init(Cluster cluster) {
+            // Do nothing
+        }
+
+        @Override
+        public void close() {
+            // Do nothing
+        }
+    };
+
+    @Override
+    public com.datastax.driver.core.policies.RetryPolicy getJDRetryPolicy() {
+        return jdRetry;
+    }
+
+    private RetryDecision checkRetry(Statement query, ConsistencyLevel cl, boolean shouldRetry) {
+
+        if (!shouldRetry || retryCount <= 0) {
+            // We are out of retries. 
+            if (suppressFinalFailure) {
+                return RetryDecision.ignore();
+            }
+            else {
+                return RetryDecision.rethrow();
+            }
+        }
+
+        // Ok we should retry and have some tries left.
+        retryCount--;    // Note this retry
+        
+        // Check if the consistency level needs to be changed
+        if (nextConsistencyLevel != null) {
+            return RetryDecision.retry(nextConsistencyLevel);
+        }
+        else {
+            return RetryDecision.retry(cl);
+        }
+    }
 }

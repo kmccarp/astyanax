@@ -1,6 +1,6 @@
 package com.netflix.astyanax.mapping;
 
-@SuppressWarnings({ "UnusedDeclaration", "SimplifiableIfStatement" })
+@SuppressWarnings({"UnusedDeclaration", "SimplifiableIfStatement"})
 public class FakeKeyspaceBean implements Comparable<FakeKeyspaceBean> {
     @Id("PK")
     private String id;
@@ -204,7 +204,8 @@ public class FakeKeyspaceBean implements Comparable<FakeKeyspaceBean> {
         }
         if (o instanceof FakeKeyspaceBean) {
             return ((FakeKeyspaceBean) o).getId().equals(getId());
-        } else {
+        }
+        else {
             return false;
         }
     }
@@ -220,7 +221,8 @@ public class FakeKeyspaceBean implements Comparable<FakeKeyspaceBean> {
     public int compareTo(FakeKeyspaceBean o) {
         if (o == null) {
             return -1;
-        } else {
+        }
+        else {
             return getId().compareTo(o.getId());
         }
     }

@@ -47,7 +47,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @deprecated please use DefaultEntityManager instead
  */
 @Deprecated
-@SuppressWarnings({ "SuspiciousMethodCalls" })
+@SuppressWarnings({"SuspiciousMethodCalls"})
 public class Mapping<T> {
     private final ImmutableMap<String, Field> fields;
     private final String idFieldName;
@@ -72,7 +72,7 @@ public class Mapping<T> {
 
     public static <T> Mapping<T> make(Class<T> clazz) {
         return new Mapping<T>(clazz, new DefaultAnnotationSet(), false);
-	}
+    }
 
     /**
      * Convenience for allocation a mapping object
@@ -88,9 +88,9 @@ public class Mapping<T> {
     }
 
     public static <T> Mapping<T> make(Class<T> clazz, AnnotationSet<?, ?> annotationSet) {
-		return new Mapping(clazz, annotationSet, false);		
-	}
-	
+        return new Mapping(clazz, annotationSet, false);
+    }
+
     /**
      * @param clazz
      *            clazz type to map
@@ -100,9 +100,9 @@ public class Mapping<T> {
     }
 
     public Mapping(Class<T> clazz) {
-		this(clazz, new DefaultAnnotationSet(), false);		
-	}
-	
+        this(clazz, new DefaultAnnotationSet(), false);
+    }
+
     /**
      * @param clazz
      *            clazz type to map
@@ -118,7 +118,7 @@ public class Mapping<T> {
         AtomicBoolean isKey = new AtomicBoolean();
         Set<String> usedNames = Sets.newHashSet();
 
-		List<Field> allFields = getFields(clazz, includeParentFields);
+        List<Field> allFields = getFields(clazz, includeParentFields);
         for (Field field : allFields) {
             String name = mapField(field, annotationSet, builder, usedNames, isKey);
             if (isKey.get()) {
@@ -134,21 +134,21 @@ public class Mapping<T> {
     }
 
     public Mapping(Class<T> clazz, AnnotationSet<?, ?> annotationSet) {
-		this(clazz, annotationSet, false);
-	}
+        this(clazz, annotationSet, false);
+    }
 
-	private List<Field> getFields(Class clazz, boolean recursuvely) {
-		List<Field> allFields = new ArrayList<Field>();
-		if (clazz.getDeclaredFields() != null && clazz.getDeclaredFields().length > 0) {
-			for (Field field : clazz.getDeclaredFields()) {
-				allFields.add(field);
-			}
-			if (recursuvely && clazz.getSuperclass() != null) {
-				allFields.addAll(getFields(clazz.getSuperclass(), true));
-			}
-		}
-		return allFields;
-	}
+    private List<Field> getFields(Class clazz, boolean recursuvely) {
+        List<Field> allFields = new ArrayList<Field>();
+        if (clazz.getDeclaredFields() != null && clazz.getDeclaredFields().length > 0) {
+            for (Field field : clazz.getDeclaredFields()) {
+                allFields.add(field);
+            }
+            if (recursuvely && clazz.getSuperclass() != null) {
+                allFields.addAll(getFields(clazz.getSuperclass(), true));
+            }
+        }
+        return allFields;
+    }
 
     /**
      * Return the value for the ID/Key column from the given instance
@@ -274,7 +274,7 @@ public class Mapping<T> {
         for (com.netflix.astyanax.model.Column<String> column : columns) {
             Field field = fields.get(column.getName());
             if (field != null) { // otherwise it may be a column that was
-                                 // removed, etc.
+                // removed, etc.
                 Coercions.setFieldFromColumn(instance, field, column);
             }
         }
@@ -336,7 +336,8 @@ public class Mapping<T> {
         if (idAnnotation != null) {
             mappingName = annotationSet.getIdName(field, idAnnotation);
             isKey.set(true);
-        } else {
+        }
+        else {
             isKey.set(false);
         }
 
@@ -347,7 +348,7 @@ public class Mapping<T> {
         if (mappingName != null) {
             Preconditions.checkArgument(
                     !usedNames.contains(mappingName.toLowerCase()), mappingName
-                            + " has already been used for this column family");
+                    + " has already been used for this column family");
             usedNames.add(mappingName.toLowerCase());
 
             field.setAccessible(true);

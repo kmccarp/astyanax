@@ -42,7 +42,7 @@ public abstract class AbstractOperationImpl<R> implements Operation<Cassandra.Cl
     public void setPinnedHost(Host host) {
         this.pinnedHost = host;
     }
-    
+
     @Override
     public ByteBuffer getRowKey() {
         return null;

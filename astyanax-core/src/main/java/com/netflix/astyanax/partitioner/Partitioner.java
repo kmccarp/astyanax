@@ -31,17 +31,17 @@ public interface Partitioner {
      * @return Return the smallest token in the token space
      */
     String getMinToken();
-    
+
     /**
      * @return Return the largest token in the token space
      */
     String getMaxToken();
-    
+
     /**
      * @return Return the token immediately before this one
      */
     String getTokenMinusOne(String token);
-    
+
     /**
      * Split the token range into N equal size segments and return the start token
      * of each segment
@@ -51,17 +51,17 @@ public interface Partitioner {
      * @param count
      */
     List<TokenRange> splitTokenRange(String first, String last, int count);
-    
+
     /**
      * Split the entire token range into 'count' equal size segments
      * @param count
      */
     List<TokenRange> splitTokenRange(int count);
-    
+
     /**
      * Return the token for the specifie key
      * @param key
      */
     String getTokenForKey(ByteBuffer key);
-    
+
 }

@@ -36,31 +36,31 @@ import com.netflix.astyanax.retry.RetryPolicy;
 import com.netflix.astyanax.retry.RunOnce;
 
 public class AstyanaxConfigurationImpl implements AstyanaxConfiguration {
-    private ConsistencyLevel   defaultReadConsistencyLevel  = ConsistencyLevel.CL_ONE;
+    private ConsistencyLevel   defaultReadConsistencyLevel = ConsistencyLevel.CL_ONE;
     private ConsistencyLevel   defaultWriteConsistencyLevel = ConsistencyLevel.CL_ONE;
-    private Clock              clock                        = new MicrosecondsSyncClock();
-    private RetryPolicy        retryPolicy                  = RunOnce.get();
-    private ExecutorService    asyncExecutor                = Executors.newFixedThreadPool(5, 
+    private Clock              clock = new MicrosecondsSyncClock();
+    private RetryPolicy        retryPolicy = RunOnce.get();
+    private ExecutorService    asyncExecutor = Executors.newFixedThreadPool(5,
             new ThreadFactoryBuilder().setDaemon(true)
-                .setNameFormat("AstyanaxAsync-%d")
-                .build());
-    private NodeDiscoveryType   discoveryType               = NodeDiscoveryType.NONE;
-    private int                 discoveryIntervalInSeconds  = 30;
-    private ConnectionPoolType  connectionPoolType          = ConnectionPoolType.ROUND_ROBIN;
-    private String              cqlVersion                  = null;
-    private String              targetCassandraVersion      = "1.1";
-    private Map<String, Partitioner> partitioners           = Maps.newHashMap();
-    private int                 maxThriftSize               = 16384000;
+                    .setNameFormat("AstyanaxAsync-%d")
+                    .build());
+    private NodeDiscoveryType   discoveryType = NodeDiscoveryType.NONE;
+    private int                 discoveryIntervalInSeconds = 30;
+    private ConnectionPoolType  connectionPoolType = ConnectionPoolType.ROUND_ROBIN;
+    private String              cqlVersion = null;
+    private String              targetCassandraVersion = "1.1";
+    private Map<String, Partitioner> partitioners = Maps.newHashMap();
+    private int                 maxThriftSize = 16384000;
 
     public AstyanaxConfigurationImpl() {
         partitioners.put("org.apache.cassandra.dht.RandomPartitioner",
                 BigInteger127Partitioner.get());
         try {
-        	partitioners.put("org.apache.cassandra.dht.Murmur3Partitioner",
+            partitioners.put("org.apache.cassandra.dht.Murmur3Partitioner",
                     Murmur3Partitioner.get());
         }
         catch (NoClassDefFoundError exception) {
-        	// We ignore this for backwards compatiblity with pre 1.2 cassandra.
+            // We ignore this for backwards compatiblity with pre 1.2 cassandra.
         }
     }
 
@@ -163,7 +163,7 @@ public class AstyanaxConfigurationImpl implements AstyanaxConfiguration {
     public String getTargetCassandraVersion() {
         return this.targetCassandraVersion;
     }
-    
+
     public AstyanaxConfigurationImpl setTargetCassandraVersion(String version) {
         this.targetCassandraVersion = version;
         return this;
@@ -173,12 +173,12 @@ public class AstyanaxConfigurationImpl implements AstyanaxConfiguration {
         this.partitioners.put(name, partitioner);
         return this;
     }
-    
+
     public AstyanaxConfigurationImpl setPartitioners(Map<String, Partitioner> partitioners) {
         this.partitioners.putAll(partitioners);
         return this;
     }
-    
+
     @Override
     public Partitioner getPartitioner(String partitionerName) throws Exception {
         Partitioner partitioner = partitioners.get(partitionerName);
@@ -186,6 +186,7 @@ public class AstyanaxConfigurationImpl implements AstyanaxConfiguration {
             throw new Exception("Unsupported partitioner " + partitionerName);
         return partitioner;
     }
+
     public AstyanaxConfigurationImpl setMaxThriftSize(int maxthriftsize) {
         this.maxThriftSize = maxthriftsize;
         return this;

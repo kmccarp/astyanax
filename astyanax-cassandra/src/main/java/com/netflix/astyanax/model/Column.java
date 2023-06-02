@@ -71,20 +71,20 @@ public interface Column<C> {
      * @return
      */
     String getStringValue();
-    
+
     /**
      * Return a string that was stored as a compressed blob
      * @return
      */
     String getCompressedStringValue();
-    
+
     /**
      * Return value as an integer
      * 
      * @return
      */
     byte getByteValue();
-    
+
     /**
      * Return value as an integer
      * 
@@ -98,7 +98,7 @@ public interface Column<C> {
      * @return
      */
     int getIntegerValue();
-    
+
     /**
      * Return value as a float
      * 
@@ -182,7 +182,7 @@ public interface Column<C> {
      * @return TTL in seconds or 0 if no ttl was set
      */
     int getTtl();
- 
+
     /**
      * Determine whether the column has a value. 
      * 

@@ -24,20 +24,20 @@ public interface MessageQueueManager {
      * @return
      */
     MessageQueue createMessageQueue(MessageQueueMetadata name);
-    
+
     /**
      * Get an existing message queue
      * @param name
      * @return
      */
     MessageQueue getMessageQueue(String name);
-    
+
     /**
      * Delete a message queue
      * @param name
      */
     void deleteMessageQueue(String name);
- 
+
     /**
      * List all message queues
      * @return

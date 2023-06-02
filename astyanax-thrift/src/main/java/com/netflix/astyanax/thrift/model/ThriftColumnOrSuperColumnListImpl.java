@@ -189,7 +189,7 @@ public class ThriftColumnOrSuperColumnListImpl<C> extends AbstractColumnList<C> 
         constructMap();
         return lookup.get(columnName);
     }
-    
+
     private void constructMap() {
         if (lookup == null) {
             lookup = Maps.newHashMap();

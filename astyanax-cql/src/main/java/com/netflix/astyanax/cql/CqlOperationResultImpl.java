@@ -37,72 +37,72 @@ import com.netflix.astyanax.connectionpool.OperationResult;
  */
 public class CqlOperationResultImpl<R> implements OperationResult<R> {
 
-	private Host host;
-	private R result; 
-	private int attemptCount = 0;
-	private long durationMicros = 0L;
-	
-	public CqlOperationResultImpl(ResultSet rs, R result) {
-		this.host = parseHostInfo(rs);
-		this.result = result;
-		this.durationMicros = parseDuration(rs);
-	}
-	
-	private Host parseHostInfo(ResultSet rs) {
-		
-		if (rs == null) {
-			return null;
-		}
-		
-		com.datastax.driver.core.Host fromHost = rs.getExecutionInfo().getQueriedHost();
-		InetAddress add = fromHost.getAddress();
-		
-		Host toHost = new Host(add.getHostAddress(), -1);
-		toHost.setRack(fromHost.getRack());
-		return toHost;
-	}
-	
-	private long parseDuration(ResultSet rs) {
-		if (rs != null) {
-			ExecutionInfo info = rs.getExecutionInfo();
-			if (info !=null) {
-				QueryTrace qt = info.getQueryTrace();
-				if (qt != null) {
-					return qt.getDurationMicros();
-				}
-			}
-		}
-		return 0L;
-	}
+    private Host host;
+    private R result;
+    private int attemptCount = 0;
+    private long durationMicros = 0L;
 
-	@Override
-	public Host getHost() {
-		return host;
-	}
+    public CqlOperationResultImpl(ResultSet rs, R result) {
+        this.host = parseHostInfo(rs);
+        this.result = result;
+        this.durationMicros = parseDuration(rs);
+    }
 
-	@Override
-	public R getResult() {
-		return result;
-	}
+    private Host parseHostInfo(ResultSet rs) {
 
-	@Override
-	public long getLatency() {
-		return durationMicros;
-	}
+        if (rs == null) {
+            return null;
+        }
 
-	@Override
-	public long getLatency(TimeUnit units) {
-		return units.convert(durationMicros, TimeUnit.MICROSECONDS);
-	}
+        com.datastax.driver.core.Host fromHost = rs.getExecutionInfo().getQueriedHost();
+        InetAddress add = fromHost.getAddress();
 
-	@Override
-	public int getAttemptsCount() {
-		return attemptCount;
-	}
+        Host toHost = new Host(add.getHostAddress(), -1);
+        toHost.setRack(fromHost.getRack());
+        return toHost;
+    }
 
-	@Override
-	public void setAttemptsCount(int count) {
-		attemptCount = count;
-	}
+    private long parseDuration(ResultSet rs) {
+        if (rs != null) {
+            ExecutionInfo info = rs.getExecutionInfo();
+            if (info != null) {
+                QueryTrace qt = info.getQueryTrace();
+                if (qt != null) {
+                    return qt.getDurationMicros();
+                }
+            }
+        }
+        return 0L;
+    }
+
+    @Override
+    public Host getHost() {
+        return host;
+    }
+
+    @Override
+    public R getResult() {
+        return result;
+    }
+
+    @Override
+    public long getLatency() {
+        return durationMicros;
+    }
+
+    @Override
+    public long getLatency(TimeUnit units) {
+        return units.convert(durationMicros, TimeUnit.MICROSECONDS);
+    }
+
+    @Override
+    public int getAttemptsCount() {
+        return attemptCount;
+    }
+
+    @Override
+    public void setAttemptsCount(int count) {
+        attemptCount = count;
+    }
 
 }

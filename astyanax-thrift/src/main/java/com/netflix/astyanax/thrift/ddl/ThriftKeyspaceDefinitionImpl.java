@@ -37,18 +37,18 @@ import com.netflix.astyanax.thrift.ThriftUtils;
 
 public class ThriftKeyspaceDefinitionImpl implements KeyspaceDefinition {
     private final static Map<String, FieldMetadata> fieldsMetadata = Maps.newHashMap();
-    
+
     static {
         for (Entry<_Fields, FieldMetaData> field : KsDef.metaDataMap.entrySet()) {
             fieldsMetadata.put(
                     field.getValue().fieldName,
                     new FieldMetadata(
-                        field.getKey().name(), 
-                        ThriftTypes.values()[field.getValue().valueMetaData.type].name(),
-                        field.getValue().valueMetaData.isContainer()));
+                            field.getKey().name(),
+                            ThriftTypes.values()[field.getValue().valueMetaData.type].name(),
+                            field.getValue().valueMetaData.isContainer()));
         }
     }
-    
+
     protected KsDef ks_def;
 
     public ThriftKeyspaceDefinitionImpl() {
@@ -138,17 +138,17 @@ public class ThriftKeyspaceDefinitionImpl implements KeyspaceDefinition {
         }
         return null;
     }
-    
+
     @Override
     public Collection<String> getFieldNames() {
         return fieldsMetadata.keySet();
     }
-    
+
     @Override
     public Object getFieldValue(String name) {
         return ks_def.getFieldValue(_Fields.valueOf(name));
     }
-    
+
     @Override
     public KeyspaceDefinition setFieldValue(String name, Object value) {
         ks_def.setFieldValue(_Fields.valueOf(name), value);

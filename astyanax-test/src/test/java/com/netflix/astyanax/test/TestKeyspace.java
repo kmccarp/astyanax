@@ -68,26 +68,26 @@ public class TestKeyspace implements Keyspace {
 
     @Override
     public <K, C> ColumnFamilyQuery<K, C> prepareQuery(ColumnFamily<K, C> cf) {
-        
+
         return null;
     }
 
     @Override
     public <K, C> ColumnMutation prepareColumnMutation(
             ColumnFamily<K, C> columnFamily, K rowKey, C column) {
-        
+
         return null;
     }
 
     @Override
     public AstyanaxConfiguration getConfig() {
-        
+
         return null;
     }
 
     @Override
     public KeyspaceDefinition describeKeyspace() throws ConnectionException {
-        
+
         return null;
     }
 
@@ -100,7 +100,7 @@ public class TestKeyspace implements Keyspace {
     @Override
     public OperationResult<Void> testOperation(Operation<?, ?> operation)
             throws ConnectionException {
-        
+
         return null;
     }
 
@@ -108,20 +108,20 @@ public class TestKeyspace implements Keyspace {
     public <K, C> OperationResult<Void> truncateColumnFamily(
             ColumnFamily<K, C> columnFamily) throws OperationException,
             ConnectionException {
-        
+
         return null;
     }
 
     @Override
     public OperationResult<Void> testOperation(Operation<?, ?> operation,
             RetryPolicy retry) throws ConnectionException {
-        
+
         return null;
     }
 
     @Override
     public List<TokenRange> describeRing(boolean cached) throws ConnectionException {
-        
+
         return null;
     }
 
@@ -137,57 +137,57 @@ public class TestKeyspace implements Keyspace {
 
     @Override
     public OperationResult<Void> truncateColumnFamily(String columnFamily) throws ConnectionException {
-        
+
         return null;
     }
 
     @Override
     public String describePartitioner() throws ConnectionException {
-        
+
         return null;
     }
 
     @Override
     public OperationResult<SchemaChangeResult> dropColumnFamily(String columnFamilyName) throws ConnectionException {
-        
+
         return null;
     }
 
     @Override
     public <K, C> OperationResult<SchemaChangeResult> dropColumnFamily(ColumnFamily<K, C> columnFamily) throws ConnectionException {
-        
+
         return null;
     }
 
     @Override
     public OperationResult<SchemaChangeResult> dropKeyspace() throws ConnectionException {
-        
+
         return null;
     }
 
     @Override
     public <K, C> OperationResult<SchemaChangeResult> createColumnFamily(ColumnFamily<K, C> columnFamily, Map<String, Object> options)
             throws ConnectionException {
-        
+
         return null;
     }
 
     @Override
     public <K, C> OperationResult<SchemaChangeResult> updateColumnFamily(ColumnFamily<K, C> columnFamily, Map<String, Object> options)
             throws ConnectionException {
-        
+
         return null;
     }
 
     @Override
     public OperationResult<SchemaChangeResult> createKeyspace(Map<String, Object> options) throws ConnectionException {
-        
+
         return null;
     }
 
     @Override
     public OperationResult<SchemaChangeResult> updateKeyspace(Map<String, Object> options) throws ConnectionException {
-        
+
         return null;
     }
 
@@ -277,26 +277,26 @@ public class TestKeyspace implements Keyspace {
         return null;
     }
 
-	@Override
-	public OperationResult<SchemaChangeResult> createKeyspaceIfNotExists(
-			Map<String, Object> options) throws ConnectionException {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public OperationResult<SchemaChangeResult> createKeyspaceIfNotExists(
+            Map<String, Object> options) throws ConnectionException {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
-	@Override
-	public OperationResult<SchemaChangeResult> createKeyspaceIfNotExists(
-			Properties properties) throws ConnectionException {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public OperationResult<SchemaChangeResult> createKeyspaceIfNotExists(
+            Properties properties) throws ConnectionException {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
-	@Override
-	public OperationResult<SchemaChangeResult> createKeyspaceIfNotExists(
-			Map<String, Object> options,
-			Map<ColumnFamily, Map<String, Object>> cfs)
-			throws ConnectionException {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public OperationResult<SchemaChangeResult> createKeyspaceIfNotExists(
+            Map<String, Object> options,
+            Map<ColumnFamily, Map<String, Object>> cfs)
+            throws ConnectionException {
+        // TODO Auto-generated method stub
+        return null;
+    }
 }

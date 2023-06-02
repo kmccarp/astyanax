@@ -37,19 +37,19 @@ public interface MutationBatchManager {
      * @return
      */
     public MutationBatch getSharedMutationBatch();
-    
+
     /**
      * Get a one time mutation batch
      * @return
      */
     public MutationBatch getNewMutationBatch();
-    
+
     /**
      * Commit all mutations on the batch
      * @throws ConnectionException
      */
     public void commitSharedMutationBatch() throws ConnectionException ;
-    
+
     /**
      * Discard all mutations on the batch
      */

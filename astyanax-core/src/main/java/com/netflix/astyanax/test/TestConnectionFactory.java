@@ -76,10 +76,10 @@ public class TestConnectionFactory implements ConnectionFactory<TestClient> {
                     ConnectionException connectionException;
                     if (!(e instanceof ConnectionException))
                         connectionException = new UnknownException(e);
-                    else 
-                        connectionException = (ConnectionException)e;
+                    else
+                        connectionException = (ConnectionException) e;
                     connectionException.setLatency(latency);
-                    
+
                     if (!(connectionException instanceof IsTimeoutException)) {
                         pool.addLatencySample(latency, now);
                     }

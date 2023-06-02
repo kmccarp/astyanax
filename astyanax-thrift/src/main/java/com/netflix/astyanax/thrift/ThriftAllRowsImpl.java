@@ -39,8 +39,8 @@ public class ThriftAllRowsImpl<K, C> implements Rows<K, C> {
 
     public ThriftAllRowsImpl(Partitioner partitioner, ThriftAllRowsQueryImpl<K, C> query, ColumnFamily<K, C> columnFamily) {
         this.columnFamily = columnFamily;
-        this.query        = query;
-        this.partitioner  = partitioner;
+        this.query = query;
+        this.partitioner = partitioner;
     }
 
     /**
@@ -58,14 +58,14 @@ public class ThriftAllRowsImpl<K, C> implements Rows<K, C> {
             private boolean bIgnoreTombstones = true;
 
             {
-	            String startToken = query.getStartToken() == null ? partitioner.getMinToken() : query.getStartToken();
-	            String endToken = query.getEndToken() == null ? partitioner.getMaxToken() : query.getEndToken();
+                String startToken = query.getStartToken() == null ? partitioner.getMinToken() : query.getStartToken();
+                String endToken = query.getEndToken() == null ? partitioner.getMaxToken() : query.getEndToken();
 
                 range = new KeyRange()
                         .setCount(query.getBlockSize())
                         .setStart_token(startToken)
                         .setEnd_token(endToken);
-                
+
                 if (query.getIncludeEmptyRows() == null) {
                     if (query.getPredicate().isSetSlice_range() && query.getPredicate().getSlice_range().getCount() == 0) {
                         bIgnoreTombstones = false;
@@ -97,7 +97,7 @@ public class ThriftAllRowsImpl<K, C> implements Rows<K, C> {
                     if (list == null || list.isEmpty()) {
                         return false;
                     }
-                    
+
                     // Since we may trim tombstones set a flag indicating whether a complete
                     // block was returned so we can know to try to fetch the next one
                     bContinueSearch = (list.size() == query.getBlockSize());
@@ -110,12 +110,12 @@ public class ThriftAllRowsImpl<K, C> implements Rows<K, C> {
 
                     KeySlice previousLastRow = lastRow;
                     lastRow = Iterables.getLast(list);
-                    
+
                     if (query.getRepeatLastToken() && previousLastRow != null) {
                         iter.next();
                         iter.remove();
                     }
-                    
+
                     if (iter.hasNext() && bIgnoreTombstones) {
                         // Discard any tombstones
                         while (iter.hasNext()) {
@@ -124,7 +124,7 @@ public class ThriftAllRowsImpl<K, C> implements Rows<K, C> {
                                 iter.remove();
                             }
                         }
-                        
+
                         // Get the iterator again
                         iter = list.iterator();
                     }

@@ -37,21 +37,21 @@ import com.netflix.astyanax.serializers.StringSerializer;
 
 public class AllRowsReaderTest extends KeyspaceTests {
 
-	public static ColumnFamily<String, String> CF_ALL_ROWS_READER = ColumnFamily
+    public static ColumnFamily<String, String> CF_ALL_ROWS_READER = ColumnFamily
             .newColumnFamily(
-                    "allrowsreader", 
+                    "allrowsreader",
                     StringSerializer.get(),
                     StringSerializer.get());
 
     @BeforeClass
-	public static void init() throws Exception {
-		initContext();
-		
-		keyspace.createColumnFamily(CF_ALL_ROWS_READER, null);
-		CF_ALL_ROWS_READER.describe(keyspace);
-		
-		/** POPULATE ROWS FOR TESTS */
-    	MutationBatch m = keyspace.prepareMutationBatch();
+    public static void init() throws Exception {
+        initContext();
+
+        keyspace.createColumnFamily(CF_ALL_ROWS_READER, null);
+        CF_ALL_ROWS_READER.describe(keyspace);
+
+        /** POPULATE ROWS FOR TESTS */
+        MutationBatch m = keyspace.prepareMutationBatch();
 
         for (char keyName = 'A'; keyName <= 'Z'; keyName++) {
             String rowKey = Character.toString(keyName);
@@ -65,36 +65,36 @@ public class AllRowsReaderTest extends KeyspaceTests {
     }
 
     @AfterClass
-	public static void tearDown() throws Exception {
-    	keyspace.dropColumnFamily(CF_ALL_ROWS_READER);
+    public static void tearDown() throws Exception {
+        keyspace.dropColumnFamily(CF_ALL_ROWS_READER);
     }
 
-	
-	@Test
-	public void testAllRowsReader() throws Exception {
-		
-		final AtomicInteger rowCount = new AtomicInteger(0);
-		
-		new AllRowsReader.Builder<String, String>(keyspace, CF_ALL_ROWS_READER)
-				.withPageSize(100) // Read 100 rows at a time
-				.withConcurrencyLevel(10) // Split entire token range into 10.  Default is by number of nodes.
-				.withPartitioner(Murmur3Partitioner.get())
-				.forEachPage(new Function<Rows<String, String>, Boolean>() {
-					@Override
-					public Boolean apply(Rows<String, String> rows) {
-						// Process the row here ...
-						// This will be called from multiple threads so make sure your code is thread safe
-						for (Row<String, String> row : rows) {
-							ColumnList<String> colList = row.getColumns();
-							Assert.assertTrue("ColList: " + colList.size(), 26 == colList.size());
-							rowCount.incrementAndGet();
-						}
-						return true;
-					}
-				})
-				.build()
-				.call();
 
-		Assert.assertTrue("RowCount: " + rowCount.get(), 26 == rowCount.get());
-	}
+    @Test
+    public void testAllRowsReader() throws Exception {
+
+        final AtomicInteger rowCount = new AtomicInteger(0);
+
+        new AllRowsReader.Builder<String, String>(keyspace, CF_ALL_ROWS_READER)
+                .withPageSize(100) // Read 100 rows at a time
+                .withConcurrencyLevel(10) // Split entire token range into 10.  Default is by number of nodes.
+                .withPartitioner(Murmur3Partitioner.get())
+                .forEachPage(new Function<Rows<String, String>, Boolean>() {
+                    @Override
+                    public Boolean apply(Rows<String, String> rows) {
+                        // Process the row here ...
+                        // This will be called from multiple threads so make sure your code is thread safe
+                        for (Row<String, String> row : rows) {
+                            ColumnList<String> colList = row.getColumns();
+                            Assert.assertTrue("ColList: " + colList.size(), 26 == colList.size());
+                            rowCount.incrementAndGet();
+                        }
+                        return true;
+                    }
+                })
+                .build()
+                .call();
+
+        Assert.assertTrue("RowCount: " + rowCount.get(), 26 == rowCount.get());
+    }
 }

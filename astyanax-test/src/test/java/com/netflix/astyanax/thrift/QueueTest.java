@@ -88,12 +88,12 @@ public class QueueTest {
     public QueueTest(ReentrantLockManager s, String sfx) {
         slm = s;
         qNameSfx = sfx;
-        System.out.println((s == null? "Running without SLM":"Running WITH SLM") + " and suffix " + qNameSfx);
+        System.out.println((s == null ? "Running without SLM" : "Running WITH SLM") + " and suffix " + qNameSfx);
     }
 
     @Parameters
     public static Collection<Object[]> parameters() {
-        Object[][] data = new Object[][]{{new ReentrantLockManager(), "WITHSLM"},{null, "NOSLM"}};
+        Object[][] data = new Object[][]{{new ReentrantLockManager(), "WITHSLM"}, {null, "NOSLM"}};
 //        Object[][] data = new Object[][]{{new ReentrantLockManager(), "WITHSLM"}};
         return Arrays.asList(data);
     }
@@ -103,18 +103,18 @@ public class QueueTest {
                 .forCluster(TEST_CLUSTER_NAME)
                 .forKeyspace(TEST_KEYSPACE_NAME)
                 .withAstyanaxConfiguration(
-                new AstyanaxConfigurationImpl()
-                .setDiscoveryType(NodeDiscoveryType.RING_DESCRIBE)
-                .setConnectionPoolType(ConnectionPoolType.TOKEN_AWARE)
-                .setDiscoveryDelayInSeconds(60000))
+                        new AstyanaxConfigurationImpl()
+                                .setDiscoveryType(NodeDiscoveryType.RING_DESCRIBE)
+                                .setConnectionPoolType(ConnectionPoolType.TOKEN_AWARE)
+                                .setDiscoveryDelayInSeconds(60000))
                 .withConnectionPoolConfiguration(
-                new ConnectionPoolConfigurationImpl(TEST_CLUSTER_NAME
-                + "_" + TEST_KEYSPACE_NAME)
-                .setSocketTimeout(30000)
-                .setMaxTimeoutWhenExhausted(2000)
-                .setMaxConnsPerHost(20)
-                .setInitConnsPerHost(10)
-                .setSeeds(SEEDS))
+                        new ConnectionPoolConfigurationImpl(TEST_CLUSTER_NAME
+                                + "_" + TEST_KEYSPACE_NAME)
+                                .setSocketTimeout(30000)
+                                .setMaxTimeoutWhenExhausted(2000)
+                                .setMaxConnsPerHost(20)
+                                .setInitConnsPerHost(10)
+                                .setSeeds(SEEDS))
                 .withConnectionPoolMonitor(new CountingConnectionPoolMonitor())
                 .buildKeyspace(ThriftFamilyFactory.getInstance());
 
@@ -130,8 +130,8 @@ public class QueueTest {
 
         keyspace.createKeyspace(ImmutableMap.<String, Object>builder()
                 .put("strategy_options", ImmutableMap.<String, Object>builder()
-                .put("replication_factor", "1")
-                .build())
+                        .put("replication_factor", "1")
+                        .build())
                 .put("strategy_class", "SimpleStrategy")
                 .build());
 
@@ -403,9 +403,9 @@ public class QueueTest {
             final Message m = new Message()
                     .setKey("Key12345")
                     .setTrigger(new RepeatingTrigger.Builder()
-                    .withInterval(3, TimeUnit.SECONDS)
-                    .withRepeatCount(10)
-                    .build());
+                            .withInterval(3, TimeUnit.SECONDS)
+                            .withRepeatCount(10)
+                            .build());
             final String messageId3 = producer.sendMessage(m);
             Assert.assertNotNull(messageId3);
             final Message m3rm = scheduler.peekMessage(messageId3);
@@ -497,7 +497,7 @@ public class QueueTest {
         final ConsistencyLevel cl = ConsistencyLevel.CL_ONE;
         final MessageQueue scheduler = new ShardedDistributedMessageQueue.Builder()
                 .withColumnFamily(SCHEDULER_NAME_CF_NAME)
-                .withQueueName("StressQueue"+qNameSfx)
+                .withQueueName("StressQueue" + qNameSfx)
                 .withKeyspace(keyspace)
                 .withConsistencyLevel(cl)
                 .withStats(stats)
@@ -529,8 +529,8 @@ public class QueueTest {
                                 .addParameter("data", "The quick brown fox jumped over the lazy cow " + id)
                                 .setTimeout(0)
                                 .setTrigger(new RunOnceTrigger.Builder()
-                                .withDelay(j, TimeUnit.SECONDS)
-                                .build()));
+                                        .withDelay(j, TimeUnit.SECONDS)
+                                        .build()));
                     }
                     try {
                         producer.sendMessages(messages);
@@ -645,16 +645,16 @@ public class QueueTest {
         MessageQueueDispatcher dispatcher = new MessageQueueDispatcher.Builder()
                 .withBatchSize(500)
                 .withCallback(new Function<MessageContext, Boolean>() {
-            @Override
-            public Boolean apply(MessageContext message) {
-                String data = (String) message.getMessage().getParameters().get("data");
-                counter.incrementAndGet();
-                // Return true to 'ack' the message
-                // Return false to not 'ack' which will result in the message timing out
-                // Throw any exception to put the message into a poison queue
-                return true;
-            }
-        })
+                    @Override
+                    public Boolean apply(MessageContext message) {
+                        String data = (String) message.getMessage().getParameters().get("data");
+                        counter.incrementAndGet();
+                        // Return true to 'ack' the message
+                        // Return false to not 'ack' which will result in the message timing out
+                        // Throw any exception to put the message into a poison queue
+                        return true;
+                    }
+                })
                 .withMessageQueue(scheduler)
                 .withConsumerCount(5)
                 .withThreadCount(1 + 10)
@@ -699,7 +699,7 @@ public class QueueTest {
         // Lock the shard. This should throw a few BusyLockExceptions
         String shard = scheduler.getShardStats().keySet().iterator().next();
         ShardLock l = null;
-        if(slm!=null) {
+        if (slm != null) {
             l = slm.acquireLock(shard);
         }
 
@@ -707,12 +707,12 @@ public class QueueTest {
         MessageQueueDispatcher dispatcher = new MessageQueueDispatcher.Builder()
                 .withBatchSize(25)
                 .withCallback(new Function<MessageContext, Boolean>() {
-                                    @Override
-                                    public Boolean apply(MessageContext message) {
-                                        count.incrementAndGet();
-                                        return true;
-                                    }
-                                })
+                    @Override
+                    public Boolean apply(MessageContext message) {
+                        count.incrementAndGet();
+                        return true;
+                    }
+                })
                 .withMessageQueue(scheduler)
                 .withConsumerCount(10)
                 .withProcessorThreadCount(10)
@@ -724,7 +724,7 @@ public class QueueTest {
         dispatcher.start();
 
         // Release the lock
-        if(slm!=null) {
+        if (slm != null) {
             // Wait
             Thread.sleep(1000);
             slm.releaseLock(l);
@@ -736,7 +736,7 @@ public class QueueTest {
 
         assertEquals(queuedCount, count.intValue());
         // Check the busy lock count
-        if(slm!=null) {
+        if (slm != null) {
             System.out.println("Lock attempts " + slm.getLockAttempts());
             assertTrue(slm.getBusyLockCounts().get(shard).intValue() > 0);
         }
@@ -759,7 +759,8 @@ public class QueueTest {
                 lockAttempts.incrementAndGet();
                 if (l.tryLock()) {
                     return new ReentrantShardLock(l, shardName);
-                } else {
+                }
+                else {
                     busyLockCounts.putIfAbsent(shardName, new AtomicInteger());
                     busyLockCounts.get(shardName).incrementAndGet();
                     throw new BusyLockException("Shard " + shardName + " is already locked" + ": busy lock count " + busyLockCounts.get(shardName));
@@ -771,13 +772,13 @@ public class QueueTest {
 
         @Override
         public void releaseLock(ShardLock lock) {
-            if(lock!=null) {
+            if (lock != null) {
                 ReentrantShardLock rsl = (ReentrantShardLock) lock;
                 rsl.getLock().unlock();
             }
         }
 
-        public Map<String,AtomicInteger> getBusyLockCounts() {
+        public Map<String, AtomicInteger> getBusyLockCounts() {
             return busyLockCounts;
         }
 

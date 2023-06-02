@@ -38,31 +38,31 @@ import com.netflix.astyanax.util.RangeBuilder;
 import com.netflix.astyanax.util.TimeUUIDUtils;
 
 public class TimeUUIDTests extends KeyspaceTests {
-	
-	private static final Logger LOG = Logger.getLogger(TimeUUIDTests.class);
-	
+
+    private static final Logger LOG = Logger.getLogger(TimeUUIDTests.class);
+
     public static ColumnFamily<String, UUID> CF_TIME_UUID = ColumnFamily
             .newColumnFamily(
-                    "TimeUUID1", 
+                    "TimeUUID1",
                     StringSerializer.get(),
                     TimeUUIDSerializer.get());
 
     @BeforeClass
-	public static void init() throws Exception {
-		initContext();
-		keyspace.createColumnFamily(CF_TIME_UUID, null);
-		CF_TIME_UUID.describe(keyspace);
-	}
-	
-	@AfterClass
-	public static void tearDown() throws Exception {
-		keyspace.dropColumnFamily(CF_TIME_UUID);
-	}
+    public static void init() throws Exception {
+        initContext();
+        keyspace.createColumnFamily(CF_TIME_UUID, null);
+        CF_TIME_UUID.describe(keyspace);
+    }
+
+    @AfterClass
+    public static void tearDown() throws Exception {
+        keyspace.dropColumnFamily(CF_TIME_UUID);
+    }
 
     @Test
     public void testTimeUUID() throws Exception {
-    	
-    	MutationBatch m = keyspace.prepareMutationBatch();
+
+        MutationBatch m = keyspace.prepareMutationBatch();
 
         UUID columnName = TimeUUIDUtils.getUniqueTimeUUIDinMillis();
         long columnTime = TimeUUIDUtils.getTimeFromUUID(columnName);
@@ -71,7 +71,7 @@ public class TimeUUIDTests extends KeyspaceTests {
         m.withRow(CF_TIME_UUID, rowKey).delete();
         m.execute();
         m.discardMutations();
-        
+
         int startTime = 100;
         int endTime = 200;
 
@@ -87,8 +87,8 @@ public class TimeUUIDTests extends KeyspaceTests {
         m.execute();
 
         OperationResult<Column<UUID>> result = keyspace
-        		.prepareQuery(CF_TIME_UUID).getKey(rowKey)
-        		.getColumn(columnName).execute();
+                .prepareQuery(CF_TIME_UUID).getKey(rowKey)
+                .getColumn(columnName).execute();
 
         Assert.assertEquals(columnName, result.getResult().getName());
         Assert.assertTrue(result.getResult().getIntegerValue() == 42);
@@ -97,15 +97,15 @@ public class TimeUUIDTests extends KeyspaceTests {
         Assert.assertTrue(result2.getResult().size() >= (endTime - startTime));
 
         result2 = keyspace
-        		.prepareQuery(CF_TIME_UUID)
-        		.getKey(rowKey)
-        		.withColumnRange(
-        				new RangeBuilder()
-        				.setLimit(10)
-        				.setStart(TimeUUIDUtils.getTimeUUID(0))
-        				.setEnd(TimeUUIDUtils
-        						.getTimeUUID(Long.MAX_VALUE >> 8))
-        						.build()).execute();
+                .prepareQuery(CF_TIME_UUID)
+                .getKey(rowKey)
+                .withColumnRange(
+                        new RangeBuilder()
+                                .setLimit(10)
+                                .setStart(TimeUUIDUtils.getTimeUUID(0))
+                                .setEnd(TimeUUIDUtils
+                                        .getTimeUUID(Long.MAX_VALUE >> 8))
+                                .build()).execute();
 
         Assert.assertEquals(10, result2.getResult().size());
 
@@ -147,9 +147,9 @@ public class TimeUUIDTests extends KeyspaceTests {
 
     @Test
     public void testTimeUUID2() throws Exception {
-    	
-    	CF_TIME_UUID.describe(keyspace);
-    
+
+        CF_TIME_UUID.describe(keyspace);
+
         MutationBatch m = keyspace.prepareMutationBatch();
         String rowKey = "Key2";
         m.withRow(CF_TIME_UUID, rowKey).delete();
@@ -163,17 +163,17 @@ public class TimeUUIDTests extends KeyspaceTests {
                     TimeUUIDUtils.getTimeUUID(now - i * msecPerDay), i, null);
         }
         m.execute();
-        
+
         OperationResult<ColumnList<UUID>> result = keyspace
-        		.prepareQuery(CF_TIME_UUID)
-        		.getKey(rowKey)
-        		.withColumnRange(
-        				new RangeBuilder()
-        				.setLimit(100)
-        				.setStart(
-        						TimeUUIDUtils.getTimeUUID(now - 20
-        								* msecPerDay)).build())
-        								.execute();
+                .prepareQuery(CF_TIME_UUID)
+                .getKey(rowKey)
+                .withColumnRange(
+                        new RangeBuilder()
+                                .setLimit(100)
+                                .setStart(
+                                        TimeUUIDUtils.getTimeUUID(now - 20
+                                                * msecPerDay)).build())
+                .execute();
         Assert.assertTrue(result.getResult().size() >= 20);
     }
 }

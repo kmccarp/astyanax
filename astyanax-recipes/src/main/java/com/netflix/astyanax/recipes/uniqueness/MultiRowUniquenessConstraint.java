@@ -116,7 +116,7 @@ public class MultiRowUniquenessConstraint implements UniquenessConstraint {
     public void acquire() throws NotUniqueException, Exception {
         acquireAndApplyMutation(null);
     }
-    
+
     @Override
     public void acquireAndApplyMutation(Function<MutationBatch, Boolean> callback) throws NotUniqueException, Exception {
         long now = TimeUnit.MICROSECONDS.convert(System.currentTimeMillis(), TimeUnit.MILLISECONDS);
@@ -126,9 +126,9 @@ public class MultiRowUniquenessConstraint implements UniquenessConstraint {
             MutationBatch m = keyspace.prepareMutationBatch().setConsistencyLevel(consistencyLevel);
             for (ColumnPrefixDistributedRowLock<String> lock : locks) {
                 lock.withConsistencyLevel(consistencyLevel)
-                    .withColumnPrefix(prefix)
-                    .withLockId(lockColumn)
-                    .fillLockMutation(m, now, ttl);
+                        .withColumnPrefix(prefix)
+                        .withLockId(lockColumn)
+                        .fillLockMutation(m, now, ttl);
             }
             m.execute();
 
@@ -142,10 +142,10 @@ public class MultiRowUniquenessConstraint implements UniquenessConstraint {
             for (ColumnPrefixDistributedRowLock<String> lock : locks) {
                 lock.fillLockMutation(m, null, null);
             }
-            
+
             if (callback != null)
                 callback.apply(m);
-            
+
             m.execute();
         }
         catch (BusyLockException e) {
@@ -159,14 +159,15 @@ public class MultiRowUniquenessConstraint implements UniquenessConstraint {
         catch (Exception e) {
             release();
             throw e;
-        }    }
-    
+        }
+    }
+
     @Override
     @Deprecated
     public void acquireAndMutate(final MutationBatch mutation) throws NotUniqueException, Exception {
         acquireAndApplyMutation(new Function<MutationBatch, Boolean>() {
             @Override
-            public Boolean apply( MutationBatch input) {
+            public Boolean apply(MutationBatch input) {
                 if (mutation != null)
                     input.mergeShallow(mutation);
                 return true;

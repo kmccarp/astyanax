@@ -42,52 +42,52 @@ import com.netflix.astyanax.model.Row;
  * @param <K>
  * @param <C>
  */
-public class RowCopierFunction<K,C> implements Function<Row<K,C>, Boolean>, Flushable {
+public class RowCopierFunction<K, C> implements Function<Row<K, C>, Boolean>, Flushable {
     private static final Logger LOG = LoggerFactory.getLogger(RowCopierFunction.class);
-    
+
     private static final int DEFAULT_BATCH_SIZE = 100;
-    
-    public static class Builder<K,C> {
-        private final ColumnFamily<K,C> columnFamily;
+
+    public static class Builder<K, C> {
+        private final ColumnFamily<K, C> columnFamily;
         private final Keyspace          keyspace;
-        private       int               batchSize           = DEFAULT_BATCH_SIZE;
-        
-        public Builder(Keyspace keyspace, ColumnFamily<K,C> columnFamily) {
+        private       int               batchSize = DEFAULT_BATCH_SIZE;
+
+        public Builder(Keyspace keyspace, ColumnFamily<K, C> columnFamily) {
             this.columnFamily = columnFamily;
-            this.keyspace     = keyspace;
+            this.keyspace = keyspace;
         }
-        
-        public Builder<K,C> withBatchSize(int batchSize) {
+
+        public Builder<K, C> withBatchSize(int batchSize) {
             this.batchSize = batchSize;
             return this;
         }
-        
-        public RowCopierFunction<K,C> build() {
-            return new RowCopierFunction<K,C>(this);
+
+        public RowCopierFunction<K, C> build() {
+            return new RowCopierFunction<K, C>(this);
         }
     }
 
-    public static <K, C> Builder<K,C> builder(Keyspace keyspace, ColumnFamily<K,C> columnFamily) {
-        return new Builder<K,C>(keyspace, columnFamily);
+    public static <K, C> Builder<K, C> builder(Keyspace keyspace, ColumnFamily<K, C> columnFamily) {
+        return new Builder<K, C>(keyspace, columnFamily);
     }
-    
-    private final ColumnFamily<K,C> columnFamily;
+
+    private final ColumnFamily<K, C> columnFamily;
     private final Keyspace          keyspace;
     private final int               batchSize;
     private final ThreadLocal<ThreadContext> context = new ThreadLocal<ThreadContext>();
     private final Set<ThreadContext> contexts = Sets.newIdentityHashSet();
-    
+
     private static class ThreadContext {
         MutationBatch mb;
         int counter = 0;
     }
-    
-    private RowCopierFunction(Builder<K,C> builder) {
+
+    private RowCopierFunction(Builder<K, C> builder) {
         this.columnFamily = builder.columnFamily;
-        this.batchSize    = builder.batchSize;
-        this.keyspace     = builder.keyspace;
+        this.batchSize = builder.batchSize;
+        this.keyspace = builder.keyspace;
     }
-    
+
     @Override
     public Boolean apply(Row<K, C> row) {
         ThreadContext context = this.context.get();
@@ -95,19 +95,19 @@ public class RowCopierFunction<K,C> implements Function<Row<K,C>, Boolean>, Flus
             context = new ThreadContext();
             context.mb = keyspace.prepareMutationBatch();
             this.context.set(context);
-            
+
             synchronized (this) {
                 contexts.add(context);
             }
         }
-        
+
         ColumnListMutation<C> mbRow = context.mb.withRow(columnFamily, row.getKey());
         context.mb.lockCurrentTimestamp();
         for (Column<C> column : row.getColumns()) {
             mbRow.setTimestamp(column.getTimestamp());
             mbRow.putColumn(column.getName(), column.getByteBufferValue(), column.getTtl());
         }
-        
+
         context.counter++;
         if (context.counter == batchSize) {
             try {
@@ -118,7 +118,7 @@ public class RowCopierFunction<K,C> implements Function<Row<K,C>, Boolean>, Flus
                 LOG.error("Failed to write mutation", e);
                 return false;
             }
-            
+
         }
         return true;
     }

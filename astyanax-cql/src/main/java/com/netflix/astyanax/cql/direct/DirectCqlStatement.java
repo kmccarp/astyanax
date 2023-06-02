@@ -41,60 +41,61 @@ import com.netflix.astyanax.model.ConsistencyLevel;
  */
 public class DirectCqlStatement implements CqlStatement {
 
-	private final Session session; 
-	
-	private ConsistencyLevel cLevel = ConsistencyLevel.CL_ONE; // the default cl 
-	private String cqlQuery; 
-	
-	public DirectCqlStatement(Session session) {
-		this.session = session;
-	}
-	
-	@Override
-	public CqlStatement withConsistencyLevel(ConsistencyLevel cl) {
-		this.cLevel = cl;
-		return this;
-	}
+    private final Session session;
 
-	@Override
-	public CqlStatement withCql(String cql) {
-		this.cqlQuery = cql;
-		return this;
-	}
+    private ConsistencyLevel cLevel = ConsistencyLevel.CL_ONE; // the default cl 
+    private String cqlQuery;
 
-	@Override
-	public OperationResult<CqlStatementResult> execute() throws ConnectionException {
-		
-		Statement q = new SimpleStatement(cqlQuery);
-		q.setConsistencyLevel(ConsistencyLevelTransform.getConsistencyLevel(cLevel));
-		q.setFetchSize(100);
-		ResultSet resultSet = session.execute(q);
-		
-		CqlStatementResult result = new DirectCqlStatementResultImpl(resultSet);
-		return new CqlOperationResultImpl<CqlStatementResult>(resultSet, result);
-	}
+    public DirectCqlStatement(Session session) {
+        this.session = session;
+    }
 
-	@Override
-	public ListenableFuture<OperationResult<CqlStatementResult>> executeAsync() throws ConnectionException {
-		Statement q = new SimpleStatement(cqlQuery);
-		q.setConsistencyLevel(ConsistencyLevelTransform.getConsistencyLevel(cLevel));
+    @Override
+    public CqlStatement withConsistencyLevel(ConsistencyLevel cl) {
+        this.cLevel = cl;
+        return this;
+    }
 
-		ResultSetFuture rsFuture = session.executeAsync(q);
+    @Override
+    public CqlStatement withCql(String cql) {
+        this.cqlQuery = cql;
+        return this;
+    }
 
-		return new AsyncOperationResult<CqlStatementResult>(rsFuture) {
+    @Override
+    public OperationResult<CqlStatementResult> execute() throws ConnectionException {
 
-			@Override
-			public OperationResult<CqlStatementResult> getOperationResult(ResultSet rs) {
-				CqlStatementResult result = new DirectCqlStatementResultImpl(rs);
-				return new CqlOperationResultImpl<CqlStatementResult>(rs, result);			}
-		};
-	}
+        Statement q = new SimpleStatement(cqlQuery);
+        q.setConsistencyLevel(ConsistencyLevelTransform.getConsistencyLevel(cLevel));
+        q.setFetchSize(100);
+        ResultSet resultSet = session.execute(q);
 
-	@Override
-	public CqlPreparedStatement asPreparedStatement() {
-		PreparedStatement pStmt = session.prepare(cqlQuery);
-		pStmt.setConsistencyLevel(ConsistencyLevelTransform.getConsistencyLevel(cLevel));
-		return new DirectCqlPreparedStatement(session, pStmt);
-	}
+        CqlStatementResult result = new DirectCqlStatementResultImpl(resultSet);
+        return new CqlOperationResultImpl<CqlStatementResult>(resultSet, result);
+    }
+
+    @Override
+    public ListenableFuture<OperationResult<CqlStatementResult>> executeAsync() throws ConnectionException {
+        Statement q = new SimpleStatement(cqlQuery);
+        q.setConsistencyLevel(ConsistencyLevelTransform.getConsistencyLevel(cLevel));
+
+        ResultSetFuture rsFuture = session.executeAsync(q);
+
+        return new AsyncOperationResult<CqlStatementResult>(rsFuture) {
+
+            @Override
+            public OperationResult<CqlStatementResult> getOperationResult(ResultSet rs) {
+                CqlStatementResult result = new DirectCqlStatementResultImpl(rs);
+                return new CqlOperationResultImpl<CqlStatementResult>(rs, result);
+            }
+        };
+    }
+
+    @Override
+    public CqlPreparedStatement asPreparedStatement() {
+        PreparedStatement pStmt = session.prepare(cqlQuery);
+        pStmt.setConsistencyLevel(ConsistencyLevelTransform.getConsistencyLevel(cLevel));
+        return new DirectCqlPreparedStatement(session, pStmt);
+    }
 
 }

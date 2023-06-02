@@ -32,5 +32,5 @@ public enum ThriftTypes {
     MAP    ,
     SET    ,
     LIST   ,
-    ENUM   
+    ENUM
 }

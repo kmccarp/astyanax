@@ -50,7 +50,7 @@ public class JsonRowsWriter implements RowsWriter {
     private Map<Field, String> fieldNames = Maps.newHashMap();
 
     private static final String TIME_FORMAT_STRING = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
-    
+
     private final PrintWriter out;
     private final SerializerPackage serializers;
     private String extra = null;
@@ -72,14 +72,14 @@ public class JsonRowsWriter implements RowsWriter {
         this.out = out;
         this.serializers = serializers;
 
-        fieldNames.put(Field.NAMES,     "names");
-        fieldNames.put(Field.ROWS,      "rows");
-        fieldNames.put(Field.COUNT,     "count");
-        fieldNames.put(Field.ROW_KEY,   "_key");
-        fieldNames.put(Field.COLUMN,    "column");
+        fieldNames.put(Field.NAMES, "names");
+        fieldNames.put(Field.ROWS, "rows");
+        fieldNames.put(Field.COUNT, "count");
+        fieldNames.put(Field.ROW_KEY, "_key");
+        fieldNames.put(Field.COLUMN, "column");
         fieldNames.put(Field.TIMESTAMP, "timestamp");
-        fieldNames.put(Field.VALUE,     "value");
-        fieldNames.put(Field.TTL,       "ttl");
+        fieldNames.put(Field.VALUE, "value");
+        fieldNames.put(Field.TTL, "ttl");
     }
 
     public JsonRowsWriter setRowsName(String fieldName) {
@@ -362,7 +362,7 @@ public class JsonRowsWriter implements RowsWriter {
                 catch (Exception e) {
                     ttl = 0;
                 }
-                
+
                 columnCount++;
                 out.append(jsonifyString(this.fieldNames.get(Field.COLUMN))).append(":")
                         .append(jsonifyString(columnString)).append(",")
@@ -372,7 +372,7 @@ public class JsonRowsWriter implements RowsWriter {
                         .append(jsonifyString(timestampString)).append(",")
                         .append(jsonifyString(this.fieldNames.get(Field.TTL))).append(":")
                         .append(jsonifyString(Integer.toString(ttl))).append("}")
-                        ;
+                ;
             }
             catch (Exception e) {
                 if (!ignoreExceptions) {

@@ -4,7 +4,7 @@ package com.netflix.astyanax.thrift;
 import com.google.common.base.Function;
 import com.netflix.astyanax.recipes.queue.MessageContext;
 
-public class HelloWorldFunction implements Function<MessageContext, Boolean>{
+public class HelloWorldFunction implements Function<MessageContext, Boolean> {
     private final static long startTime = System.currentTimeMillis();
 
     @Override

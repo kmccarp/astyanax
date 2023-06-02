@@ -46,226 +46,226 @@ import com.netflix.astyanax.tracing.OperationTracer;
  */
 public class JavaDriverConnectionPoolConfigurationImpl implements ConnectionPoolConfiguration {
 
-	private final Configuration jdConfig;
-    private OperationTracer opTracer                      = new EmptyOperationTracer();
-	
-	public JavaDriverConnectionPoolConfigurationImpl(Configuration configuration) {
-		this.jdConfig = configuration;
-	}
+    private final Configuration jdConfig;
+    private OperationTracer opTracer = new EmptyOperationTracer();
 
-	public Configuration getJavaDriverConfig() {
-		return jdConfig;
-	}
+    public JavaDriverConnectionPoolConfigurationImpl(Configuration configuration) {
+        this.jdConfig = configuration;
+    }
 
-	@Override
-	public LatencyScoreStrategy getLatencyScoreStrategy() {
-		return null;
-	}
+    public Configuration getJavaDriverConfig() {
+        return jdConfig;
+    }
 
-	@Override
-	public BadHostDetector getBadHostDetector() {
-		return null;
-	}
+    @Override
+    public LatencyScoreStrategy getLatencyScoreStrategy() {
+        return null;
+    }
 
-	@Override
-	public int getPort() {
-		return jdConfig.getProtocolOptions().getPort();
-	}
+    @Override
+    public BadHostDetector getBadHostDetector() {
+        return null;
+    }
 
-	@Override
-	public String getName() {
-		return null;
-	}
+    @Override
+    public int getPort() {
+        return jdConfig.getProtocolOptions().getPort();
+    }
 
-	@Override
-	public int getMaxConnsPerHost() {
-		return 0;
-	}
+    @Override
+    public String getName() {
+        return null;
+    }
 
-	@Override
-	public int getInitConnsPerHost() {
-		return 0;
-	}
+    @Override
+    public int getMaxConnsPerHost() {
+        return 0;
+    }
 
-	@Override
-	public int getMaxConns() {
-		return 0;
-	}
+    @Override
+    public int getInitConnsPerHost() {
+        return 0;
+    }
 
-	@Override
-	public int getMaxTimeoutWhenExhausted() {
-		return 0;
-	}
+    @Override
+    public int getMaxConns() {
+        return 0;
+    }
 
-	@Override
-	public int getMaxFailoverCount() {
-		return 0;
-	}
+    @Override
+    public int getMaxTimeoutWhenExhausted() {
+        return 0;
+    }
 
-	@Override
-	public RetryBackoffStrategy getRetryBackoffStrategy() {
-		return null;
-	}
+    @Override
+    public int getMaxFailoverCount() {
+        return 0;
+    }
 
-	@Override
-	public HostSelectorStrategy getHostSelectorStrategy() {
-		return null;
-	}
+    @Override
+    public RetryBackoffStrategy getRetryBackoffStrategy() {
+        return null;
+    }
 
-	@Override
-	public String getSeeds() {
-		return null;
-	}
+    @Override
+    public HostSelectorStrategy getHostSelectorStrategy() {
+        return null;
+    }
 
-	@Override
-	public List<Host> getSeedHosts() {
-		return null;
-	}
+    @Override
+    public String getSeeds() {
+        return null;
+    }
 
-	@Override
-	public String getLocalDatacenter() {
-		return null;
-	}
+    @Override
+    public List<Host> getSeedHosts() {
+        return null;
+    }
 
-	@Override
-	public int getSocketTimeout() {
-		return 0;
-	}
+    @Override
+    public String getLocalDatacenter() {
+        return null;
+    }
 
-	@Override
-	public int getConnectTimeout() {
-		return 0;
-	}
+    @Override
+    public int getSocketTimeout() {
+        return 0;
+    }
 
-	@Override
-	public int getConnectionLimiterWindowSize() {
-		return 0;
-	}
+    @Override
+    public int getConnectTimeout() {
+        return 0;
+    }
 
-	@Override
-	public int getConnectionLimiterMaxPendingCount() {
-		return 0;
-	}
+    @Override
+    public int getConnectionLimiterWindowSize() {
+        return 0;
+    }
 
-	@Override
-	public int getLatencyAwareWindowSize() {
-		return 0;
-	}
+    @Override
+    public int getConnectionLimiterMaxPendingCount() {
+        return 0;
+    }
 
-	@Override
-	public float getLatencyAwareSentinelCompare() {
-		return 0;
-	}
+    @Override
+    public int getLatencyAwareWindowSize() {
+        return 0;
+    }
 
-	@Override
-	public float getLatencyAwareBadnessThreshold() {
-		return 0;
-	}
+    @Override
+    public float getLatencyAwareSentinelCompare() {
+        return 0;
+    }
 
-	@Override
-	public int getBlockedThreadThreshold() {
-		return 0;
-	}
+    @Override
+    public float getLatencyAwareBadnessThreshold() {
+        return 0;
+    }
 
-	@Override
-	public float getMinHostInPoolRatio() {
-		return 0;
-	}
+    @Override
+    public int getBlockedThreadThreshold() {
+        return 0;
+    }
 
-	@Override
-	public int getLatencyAwareUpdateInterval() {
-		return 0;
-	}
+    @Override
+    public float getMinHostInPoolRatio() {
+        return 0;
+    }
 
-	@Override
-	public int getLatencyAwareResetInterval() {
-		return 0;
-	}
+    @Override
+    public int getLatencyAwareUpdateInterval() {
+        return 0;
+    }
 
-	@Override
-	public int getMaxPendingConnectionsPerHost() {
-		return 0;
-	}
+    @Override
+    public int getLatencyAwareResetInterval() {
+        return 0;
+    }
 
-	@Override
-	public int getMaxBlockedThreadsPerHost() {
-		return 0;
-	}
+    @Override
+    public int getMaxPendingConnectionsPerHost() {
+        return 0;
+    }
 
-	@Override
-	public int getTimeoutWindow() {
-		return 0;
-	}
+    @Override
+    public int getMaxBlockedThreadsPerHost() {
+        return 0;
+    }
 
-	@Override
-	public int getMaxTimeoutCount() {
-		return 0;
-	}
+    @Override
+    public int getTimeoutWindow() {
+        return 0;
+    }
 
-	@Override
-	public int getRetrySuspendWindow() {
-		return 0;
-	}
+    @Override
+    public int getMaxTimeoutCount() {
+        return 0;
+    }
 
-	@Override
-	public int getRetryMaxDelaySlice() {
-		return 0;
-	}
+    @Override
+    public int getRetrySuspendWindow() {
+        return 0;
+    }
 
-	@Override
-	public int getRetryDelaySlice() {
-		return 0;
-	}
+    @Override
+    public int getRetryMaxDelaySlice() {
+        return 0;
+    }
 
-	@Override
-	public int getMaxOperationsPerConnection() {
-		return 0;
-	}
+    @Override
+    public int getRetryDelaySlice() {
+        return 0;
+    }
 
-	@Override
-	public AuthenticationCredentials getAuthenticationCredentials() {
-		return null;
-	}
+    @Override
+    public int getMaxOperationsPerConnection() {
+        return 0;
+    }
 
-	@Override
-	public OperationFilterFactory getOperationFilterFactory() {
-		return null;
-	}
+    @Override
+    public AuthenticationCredentials getAuthenticationCredentials() {
+        return null;
+    }
 
-	@Override
-	public Partitioner getPartitioner() {
-		return null;
-	}
+    @Override
+    public OperationFilterFactory getOperationFilterFactory() {
+        return null;
+    }
 
-	@Override
-	public SSLConnectionContext getSSLConnectionContext() {
-		return null;
-	}
+    @Override
+    public Partitioner getPartitioner() {
+        return null;
+    }
 
-	@Override
-	public ScheduledExecutorService getMaintainanceScheduler() {
-		return null;
-	}
+    @Override
+    public SSLConnectionContext getSSLConnectionContext() {
+        return null;
+    }
 
-	@Override
-	public ScheduledExecutorService getHostReconnectExecutor() {
-		return null;
-	}
+    @Override
+    public ScheduledExecutorService getMaintainanceScheduler() {
+        return null;
+    }
 
-	@Override
-	public void initialize() {
-	}
+    @Override
+    public ScheduledExecutorService getHostReconnectExecutor() {
+        return null;
+    }
 
-	@Override
-	public void shutdown() {
-	}
+    @Override
+    public void initialize() {
+    }
 
-	@Override
-	public OperationTracer getOperationTracer() {
-		return opTracer;
-	}
-	
-	public void setOperationTracer(OperationTracer opTracer) {
-		this.opTracer = opTracer;
-	}
+    @Override
+    public void shutdown() {
+    }
+
+    @Override
+    public OperationTracer getOperationTracer() {
+        return opTracer;
+    }
+
+    public void setOperationTracer(OperationTracer opTracer) {
+        this.opTracer = opTracer;
+    }
 }

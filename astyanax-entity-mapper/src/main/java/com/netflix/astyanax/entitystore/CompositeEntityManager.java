@@ -74,23 +74,23 @@ import com.netflix.astyanax.util.RangeBuilder;
 public class CompositeEntityManager<T, K> implements EntityManager<T, K> {
     private static final Logger LOG = LoggerFactory.getLogger(CompositeEntityManager.class);
     private static final ConsistencyLevel DEFAULT_CONSISTENCY_LEVEL = ConsistencyLevel.CL_ONE;
-    
+
     public static class Builder<T, K> {
         private Keyspace                    keyspace;
         private Class<T>                    clazz;
-        private ColumnFamily<K, ByteBuffer> columnFamily        = null;
-        private ConsistencyLevel            readConsitency      = DEFAULT_CONSISTENCY_LEVEL;
-        private ConsistencyLevel            writeConsistency    = DEFAULT_CONSISTENCY_LEVEL;
+        private ColumnFamily<K, ByteBuffer> columnFamily = null;
+        private ConsistencyLevel            readConsitency = DEFAULT_CONSISTENCY_LEVEL;
+        private ConsistencyLevel            writeConsistency = DEFAULT_CONSISTENCY_LEVEL;
         private CompositeEntityMapper<T, K> entityMapper;
-        private Integer                     ttl                 = null;
-        private RetryPolicy                 retryPolicy         = null;
-        private LifecycleEvents<T>          lifecycleHandler    = null;
-        private String                      columnFamilyName    = null;
-        private boolean                     autoCommit          = true;
-        private MutationBatchManager        batchManager        = null;
-        private boolean                     verbose             = false;
-        private ByteBuffer                  prefix              = null;
-        
+        private Integer                     ttl = null;
+        private RetryPolicy                 retryPolicy = null;
+        private LifecycleEvents<T>          lifecycleHandler = null;
+        private String                      columnFamilyName = null;
+        private boolean                     autoCommit = true;
+        private MutationBatchManager        batchManager = null;
+        private boolean                     verbose = false;
+        private ByteBuffer                  prefix = null;
+
         /**
          * mandatory
          * @param clazz entity class type
@@ -116,7 +116,7 @@ public class CompositeEntityManager<T, K> implements EntityManager<T, K> {
          * @param columnFamilyName Name of column family to use.  
          */
         public Builder<T, K> withColumnFamily(String columnFamilyName) {
-            Preconditions.checkState(this.columnFamilyName == null && columnFamily == null , "withColumnFamily called multiple times");
+            Preconditions.checkState(this.columnFamilyName == null && columnFamily == null, "withColumnFamily called multiple times");
             Preconditions.checkNotNull(columnFamilyName);
             this.columnFamilyName = columnFamilyName; // .toLowerCase();
             return this;
@@ -173,7 +173,7 @@ public class CompositeEntityManager<T, K> implements EntityManager<T, K> {
             this.retryPolicy = policy;
             return this;
         }
-        
+
         /**
          * If set to false 
          * @param autoCommit
@@ -184,7 +184,7 @@ public class CompositeEntityManager<T, K> implements EntityManager<T, K> {
             this.autoCommit = autoCommit;
             return this;
         }
-        
+
         /**
          * If set to true log every action 
          * @param verbose
@@ -194,7 +194,7 @@ public class CompositeEntityManager<T, K> implements EntityManager<T, K> {
             this.verbose = verbose;
             return this;
         }
-        
+
         /**
          * Specify a mutation manager to use.  The mutation manager makes it possible to share
          * the same mutation across multiple calls to multiple entity managers and only
@@ -204,10 +204,10 @@ public class CompositeEntityManager<T, K> implements EntityManager<T, K> {
          */
         public Builder<T, K> withMutationBatchManager(MutationBatchManager batchManager) {
             this.batchManager = batchManager;
-            this.autoCommit   = false;
+            this.autoCommit = false;
             return this;
         }
-        
+
         public Builder<T, K> withKeyPrefix(String prefix) {
             this.prefix = StringSerializer.get().toByteBuffer(prefix);
             return this;
@@ -216,23 +216,23 @@ public class CompositeEntityManager<T, K> implements EntityManager<T, K> {
         @SuppressWarnings("unchecked")
         public CompositeEntityManager<T, K> build() {
             // check mandatory fields
-            Preconditions.checkNotNull(clazz,    "withEntityType(...) is not set");
+            Preconditions.checkNotNull(clazz, "withEntityType(...) is not set");
             Preconditions.checkNotNull(keyspace, "withKeyspace(...) is not set");
-            
+
             // TODO: check @Id type compatibility
             // TODO: do we need to require @Entity annotation
-            this.entityMapper     = new CompositeEntityMapper<T,K>(clazz, ttl, prefix);
+            this.entityMapper = new CompositeEntityMapper<T, K>(clazz, ttl, prefix);
             this.lifecycleHandler = new LifecycleEvents<T>(clazz);
 
             if (columnFamily == null) {
                 if (columnFamilyName == null)
                     columnFamilyName = entityMapper.getEntityName();
                 columnFamily = new ColumnFamily<K, ByteBuffer>(
-                        columnFamilyName, 
-                        (com.netflix.astyanax.Serializer<K>)MappingUtils.getSerializerForField(this.entityMapper.getId()), 
+                        columnFamilyName,
+                        (com.netflix.astyanax.Serializer<K>) MappingUtils.getSerializerForField(this.entityMapper.getId()),
                         ByteBufferSerializer.get());
             }
-            
+
             if (batchManager == null) {
                 batchManager = new ThreadLocalMutationBatchManager(this.keyspace, this.writeConsistency, this.retryPolicy);
             }
@@ -240,13 +240,13 @@ public class CompositeEntityManager<T, K> implements EntityManager<T, K> {
             return new CompositeEntityManager<T, K>(this);
         }
     }
-    
-    public static <T,K> Builder<T,K> builder() {
+
+    public static <T, K> Builder<T, K> builder() {
         return new Builder<T, K>();
     }
-    
+
     private final Keyspace                    keyspace;
-    private final CompositeEntityMapper<T,K>  entityMapper;
+    private final CompositeEntityMapper<T, K>  entityMapper;
     private final RetryPolicy                 retryPolicy;
     private final LifecycleEvents<T>          lifecycleHandler;
     private final boolean                     autoCommit;
@@ -255,16 +255,16 @@ public class CompositeEntityManager<T, K> implements EntityManager<T, K> {
     private final MutationBatchManager        batchManager;
     private final boolean                     verbose;
 
-    public CompositeEntityManager(Builder<T,K> builder) {
-        entityMapper      = builder.entityMapper;
-        keyspace          = builder.keyspace;
-        columnFamily      = builder.columnFamily;
-        readConsitency    = builder.readConsitency;
-        retryPolicy       = builder.retryPolicy;
-        lifecycleHandler  = builder.lifecycleHandler;
-        autoCommit        = builder.autoCommit;
-        batchManager      = builder.batchManager;
-        verbose           = builder.verbose;
+    public CompositeEntityManager(Builder<T, K> builder) {
+        entityMapper = builder.entityMapper;
+        keyspace = builder.keyspace;
+        columnFamily = builder.columnFamily;
+        readConsitency = builder.readConsitency;
+        retryPolicy = builder.retryPolicy;
+        lifecycleHandler = builder.lifecycleHandler;
+        autoCommit = builder.autoCommit;
+        batchManager = builder.batchManager;
+        verbose = builder.verbose;
     }
 
     //////////////////////////////////////////////////////////////////
@@ -277,14 +277,14 @@ public class CompositeEntityManager<T, K> implements EntityManager<T, K> {
         try {
             if (verbose)
                 LOG.info(String.format("%s : Adding entity '%s'", columnFamily.getName(), entity));
-                
+
             lifecycleHandler.onPrePersist(entity);
             MutationBatch mb = getMutationBatch();
-            entityMapper.fillMutationBatch(mb, columnFamily, entity);           
+            entityMapper.fillMutationBatch(mb, columnFamily, entity);
             if (autoCommit)
                 mb.execute();
             lifecycleHandler.onPostPersist(entity);
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new PersistenceException("failed to put entity ", e);
         }
     }
@@ -308,18 +308,18 @@ public class CompositeEntityManager<T, K> implements EntityManager<T, K> {
             mb.withRow(columnFamily, id).delete();
             if (autoCommit)
                 mb.execute();
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new PersistenceException("failed to delete entity " + id, e);
         }
     }
-    
+
     @Override
     public void remove(T entity) throws PersistenceException {
         K id = null;
         try {
             if (verbose)
                 LOG.info(String.format("%s : Removing entity '%s'", columnFamily.getName(), entity));
-            
+
             lifecycleHandler.onPreRemove(entity);
             id = entityMapper.getEntityId(entity);
             MutationBatch mb = getMutationBatch();
@@ -327,7 +327,7 @@ public class CompositeEntityManager<T, K> implements EntityManager<T, K> {
             if (autoCommit)
                 mb.execute();
             lifecycleHandler.onPostRemove(entity);
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new PersistenceException("failed to delete entity " + id, e);
         }
     }
@@ -362,9 +362,9 @@ public class CompositeEntityManager<T, K> implements EntityManager<T, K> {
             if (verbose)
                 LOG.info(String.format("%s : Reading entities '%s'", columnFamily.getName(), ids.toString()));
             // Query for rows
-            ColumnFamilyQuery<K, ByteBuffer> cfq = newQuery();            
+            ColumnFamilyQuery<K, ByteBuffer> cfq = newQuery();
             return convertRowsToEntities(cfq.getRowSlice(ids).execute().getResult());
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new PersistenceException("failed to get entities " + ids, e);
         }
     }
@@ -384,15 +384,15 @@ public class CompositeEntityManager<T, K> implements EntityManager<T, K> {
                 }
             }
         }
-        return entities;        
+        return entities;
     }
-    
+
     /**
      * @inheritDoc
      */
     @Override
     public void delete(Collection<K> ids) throws PersistenceException {
-        MutationBatch mb = getMutationBatch();        
+        MutationBatch mb = getMutationBatch();
         try {
             if (verbose)
                 LOG.info(String.format("%s : Delete ids '%s'", columnFamily.getName(), ids.toString()));
@@ -401,14 +401,14 @@ public class CompositeEntityManager<T, K> implements EntityManager<T, K> {
             }
             if (autoCommit)
                 mb.execute();
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new PersistenceException("failed to delete entities " + ids, e);
         }
     }
 
     @Override
     public void remove(Collection<T> entities) throws PersistenceException {
-        MutationBatch mb = getMutationBatch();        
+        MutationBatch mb = getMutationBatch();
         try {
             for (T entity : entities) {
                 lifecycleHandler.onPreRemove(entity);
@@ -420,7 +420,7 @@ public class CompositeEntityManager<T, K> implements EntityManager<T, K> {
             for (T entity : entities) {
                 lifecycleHandler.onPostRemove(entity);
             }
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new PersistenceException("failed to delete entities ", e);
         }
     }
@@ -430,26 +430,26 @@ public class CompositeEntityManager<T, K> implements EntityManager<T, K> {
      */
     @Override
     public void put(Collection<T> entities) throws PersistenceException {
-        MutationBatch mb = getMutationBatch();        
+        MutationBatch mb = getMutationBatch();
         try {
             for (T entity : entities) {
                 lifecycleHandler.onPrePersist(entity);
                 if (verbose)
                     LOG.info(String.format("%s : Writing '%s'", columnFamily.getName(), entity));
-                entityMapper.fillMutationBatch(mb, columnFamily, entity);           
+                entityMapper.fillMutationBatch(mb, columnFamily, entity);
             }
             if (autoCommit)
                 mb.execute();
-            
+
             for (T entity : entities) {
                 lifecycleHandler.onPostPersist(entity);
             }
 
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new PersistenceException("failed to put entities ", e);
         }
     }
-    
+
     /**
      * @inheritDoc
      */
@@ -458,7 +458,7 @@ public class CompositeEntityManager<T, K> implements EntityManager<T, K> {
         try {
             new AllRowsReader.Builder<K, ByteBuffer>(keyspace, columnFamily)
                     .withIncludeEmptyRows(false)
-                    .forEachRow(new Function<Row<K,ByteBuffer>, Boolean>() {
+                    .forEachRow(new Function<Row<K, ByteBuffer>, Boolean>() {
                         @Override
                         public Boolean apply(Row<K, ByteBuffer> row) {
                             if (row.getColumns().isEmpty())
@@ -482,16 +482,16 @@ public class CompositeEntityManager<T, K> implements EntityManager<T, K> {
             throw new PersistenceException("Failed to fetch all entites", e);
         }
     }
-    
+
     @Override
     public List<T> find(String cql) throws PersistenceException {
         Preconditions.checkArgument(StringUtils.left(cql, 6).equalsIgnoreCase("SELECT"), "CQL must be SELECT statement");
-        
+
         try {
             CqlResult<K, ByteBuffer> results = newQuery().withCql(cql).execute().getResult();
             List<T> entities = Lists.newArrayListWithExpectedSize(results.getRows().size());
             for (Row<K, ByteBuffer> row : results.getRows()) {
-                if (!row.getColumns().isEmpty()) { 
+                if (!row.getColumns().isEmpty()) {
                     T entity = entityMapper.constructEntityFromCql(row.getColumns());
                     lifecycleHandler.onPostLoad(entity);
                     entities.add(entity);
@@ -502,16 +502,16 @@ public class CompositeEntityManager<T, K> implements EntityManager<T, K> {
             throw new PersistenceException("Failed to execute cql query", e);
         }
     }
-    
+
     private MutationBatch getMutationBatch() {
         return batchManager.getSharedMutationBatch();
     }
-    
+
     private ColumnFamilyQuery<K, ByteBuffer> newQuery() {
         ColumnFamilyQuery<K, ByteBuffer> cfq = keyspace.prepareQuery(columnFamily);
-        if(readConsitency != null)
+        if (readConsitency != null)
             cfq.setConsistencyLevel(readConsitency);
-        if(retryPolicy != null)
+        if (retryPolicy != null)
             cfq.withRetryPolicy(retryPolicy);
         return cfq;
     }
@@ -520,11 +520,11 @@ public class CompositeEntityManager<T, K> implements EntityManager<T, K> {
     public void createStorage(Map<String, Object> options) throws PersistenceException {
         try {
             Properties props = new Properties();
-            props.put("key_validation_class",     this.entityMapper.getKeyType());
+            props.put("key_validation_class", this.entityMapper.getKeyType());
             props.put("default_validation_class", this.entityMapper.getValueType());
-            props.put("comparator_type",          this.entityMapper.getComparatorType());
-            props.put("name",                     this.columnFamily.getName());
-            
+            props.put("comparator_type", this.entityMapper.getComparatorType());
+            props.put("name", this.columnFamily.getName());
+
             LOG.info("Creating column family : " + props.toString());
             keyspace.createColumnFamily(props);
         } catch (ConnectionException e) {
@@ -536,7 +536,7 @@ public class CompositeEntityManager<T, K> implements EntityManager<T, K> {
     public void deleteStorage() throws PersistenceException {
         try {
             LOG.info(String.format("%s : Deleting storage", columnFamily.getName()));
-            
+
             keyspace.dropColumnFamily(this.columnFamily);
         } catch (ConnectionException e) {
             throw new PersistenceException("Unable to drop column family " + this.columnFamily.getName(), e);
@@ -558,7 +558,7 @@ public class CompositeEntityManager<T, K> implements EntityManager<T, K> {
     public void commit() throws PersistenceException {
         if (verbose)
             LOG.info(String.format("%s : Commit mutation", columnFamily.getName()));
-        
+
         MutationBatch mb = getMutationBatch();
         if (mb != null) {
             try {
@@ -584,15 +584,15 @@ public class CompositeEntityManager<T, K> implements EntityManager<T, K> {
             @Override
             public Collection<T> getResultSet() throws PersistenceException {
                 Preconditions.checkArgument(!ids.isEmpty(), "Must specify at least one row key (ID) to fetch");
-                
+
 //                if (verbose)
 //                    LOG.info(String.format("%s : Query ids '%s' with predicates '%s'", columnFamily.getName(), ids, predicates));
                 
                 RowSliceQuery<K, ByteBuffer> rowQuery = prepareQuery();
-                
+
                 try {
                     List<T> entities = convertRowsToEntities(rowQuery.execute().getResult());
-                    
+
 //                    if (verbose)
 //                        LOG.info(String.format("%s : Query ids '%s' with predicates '%s' result='%s'", columnFamily.getName(), ids, predicates, entities));
                     return entities;
@@ -605,7 +605,7 @@ public class CompositeEntityManager<T, K> implements EntityManager<T, K> {
             public Map<K, Collection<T>> getResultSetById() throws Exception {
                 Map<K, Collection<T>> result = Maps.newLinkedHashMap();
                 for (T entity : getResultSet()) {
-                    K id = (K)entityMapper.idMapper.getValue(entity);
+                    K id = (K) entityMapper.idMapper.getValue(entity);
                     Collection<T> children = result.get(id);
                     if (children == null) {
                         children = Lists.newArrayListWithCapacity(1);
@@ -619,15 +619,15 @@ public class CompositeEntityManager<T, K> implements EntityManager<T, K> {
             @Override
             public Map<K, Integer> getResultSetCounts() throws Exception {
                 Preconditions.checkArgument(!ids.isEmpty(), "Must specify at least one row key (ID) to fetch");
-                
+
 //                if (verbose)
 //                    LOG.info(String.format("%s : Query ids '%s' with predicates '%s'", columnFamily.getName(), ids, predicates));
                 
                 RowSliceQuery<K, ByteBuffer> rowQuery = prepareQuery();
-                
+
                 try {
                     Map<K, Integer> counts = rowQuery.getColumnCounts().execute().getResult();
-                    
+
 //                    if (verbose)
 //                        LOG.info(String.format("%s : Query ids '%s' with predicates '%s' result='%s'", columnFamily.getName(), ids, predicates, counts));
                     return counts;
@@ -635,21 +635,21 @@ public class CompositeEntityManager<T, K> implements EntityManager<T, K> {
                     throw new PersistenceException("Error executing query", e);
                 }
             }
-            
+
             private RowSliceQuery<K, ByteBuffer> prepareQuery() {
                 RowSliceQuery<K, ByteBuffer> rowQuery = keyspace.prepareQuery(columnFamily).setConsistencyLevel(readConsitency)
                         .getRowSlice(ids);
-                    
+
                 if (predicates != null && !predicates.isEmpty()) {
                     ByteBuffer[] endpoints = entityMapper.getQueryEndpoints(predicates);
                     rowQuery = rowQuery.withColumnRange(
                             new RangeBuilder()
-                                .setStart(endpoints[0])
-                                .setEnd(endpoints[1])
-                                .setLimit(columnLimit)
-                                .build());
+                                    .setStart(endpoints[0])
+                                    .setEnd(endpoints[1])
+                                    .setLimit(columnLimit)
+                                    .build());
                 }
-                
+
                 return rowQuery;
             }
         };

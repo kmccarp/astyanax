@@ -29,9 +29,9 @@ import org.slf4j.LoggerFactory;
 public class LogBasedFailedWritesLogger implements FailedWritesLogger {
 
     private static final Logger Logger = LoggerFactory.getLogger(LogBasedFailedWritesLogger.class);
-    
+
     private final AtomicBoolean stop = new AtomicBoolean(false);
-    
+
     @Override
     public void init() {
         Logger.info("-------LOGGER INIT------");

@@ -71,7 +71,7 @@ public abstract class SleepingRetryPolicy implements RetryPolicy {
     public int getMax() {
         return getMaxAttemptCount();
     }
-    
+
     public int getMaxAttemptCount() {
         return maxAttempts;
     }

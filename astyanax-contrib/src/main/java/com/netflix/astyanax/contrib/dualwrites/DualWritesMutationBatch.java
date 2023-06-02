@@ -47,184 +47,184 @@ import com.netflix.astyanax.retry.RetryPolicy;
 public class DualWritesMutationBatch implements MutationBatch {
 
     private final DualKeyspaceMetadata dualKeyspaceMetadata;
-	private final MutationBatch primary; 
-	private final MutationBatch secondary; 
-	private final DualWritesStrategy writeExecutionStrategy;
-	
-	
-	private final AtomicReference<List<WriteMetadata>> writeMetada = new AtomicReference<List<WriteMetadata>>(new ArrayList<WriteMetadata>());
-	
-	public DualWritesMutationBatch(DualKeyspaceMetadata dualKSMetadata, 
-	        MutationBatch primaryMB, MutationBatch secondaryMB, DualWritesStrategy strategy) {
-	    this.dualKeyspaceMetadata = dualKSMetadata;
-		this.primary = primaryMB;
-		this.secondary = secondaryMB;
-		this.writeExecutionStrategy = strategy;
-	}
+    private final MutationBatch primary;
+    private final MutationBatch secondary;
+    private final DualWritesStrategy writeExecutionStrategy;
 
-	public MutationBatch getPrimary() {
-	    return primary;
-	}
-	
-	public MutationBatch getSecondary() {
-	    return secondary;
-	}
-	
-	@Override
-	public OperationResult<Void> execute() throws ConnectionException {
-	    return writeExecutionStrategy.wrapExecutions(primary, secondary, writeMetada.get()).execute();
-	}
 
-	@Override
-	public ListenableFuture<OperationResult<Void>> executeAsync() throws ConnectionException {
+    private final AtomicReference<List<WriteMetadata>> writeMetada = new AtomicReference<List<WriteMetadata>>(new ArrayList<WriteMetadata>());
+
+    public DualWritesMutationBatch(DualKeyspaceMetadata dualKSMetadata,
+            MutationBatch primaryMB, MutationBatch secondaryMB, DualWritesStrategy strategy) {
+        this.dualKeyspaceMetadata = dualKSMetadata;
+        this.primary = primaryMB;
+        this.secondary = secondaryMB;
+        this.writeExecutionStrategy = strategy;
+    }
+
+    public MutationBatch getPrimary() {
+        return primary;
+    }
+
+    public MutationBatch getSecondary() {
+        return secondary;
+    }
+
+    @Override
+    public OperationResult<Void> execute() throws ConnectionException {
+        return writeExecutionStrategy.wrapExecutions(primary, secondary, writeMetada.get()).execute();
+    }
+
+    @Override
+    public ListenableFuture<OperationResult<Void>> executeAsync() throws ConnectionException {
         return writeExecutionStrategy.wrapExecutions(primary, secondary, writeMetada.get()).executeAsync();
-	}
+    }
 
-	@Override
-	public <K, C> ColumnListMutation<C> withRow(ColumnFamily<K, C> columnFamily, K rowKey) {
-	    
-	    writeMetada.get().add(new WriteMetadata(dualKeyspaceMetadata, columnFamily.getName(), rowKey.toString()));
-	    
+    @Override
+    public <K, C> ColumnListMutation<C> withRow(ColumnFamily<K, C> columnFamily, K rowKey) {
+
+        writeMetada.get().add(new WriteMetadata(dualKeyspaceMetadata, columnFamily.getName(), rowKey.toString()));
+
         ColumnListMutation<C> clmPrimary = primary.withRow(columnFamily, rowKey);
         ColumnListMutation<C> clmSecondary = secondary.withRow(columnFamily, rowKey);
-		return new DualWritesColumnListMutation<C>(clmPrimary, clmSecondary);
-	}
+        return new DualWritesColumnListMutation<C>(clmPrimary, clmSecondary);
+    }
 
-	@Override
-	public <K> void deleteRow(Iterable<? extends ColumnFamily<K, ?>> columnFamilies, K rowKey) {
+    @Override
+    public <K> void deleteRow(Iterable<? extends ColumnFamily<K, ?>> columnFamilies, K rowKey) {
 
-	    for (ColumnFamily<K, ?> cf : columnFamilies) {
-	        writeMetada.get().add(new WriteMetadata(dualKeyspaceMetadata, cf.getName(), rowKey.toString()));
-	    }
-	       
-	    primary.deleteRow(columnFamilies, rowKey);
-		secondary.deleteRow(columnFamilies, rowKey);
-	}
+        for (ColumnFamily<K, ?> cf : columnFamilies) {
+            writeMetada.get().add(new WriteMetadata(dualKeyspaceMetadata, cf.getName(), rowKey.toString()));
+        }
 
-	@Override
-	public void discardMutations() {
-		primary.discardMutations();
-		secondary.discardMutations();
-		writeMetada.set(new ArrayList<WriteMetadata>());
-	}
+        primary.deleteRow(columnFamilies, rowKey);
+        secondary.deleteRow(columnFamilies, rowKey);
+    }
 
-	@Override
-	public void mergeShallow(MutationBatch other) {
-		primary.mergeShallow(other);
-		secondary.mergeShallow(other);
-	}
+    @Override
+    public void discardMutations() {
+        primary.discardMutations();
+        secondary.discardMutations();
+        writeMetada.set(new ArrayList<WriteMetadata>());
+    }
 
-	@Override
-	public boolean isEmpty() {
-		return primary.isEmpty();
-	}
+    @Override
+    public void mergeShallow(MutationBatch other) {
+        primary.mergeShallow(other);
+        secondary.mergeShallow(other);
+    }
 
-	@Override
-	public int getRowCount() {
-		return primary.getRowCount();
-	}
+    @Override
+    public boolean isEmpty() {
+        return primary.isEmpty();
+    }
 
-	@Override
-	public Map<ByteBuffer, Set<String>> getRowKeys() {
-		return primary.getRowKeys();
-	}
+    @Override
+    public int getRowCount() {
+        return primary.getRowCount();
+    }
 
-	@Override
-	public MutationBatch pinToHost(Host host) {
-		primary.pinToHost(host);
-		secondary.pinToHost(host);
-		return this;
-	}
+    @Override
+    public Map<ByteBuffer, Set<String>> getRowKeys() {
+        return primary.getRowKeys();
+    }
 
-	@Override
-	public MutationBatch setConsistencyLevel(ConsistencyLevel consistencyLevel) {
-		primary.setConsistencyLevel(consistencyLevel);
-		secondary.setConsistencyLevel(consistencyLevel);
-		return this;
-	}
+    @Override
+    public MutationBatch pinToHost(Host host) {
+        primary.pinToHost(host);
+        secondary.pinToHost(host);
+        return this;
+    }
 
-	@Override
-	public MutationBatch withConsistencyLevel(ConsistencyLevel consistencyLevel) {
-		primary.withConsistencyLevel(consistencyLevel);
-		secondary.withConsistencyLevel(consistencyLevel);
-		return this;
-	}
+    @Override
+    public MutationBatch setConsistencyLevel(ConsistencyLevel consistencyLevel) {
+        primary.setConsistencyLevel(consistencyLevel);
+        secondary.setConsistencyLevel(consistencyLevel);
+        return this;
+    }
 
-	@Override
-	public MutationBatch withRetryPolicy(RetryPolicy retry) {
-		primary.withRetryPolicy(retry);
-		secondary.withRetryPolicy(retry);
-		return this;
-	}
+    @Override
+    public MutationBatch withConsistencyLevel(ConsistencyLevel consistencyLevel) {
+        primary.withConsistencyLevel(consistencyLevel);
+        secondary.withConsistencyLevel(consistencyLevel);
+        return this;
+    }
 
-	@Override
-	public MutationBatch usingWriteAheadLog(WriteAheadLog manager) {
-		primary.usingWriteAheadLog(manager);
-		return this;
-	}
+    @Override
+    public MutationBatch withRetryPolicy(RetryPolicy retry) {
+        primary.withRetryPolicy(retry);
+        secondary.withRetryPolicy(retry);
+        return this;
+    }
 
-	@Override
-	public MutationBatch lockCurrentTimestamp() {
-		primary.lockCurrentTimestamp();
-		secondary.lockCurrentTimestamp();
-		return this;
-	}
+    @Override
+    public MutationBatch usingWriteAheadLog(WriteAheadLog manager) {
+        primary.usingWriteAheadLog(manager);
+        return this;
+    }
 
-	@SuppressWarnings("deprecation")
-	@Override
-	public MutationBatch setTimeout(long timeout) {
-		primary.setTimeout(timeout);
-		secondary.setTimeout(timeout);
-		return this;
-	}
+    @Override
+    public MutationBatch lockCurrentTimestamp() {
+        primary.lockCurrentTimestamp();
+        secondary.lockCurrentTimestamp();
+        return this;
+    }
 
-	@Override
-	public MutationBatch setTimestamp(long timestamp) {
-		primary.setTimestamp(timestamp);
-		secondary.setTimestamp(timestamp);
-		return this;
-	}
+    @SuppressWarnings("deprecation")
+    @Override
+    public MutationBatch setTimeout(long timeout) {
+        primary.setTimeout(timeout);
+        secondary.setTimeout(timeout);
+        return this;
+    }
 
-	@Override
-	public MutationBatch withTimestamp(long timestamp) {
-		primary.withTimestamp(timestamp);
-		secondary.withTimestamp(timestamp);
-		return this;
-	}
+    @Override
+    public MutationBatch setTimestamp(long timestamp) {
+        primary.setTimestamp(timestamp);
+        secondary.setTimestamp(timestamp);
+        return this;
+    }
 
-	@Override
-	public MutationBatch withAtomicBatch(boolean condition) {
-		primary.withAtomicBatch(condition);
-		secondary.withAtomicBatch(condition);
-		return this;
-	}
+    @Override
+    public MutationBatch withTimestamp(long timestamp) {
+        primary.withTimestamp(timestamp);
+        secondary.withTimestamp(timestamp);
+        return this;
+    }
 
-	@Override
-	public ByteBuffer serialize() throws Exception {
-		secondary.serialize();
-		return primary.serialize();
-	}
+    @Override
+    public MutationBatch withAtomicBatch(boolean condition) {
+        primary.withAtomicBatch(condition);
+        secondary.withAtomicBatch(condition);
+        return this;
+    }
 
-	@Override
-	public void deserialize(ByteBuffer data) throws Exception {
-		ByteBuffer clone = clone(data);
-		primary.deserialize(data);
-		secondary.deserialize(clone);
-	}
+    @Override
+    public ByteBuffer serialize() throws Exception {
+        secondary.serialize();
+        return primary.serialize();
+    }
 
-	@Override
-	public MutationBatch withCaching(boolean condition) {
-		primary.withCaching(condition);
-		secondary.withCaching(condition);
-		return this;
-	}
-	
-	private static ByteBuffer clone(ByteBuffer original) {
-		ByteBuffer clone = ByteBuffer.allocate(original.capacity());
-		original.rewind();//copy from the beginning
-		clone.put(original);
-		original.rewind();
-		clone.flip();
-		return clone;
-	}
+    @Override
+    public void deserialize(ByteBuffer data) throws Exception {
+        ByteBuffer clone = clone(data);
+        primary.deserialize(data);
+        secondary.deserialize(clone);
+    }
+
+    @Override
+    public MutationBatch withCaching(boolean condition) {
+        primary.withCaching(condition);
+        secondary.withCaching(condition);
+        return this;
+    }
+
+    private static ByteBuffer clone(ByteBuffer original) {
+        ByteBuffer clone = ByteBuffer.allocate(original.capacity());
+        original.rewind();//copy from the beginning
+        clone.put(original);
+        original.rewind();
+        clone.flip();
+        return clone;
+    }
 }

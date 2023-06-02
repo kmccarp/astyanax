@@ -24,18 +24,18 @@ import org.junit.Test;
 import com.netflix.astyanax.connectionpool.TokenRange;
 
 public class RingDescribeTests extends KeyspaceTests {
-	
-	private static final Logger LOG = Logger.getLogger(RingDescribeTests.class);
-	
+
+    private static final Logger LOG = Logger.getLogger(RingDescribeTests.class);
+
     @BeforeClass
-	public static void init() throws Exception {
-		initContext();
-	}
-	
+    public static void init() throws Exception {
+        initContext();
+    }
+
     @Test
     public void testDescribeRing() throws Exception {
-    	// [TokenRangeImpl [startToken=0, endToken=0, endpoints=[127.0.0.1]]]
-    	List<TokenRange> ring = keyspace.describeRing();
-    	LOG.info(ring.toString());
+        // [TokenRangeImpl [startToken=0, endToken=0, endpoints=[127.0.0.1]]]
+        List<TokenRange> ring = keyspace.describeRing();
+        LOG.info(ring.toString());
     }
 }

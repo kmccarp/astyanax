@@ -38,24 +38,24 @@ import com.netflix.astyanax.connectionpool.exceptions.ConnectionException;
  */
 public class RingDescribeHostSupplier implements Supplier<List<Host>> {
     private final static Logger LOG = LoggerFactory.getLogger(RingDescribeHostSupplier.class);
-    
+
     private final Keyspace  keyspace;
     private final int       defaultPort;
     private final String    dc;
     private final String    rack;
     private volatile List<Host> previousHosts;
-    
+
     public RingDescribeHostSupplier(Keyspace keyspace, int defaultPort, String dc, String rack) {
-        this.keyspace    = keyspace;
+        this.keyspace = keyspace;
         this.defaultPort = defaultPort;
-        this.dc          = dc;
-        this.rack        = rack;
+        this.dc = dc;
+        this.rack = rack;
     }
 
     public RingDescribeHostSupplier(Keyspace keyspace, int defaultPort, String dc) {
         this(keyspace, defaultPort, dc, null);
     }
-    
+
     public RingDescribeHostSupplier(Keyspace keyspace, int defaultPort) {
         this(keyspace, defaultPort, null, null);
     }
@@ -72,11 +72,11 @@ public class RingDescribeHostSupplier implements Supplier<List<Host>> {
                         host = new Host(endpoint, defaultPort);
                         ipToHost.put(endpoint, host);
                     }
-                    
+
                     host.getTokenRanges().add(range);
                 }
             }
-            
+
             previousHosts = Lists.newArrayList(ipToHost.values());
             return previousHosts;
         }

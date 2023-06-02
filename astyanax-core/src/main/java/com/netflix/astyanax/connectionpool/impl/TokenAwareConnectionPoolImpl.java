@@ -46,7 +46,7 @@ import com.netflix.astyanax.connectionpool.exceptions.NoAvailableHostsException;
 public class TokenAwareConnectionPoolImpl<CL> extends AbstractHostPartitionConnectionPool<CL> {
 
     private AtomicInteger roundRobinCounter = new AtomicInteger(new Random().nextInt(997));
-    private static final int MAX_RR_COUNTER = Integer.MAX_VALUE/2;
+    private static final int MAX_RR_COUNTER = Integer.MAX_VALUE / 2;
 
     public TokenAwareConnectionPoolImpl(ConnectionPoolConfiguration configuration, ConnectionFactory<CL> factory,
             ConnectionPoolMonitor monitor) {
@@ -58,20 +58,20 @@ public class TokenAwareConnectionPoolImpl<CL> extends AbstractHostPartitionConne
         try {
             List<HostConnectionPool<CL>> pools;
             boolean isSorted = false;
-    
+
             if (op.getPinnedHost() != null) {
                 HostConnectionPool<CL> pool = hosts.get(op.getPinnedHost());
                 if (pool == null) {
                     throw new NoAvailableHostsException("Host " + op.getPinnedHost() + " not active");
                 }
-                pools = Arrays.<HostConnectionPool<CL>> asList(pool);
+                pools = Arrays.<HostConnectionPool<CL>>asList(pool);
             }
             else {
                 TokenHostConnectionPoolPartition<CL> partition = topology.getPartition(op.getRowKey());
                 pools = partition.getPools();
                 isSorted = partition.isSorted();
             }
-            
+
             int index = roundRobinCounter.incrementAndGet();
             if (index > MAX_RR_COUNTER) {
                 roundRobinCounter.set(0);

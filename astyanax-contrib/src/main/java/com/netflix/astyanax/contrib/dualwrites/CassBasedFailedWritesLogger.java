@@ -43,15 +43,15 @@ import com.netflix.astyanax.serializers.StringSerializer;
 public class CassBasedFailedWritesLogger implements FailedWritesLogger {
 
     private static final Logger Logger = LoggerFactory.getLogger(CassBasedFailedWritesLogger.class);
-    
-    private final AstyanaxContext<Keyspace> ksContext; 
+
+    private final AstyanaxContext<Keyspace> ksContext;
     private Keyspace ks;
     private final CircularCounter counter;
-    
+
     public CassBasedFailedWritesLogger(AstyanaxContext<Keyspace> ctx) {
         this(ctx, 10);
     }
-    
+
     public CassBasedFailedWritesLogger(AstyanaxContext<Keyspace> ctx, int numShards) {
         if (numShards <= 0) {
             throw new RuntimeException("numShards must be > 0");
@@ -62,44 +62,44 @@ public class CassBasedFailedWritesLogger implements FailedWritesLogger {
 
     @Override
     public void logFailedWrite(WriteMetadata failedWrite) {
-        
+
         MutationBatch mutationBatch = ks.prepareMutationBatch();
         addToBatch(mutationBatch, failedWrite);
-        
+
         try {
             mutationBatch.execute();
         } catch (ConnectionException e) {
             Logger.error("Failed to log failed write to fallback cluster: " + failedWrite, e);
         }
     }
-    
+
     private void addToBatch(MutationBatch batch, WriteMetadata failedWrite) {
-        
+
         // TODO: must deal with failed operations like createCF etc
         if (failedWrite.getCFName() == null || failedWrite.getRowKey() == null) {
             return;
         }
         String cfName = failedWrite.getPrimaryCluster() + "-" + failedWrite.getPrimaryKeyspace();
-        
-        ColumnFamily<String, Long> CF_FAILED_WRITES = 
+
+        ColumnFamily<String, Long> CF_FAILED_WRITES =
                 ColumnFamily.newColumnFamily(cfName, StringSerializer.get(), LongSerializer.get(), StringSerializer.get());
-        
+
         String rowKey = failedWrite.getCFName() + "_" + counter.getNext();
         Long column = failedWrite.getUuid();
         String value = failedWrite.getRowKey();
-        
+
         batch.withRow(CF_FAILED_WRITES, rowKey).putColumn(column, value);
     }
 
-    private class CircularCounter { 
-        
+    private class CircularCounter {
+
         private final int maxLimit;
         private final AtomicInteger counter = new AtomicInteger(0);
-        
+
         private CircularCounter(int limit) {
             maxLimit = limit;
         }
-        
+
         private int getNext() {
             int count = counter.incrementAndGet();
             return (count % maxLimit);

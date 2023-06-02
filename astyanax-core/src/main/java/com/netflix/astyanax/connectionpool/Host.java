@@ -37,7 +37,7 @@ public class Host implements Comparable<Host> {
 
     public static final Host NO_HOST = new Host();
     public static final String UKNOWN_RACK = "";
-    
+
     private final String host;
     private final String ipAddress;
     private final int    port;
@@ -59,7 +59,7 @@ public class Host implements Comparable<Host> {
         this.ipAddress = "0.0.0.0";
         this.port = 0;
         this.name = String.format("%s(%s):%d", this.host, this.ipAddress, this.port);
-        this.url  = String.format("%s:%d", this.host, this.port);
+        this.url = String.format("%s:%d", this.host, this.port);
     }
 
     /**
@@ -78,24 +78,24 @@ public class Host implements Comparable<Host> {
         String workHost;
         String workIpAddress;
         if (match.matches()) {
-            workHost      = tempHost;
+            workHost = tempHost;
             workIpAddress = tempHost;
         }
         else {
             try {
                 InetAddress address = InetAddress.getByName(tempHost);
-                workHost            = address.getHostName();
-                workIpAddress       = address.getHostAddress();
+                workHost = address.getHostName();
+                workIpAddress = address.getHostAddress();
             }
             catch (UnknownHostException e) {
-                workHost      = tempHost;
+                workHost = tempHost;
                 workIpAddress = tempHost;
             }
         }
-        this.host      = workHost;
+        this.host = workHost;
         this.ipAddress = workIpAddress;
-        this.name      = String.format("%s(%s):%d", tempHost, this.ipAddress, this.port);
-        this.url       = String.format("%s:%d", this.host, this.port);
+        this.name = String.format("%s(%s):%d", tempHost, this.ipAddress, this.port);
+        this.url = String.format("%s:%d", this.host, this.port);
     }
 
     /**
@@ -174,21 +174,21 @@ public class Host implements Comparable<Host> {
         this.id = id;
         return this;
     }
-    
+
     public Host setRack(String rack) {
         this.rack = rack;
         return this;
     }
-    
+
     public String getRack() {
         return rack;
     }
- 
+
     public synchronized Host setTokenRanges(List<TokenRange> ranges) {
         this.ranges = ranges;
         return this;
     }
-    
+
     public synchronized List<TokenRange> getTokenRanges() {
         return this.ranges;
     }

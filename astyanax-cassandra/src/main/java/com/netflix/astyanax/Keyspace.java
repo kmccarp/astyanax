@@ -60,7 +60,7 @@ public interface Keyspace {
      * @throws ConnectionException
      */
     Partitioner getPartitioner() throws ConnectionException;
-    
+
     /**
      * Describe the partitioner used by the cluster
      * @throws ConnectionException
@@ -82,7 +82,7 @@ public interface Keyspace {
      * @throws ConnectionException
      */
     List<TokenRange> describeRing(String dc) throws ConnectionException;
-    
+
     /**
      * Get a list of tokens and their endpoints for a specific dc/rack combination.
      * @param dc
@@ -110,7 +110,7 @@ public interface Keyspace {
      * @throws ConnectionException 
      */
     Properties getKeyspaceProperties() throws ConnectionException;
-    
+
     /**
      * Get the properties for a column family
      * 
@@ -119,7 +119,7 @@ public interface Keyspace {
      * @throws ConnectionException 
      */
     Properties getColumnFamilyProperties(String columnFamily) throws ConnectionException;
-    
+
     /**
      * Return the serializer package for a specific column family. This requires
      * a call to the Cassandra cluster and is therefore cached to reduce load on
@@ -174,7 +174,7 @@ public interface Keyspace {
      */
     <K, C> OperationResult<Void> truncateColumnFamily(ColumnFamily<K, C> columnFamily) throws OperationException,
             ConnectionException;
-    
+
     /**
      * Delete all rows in a column family
      * 
@@ -209,7 +209,7 @@ public interface Keyspace {
      * @param options - For list of options see http://www.datastax.com/docs/1.0/configuration/storage_configuration
      */
     <K, C>  OperationResult<SchemaChangeResult> createColumnFamily(ColumnFamily<K, C> columnFamily, Map<String, Object> options) throws ConnectionException ;
-    
+
     /**
      * Create a column family in this keyspace using the provided properties.  
      * @param props
@@ -217,14 +217,14 @@ public interface Keyspace {
      * @throws ConnectionException 
      */
     OperationResult<SchemaChangeResult> createColumnFamily(Properties props) throws ConnectionException;
-    
+
     /**
      * Create a column family from the provided options
      * @param options - For list of options see http://www.datastax.com/docs/1.0/configuration/storage_configuration
      * @throws ConnectionException
      */
     OperationResult<SchemaChangeResult> createColumnFamily(Map<String, Object> options) throws ConnectionException ;
-    
+
     /**
      * Update the column family in cassandra
      * 
@@ -232,14 +232,14 @@ public interface Keyspace {
      * @param options - For list of options see http://www.datastax.com/docs/1.0/configuration/storage_configuration
      */
     <K, C>  OperationResult<SchemaChangeResult> updateColumnFamily(ColumnFamily<K, C> columnFamily, Map<String, Object> options) throws ConnectionException ;
-    
+
     /**
      * Update the column family definition from properties
      * @param props
      * @throws ConnectionException
      */
     OperationResult<SchemaChangeResult> updateColumnFamily(Properties props) throws ConnectionException ;
-    
+
     /**
      * Update the column family definition from a map of string to object
      * @param props
@@ -252,13 +252,13 @@ public interface Keyspace {
      * @param columnFamilyName
      */
     OperationResult<SchemaChangeResult> dropColumnFamily(String columnFamilyName) throws ConnectionException ;
-    
+
     /**
      * Drop a column family from this keyspace 
      * @param columnFamily
      */
     <K, C>  OperationResult<SchemaChangeResult> dropColumnFamily(ColumnFamily<K, C> columnFamily) throws ConnectionException ;
-    
+
     /**
      * Create the keyspace in cassandra.  This call will only create the keyspace and not 
      * any column families.  Once the keyspace has been created then call createColumnFamily
@@ -266,7 +266,7 @@ public interface Keyspace {
      * @param options - For list of options see http://www.datastax.com/docs/1.0/configuration/storage_configuration
      */
     OperationResult<SchemaChangeResult> createKeyspace(Map<String, Object> options) throws ConnectionException ;
-    
+
     /**
      * Create the keyspace in cassandra if it does not exist.  This call will only create the keyspace and not 
      * any column families.  Once the keyspace has been created then call createColumnFamily
@@ -282,7 +282,7 @@ public interface Keyspace {
      * @throws ConnectionException
      */
     OperationResult<SchemaChangeResult> createKeyspace(Properties properties) throws ConnectionException;
-    
+
     /**
      * Create a keyspace if it does not exist. 
      * @param properties
@@ -298,7 +298,7 @@ public interface Keyspace {
      * @throws ConnectionException
      */
     OperationResult<SchemaChangeResult> createKeyspace(Map<String, Object> options, Map<ColumnFamily, Map<String, Object>> cfs) throws ConnectionException ;
-    
+
     /**
      * Bulk create for a keyspace if it does not exist and a bunch of column famlies
      * @param options
@@ -306,13 +306,13 @@ public interface Keyspace {
      * @throws ConnectionException
      */
     OperationResult<SchemaChangeResult> createKeyspaceIfNotExists(Map<String, Object> options, Map<ColumnFamily, Map<String, Object>> cfs) throws ConnectionException ;
-    
+
     /**
      * Update the keyspace in cassandra.
      * @param options - For list of options see http://www.datastax.com/docs/1.0/configuration/storage_configuration
      */
     OperationResult<SchemaChangeResult> updateKeyspace(Map<String, Object> options) throws ConnectionException ;
-    
+
     /**
      * Update the keyspace definition using properties.  Only keyspace options and NO column family options
      * may be set here.
@@ -322,7 +322,7 @@ public interface Keyspace {
      * @throws ConnectionException
      */
     OperationResult<SchemaChangeResult> updateKeyspace(Properties props) throws ConnectionException;
-    
+
     /**
      * Drop this keyspace from cassandra
      */
@@ -335,13 +335,13 @@ public interface Keyspace {
      * @throws ConnectionException
      */
     Map<String, List<String>> describeSchemaVersions() throws ConnectionException;
-    
+
     /**
      * Prepare a CQL Statement on the keyspace
      * @return
      */
     CqlStatement prepareCqlStatement();
-    
+
     /**
      * Exposes the internal connection pool to the client.  
      * @return

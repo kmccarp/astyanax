@@ -34,45 +34,45 @@ import com.netflix.astyanax.connectionpool.OperationResult;
  */
 public abstract class AsyncOperationResult<V> implements ListenableFuture<OperationResult<V>> {
 
-	private ResultSetFuture rsFuture; 
+    private ResultSetFuture rsFuture;
 
-	public AsyncOperationResult(ResultSetFuture rsFuture) {
-		this.rsFuture = rsFuture;
-	}
+    public AsyncOperationResult(ResultSetFuture rsFuture) {
+        this.rsFuture = rsFuture;
+    }
 
-	@Override
-	public boolean cancel(boolean mayInterruptIfRunning) {
-		return rsFuture.cancel(mayInterruptIfRunning);
-	}
+    @Override
+    public boolean cancel(boolean mayInterruptIfRunning) {
+        return rsFuture.cancel(mayInterruptIfRunning);
+    }
 
-	@Override
-	public boolean isCancelled() {
-		return rsFuture.isCancelled();
-	}
+    @Override
+    public boolean isCancelled() {
+        return rsFuture.isCancelled();
+    }
 
-	@Override
-	public boolean isDone() {
-		return rsFuture.isDone();
-	}
+    @Override
+    public boolean isDone() {
+        return rsFuture.isDone();
+    }
 
-	@Override
-	public OperationResult<V> get() throws InterruptedException, ExecutionException {
-		return getOperationResult(rsFuture.get());
-	}
+    @Override
+    public OperationResult<V> get() throws InterruptedException, ExecutionException {
+        return getOperationResult(rsFuture.get());
+    }
 
-	public OperationResult<V> getUninterruptably() throws InterruptedException, ExecutionException {
-		return getOperationResult(rsFuture.getUninterruptibly());
-	}
+    public OperationResult<V> getUninterruptably() throws InterruptedException, ExecutionException {
+        return getOperationResult(rsFuture.getUninterruptibly());
+    }
 
-	@Override
-	public OperationResult<V> get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-		return getOperationResult(rsFuture.get(timeout, unit));
-	}
+    @Override
+    public OperationResult<V> get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        return getOperationResult(rsFuture.get(timeout, unit));
+    }
 
-	@Override
-	public void addListener(Runnable listener, Executor executor) {
-		rsFuture.addListener(listener, executor);
-	}
+    @Override
+    public void addListener(Runnable listener, Executor executor) {
+        rsFuture.addListener(listener, executor);
+    }
 
-	public abstract OperationResult<V> getOperationResult(ResultSet rs);
+    public abstract OperationResult<V> getOperationResult(ResultSet rs);
 }

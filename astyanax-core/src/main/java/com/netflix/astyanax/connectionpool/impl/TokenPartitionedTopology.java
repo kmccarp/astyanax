@@ -80,13 +80,13 @@ public class TokenPartitionedTopology<CL> implements Topology<CL> {
      * the list of hosts that own the token range.
      */
     private AtomicReference<List<TokenHostConnectionPoolPartition<CL>>> sortedRing
-    	= new AtomicReference<List<TokenHostConnectionPoolPartition<CL>>>(new ArrayList<TokenHostConnectionPoolPartition<CL>>());
+            = new AtomicReference<List<TokenHostConnectionPoolPartition<CL>>>(new ArrayList<TokenHostConnectionPoolPartition<CL>>());
 
     /**
      * Lookup of end token to partition 
      */
     private NonBlockingHashMap<BigInteger, TokenHostConnectionPoolPartition<CL>> tokenToPartitionMap
-    	= new NonBlockingHashMap<BigInteger, TokenHostConnectionPoolPartition<CL>>();
+            = new NonBlockingHashMap<BigInteger, TokenHostConnectionPoolPartition<CL>>();
 
     /**
      * Partition which contains all hosts.  This is the fallback partition when no tokens are provided.
@@ -132,9 +132,9 @@ public class TokenPartitionedTopology<CL> implements Topology<CL> {
     };
 
     public TokenPartitionedTopology(Partitioner partitioner, LatencyScoreStrategy strategy) {
-        this.strategy    = strategy;
+        this.strategy = strategy;
         this.partitioner = partitioner;
-        this.allPools    = new TokenHostConnectionPoolPartition<CL>(null, this.strategy);
+        this.allPools = new TokenHostConnectionPoolPartition<CL>(null, this.strategy);
     }
 
     protected TokenHostConnectionPoolPartition<CL> makePartition(BigInteger partition) {
@@ -149,16 +149,16 @@ public class TokenPartitionedTopology<CL> implements Topology<CL> {
      */
     public synchronized boolean setPools(Collection<HostConnectionPool<CL>> ring) {
         boolean didChange = false;
-        
+
         Set<HostConnectionPool<CL>> allPools = Sets.newHashSet();
-        
+
         // Create a mapping of end token to a list of hosts that own the token
         Map<BigInteger, List<HostConnectionPool<CL>>> tokenHostMap = Maps.newHashMap();
         for (HostConnectionPool<CL> pool : ring) {
             allPools.add(pool);
             if (!this.allPools.hasPool(pool))
                 didChange = true;
-          
+
             for (TokenRange range : pool.getHost().getTokenRanges()) {
                 BigInteger endToken = new BigInteger(range.getEndToken());
                 List<HostConnectionPool<CL>> partition = tokenHostMap.get(endToken);
@@ -177,7 +177,7 @@ public class TokenPartitionedTopology<CL> implements Topology<CL> {
         for (Entry<BigInteger, List<HostConnectionPool<CL>>> entry : tokenHostMap.entrySet()) {
             BigInteger token = entry.getKey();
             tokensToRemove.remove(token);
-                
+
             // Add a new partition or modify an existing one
             TokenHostConnectionPoolPartition<CL> partition = tokenToPartitionMap.get(token);
             if (partition == null) {
@@ -223,23 +223,23 @@ public class TokenPartitionedTopology<CL> implements Topology<CL> {
         for (TokenHostConnectionPoolPartition<CL> partition : tokenToPartitionMap.values()) {
             partition.refresh();
         }
-        
+
     }
 
     @Override
     public TokenHostConnectionPoolPartition<CL> getPartition(String token) {
         return tokenToPartitionMap.get(new BigInteger(token));
     }
-    
+
     @Override
     public TokenHostConnectionPoolPartition<CL> getPartition(ByteBuffer rowkey) {
         if (rowkey == null)
             return getAllPools();
-        
+
         BigInteger token = new BigInteger(partitioner.getTokenForKey(rowkey));
-        
+
         // First, get a copy of the partitions.
-    	List<TokenHostConnectionPoolPartition<CL>> partitions = this.sortedRing.get();
+        List<TokenHostConnectionPoolPartition<CL>> partitions = this.sortedRing.get();
         // Must have a token otherwise we default to the base class
         // implementation
         if (token == null || partitions == null || partitions.isEmpty()) {
@@ -284,7 +284,7 @@ public class TokenPartitionedTopology<CL> implements Topology<CL> {
     public synchronized void addPool(HostConnectionPool<CL> pool) {
         allPools.addPool(pool);
     }
-    
+
     @Override
     public List<String> getPartitionNames() {
         return Lists.newArrayList(Collections2.transform(tokenToPartitionMap.keySet(), new Function<BigInteger, String>() {
@@ -294,7 +294,7 @@ public class TokenPartitionedTopology<CL> implements Topology<CL> {
             }
         }));
     }
-    
+
     @Override
     public Map<String, TokenHostConnectionPoolPartition<CL>> getPartitions() {
         Map<String, TokenHostConnectionPoolPartition<CL>> result = Maps.newHashMap();

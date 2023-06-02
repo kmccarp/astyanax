@@ -38,18 +38,18 @@ import com.netflix.astyanax.thrift.ThriftUtils;
 
 public class ThriftColumnFamilyDefinitionImpl implements ColumnFamilyDefinition {
     private final static Map<String, FieldMetadata> fieldsMetadata = Maps.newHashMap();
-    
+
     static {
         for (Entry<_Fields, FieldMetaData> field : CfDef.metaDataMap.entrySet()) {
             fieldsMetadata.put(
-                    field.getValue().fieldName, 
+                    field.getValue().fieldName,
                     new FieldMetadata(
-                        field.getKey().name(), 
-                        ThriftTypes.values()[field.getValue().valueMetaData.type].name(),
-                        field.getValue().valueMetaData.isContainer()));
+                            field.getKey().name(),
+                            ThriftTypes.values()[field.getValue().valueMetaData.type].name(),
+                            field.getValue().valueMetaData.isContainer()));
         }
     }
-    
+
     private CfDef cfDef;
 
     public ThriftColumnFamilyDefinitionImpl() {
@@ -273,7 +273,7 @@ public class ThriftColumnFamilyDefinitionImpl implements ColumnFamilyDefinition 
         }
         return list;
     }
-    
+
     @Override
     public void clearColumnDefinitionList() {
         cfDef.setColumn_metadata(new ArrayList<ColumnDef>());
@@ -329,18 +329,18 @@ public class ThriftColumnFamilyDefinitionImpl implements ColumnFamilyDefinition 
     public Collection<String> getFieldNames() {
         return fieldsMetadata.keySet();
     }
-    
+
     @Override
     public Object getFieldValue(String name) {
         return cfDef.getFieldValue(_Fields.valueOf(name));
     }
-    
+
     @Override
     public ColumnFamilyDefinition setFieldValue(String name, Object value) {
         cfDef.setFieldValue(_Fields.valueOf(name), value);
         return this;
     }
-    
+
     @Override
     public ColumnDefinition makeColumnDefinition() {
         return new ThriftColumnDefinitionImpl();
@@ -454,7 +454,7 @@ public class ThriftColumnFamilyDefinitionImpl implements ColumnFamilyDefinition 
                         ThriftColumnDefinitionImpl columnDef = new ThriftColumnDefinitionImpl();
                         columnDef.setName(column.getKey().toString());
                         columnDef.setFields((Map<String, Object>) column.getValue());
-                        
+
                         this.addColumnDefinition(columnDef);
                     }
                 }

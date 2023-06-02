@@ -30,10 +30,10 @@ import com.netflix.astyanax.retry.RetryPolicy;
  * 
  */
 public interface AstyanaxConfiguration {
-	
-	/**
-	 * @return
-	 */
+
+    /**
+     * @return
+     */
     RetryPolicy getRetryPolicy();
 
     /**
@@ -82,7 +82,7 @@ public interface AstyanaxConfiguration {
      * @param cqlVersion
      */
     String getCqlVersion();
-    
+
     /**
      * @return Returns the major cassandra version (x.x) with which this client is communicating.
      * This is a hack for backwards compatibility when APIs break between version 

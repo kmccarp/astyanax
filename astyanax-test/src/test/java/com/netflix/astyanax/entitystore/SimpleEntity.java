@@ -8,14 +8,14 @@ import javax.persistence.Id;
 public class SimpleEntity {
     @Id
     private String id;
-    
+
     @Column
     private String column;
-    
+
     public SimpleEntity() {
-        
+
     }
-    
+
     public SimpleEntity(String id, String column) {
         this.id = id;
         this.column = column;
@@ -41,6 +41,6 @@ public class SimpleEntity {
     public String toString() {
         return "SimpleEntity [id=" + id + ", column=" + column + "]";
     }
-    
-    
+
+
 }

@@ -28,13 +28,13 @@ public interface ConnectionContext {
      * @param obj
      */
     public void    setMetadata(String key, Object obj);
-    
+
     /**
      * @return Get metadata stored by calling setMetadata
      * @param key
      */
     public Object  getMetadata(String key);
-    
+
     /**
      * @return Return true if the metadata with the specified key exists.
      * @param key

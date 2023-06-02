@@ -83,10 +83,11 @@ public class ThriftColumnListImpl<C> extends AbstractColumnList<C> {
         }
         return new ThriftColumnImpl<C>(colSer.fromBytes(c.getName()), c);
     }
-    
+
     private void constructColumnMap() {
         if (lookup == null) {
-            lookup = Maps.newHashMap();;
+            lookup = Maps.newHashMap();
+            ;
             for (org.apache.cassandra.thrift.Column column : columns) {
                 lookup.put(colSer.fromBytes(column.getName()), column);
             }

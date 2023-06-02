@@ -147,23 +147,23 @@ public abstract class AbstractIndexQueryImpl<K, C> implements IndexQuery<K, C> {
             org.apache.cassandra.thrift.IndexExpression expr = new org.apache.cassandra.thrift.IndexExpression()
                     .setColumn_name(expression.getColumn().duplicate()).setValue(expression.getValue().duplicate());
             switch (expression.getOperator()) {
-            case EQ:
-                expr.setOp(IndexOperator.EQ);
-                break;
-            case LT:
-                expr.setOp(IndexOperator.LT);
-                break;
-            case GT:
-                expr.setOp(IndexOperator.GT);
-                break;
-            case GTE:
-                expr.setOp(IndexOperator.GTE);
-                break;
-            case LTE:
-                expr.setOp(IndexOperator.LTE);
-                break;
-            default:
-                throw new RuntimeException("Invalid operator type: " + expression.getOperator().name());
+                case EQ:
+                    expr.setOp(IndexOperator.EQ);
+                    break;
+                case LT:
+                    expr.setOp(IndexOperator.LT);
+                    break;
+                case GT:
+                    expr.setOp(IndexOperator.GT);
+                    break;
+                case GTE:
+                    expr.setOp(IndexOperator.GTE);
+                    break;
+                case LTE:
+                    expr.setOp(IndexOperator.LTE);
+                    break;
+                default:
+                    throw new RuntimeException("Invalid operator type: " + expression.getOperator().name());
             }
             indexClause.addToExpressions(expr);
         }

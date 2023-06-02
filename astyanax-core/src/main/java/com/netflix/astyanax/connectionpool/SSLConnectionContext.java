@@ -28,11 +28,11 @@ public class SSLConnectionContext
     private final String sslTruststore;
     private final String sslTruststorePassword;
 
-    public SSLConnectionContext(String sslTruststore, String sslTruststorePassword){
+    public SSLConnectionContext(String sslTruststore, String sslTruststorePassword) {
         this(sslTruststore, sslTruststorePassword, DEFAULT_SSL_PROTOCOL, DEFAULT_SSL_CIPHER_SUITES);
     }
 
-    public SSLConnectionContext(String sslTruststore, String sslTruststorePassword, String sslProtocol, List<String> sslCipherSuites){
+    public SSLConnectionContext(String sslTruststore, String sslTruststorePassword, String sslProtocol, List<String> sslCipherSuites) {
         this.sslTruststore = sslTruststore;
         this.sslTruststorePassword = sslTruststorePassword;
         this.sslProtocol = sslProtocol;
@@ -40,7 +40,7 @@ public class SSLConnectionContext
     }
 
     /** SSL protocol (typically, TLS) */
-    public String getSslProtocol(){
+    public String getSslProtocol() {
         return sslProtocol;
     }
 

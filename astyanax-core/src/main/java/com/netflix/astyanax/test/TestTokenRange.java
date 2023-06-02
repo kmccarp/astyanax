@@ -49,45 +49,45 @@ public class TestTokenRange implements TokenRange {
     public List<String> getEndpoints() {
         return endpoints;
     }
-    
+
     public static List<Host> makeRing(
             int nHosts,
-            int replication_factor, 
-            int id, 
-            BigInteger minInitialToken, 
+            int replication_factor,
+            int id,
+            BigInteger minInitialToken,
             BigInteger maxInitialToken) {
-        
+
         List<Host> hosts = Lists.newArrayList();
         for (int i = 0; i < nHosts; i++) {
             hosts.add(new Host("127.0." + id + "." + i + ":" + TestHostType.GOOD_FAST.ordinal(), 9160));
         }
 
         for (int i = 0; i < nHosts; i++) {
-            String startToken = TokenGenerator.initialToken(nHosts, i,   minInitialToken, maxInitialToken);
-            String endToken   = TokenGenerator.initialToken(nHosts, i+1, minInitialToken, maxInitialToken);
+            String startToken = TokenGenerator.initialToken(nHosts, i, minInitialToken, maxInitialToken);
+            String endToken = TokenGenerator.initialToken(nHosts, i + 1, minInitialToken, maxInitialToken);
             if (endToken.equals(maxInitialToken.toString()))
                 endToken = minInitialToken.toString();
             TokenRange range = new TokenRangeImpl(startToken, endToken, null);
-            
+
             for (int j = 0; j < replication_factor; j++) {
-                hosts.get((i+j)%nHosts).getTokenRanges().add(range);
+                hosts.get((i + j) % nHosts).getTokenRanges().add(range);
             }
         }
 
         return hosts;
     }
-    
+
     public static String getRingDetails(List<Host> hosts) {
         StringBuilder sb = new StringBuilder();
         for (Host host : hosts) {
             sb.append(host.toString())
-              .append("\n");
-            
+                    .append("\n");
+
             for (TokenRange range : host.getTokenRanges()) {
                 sb.append("  ").append(range.toString()).append("\n");
             }
         }
-        
+
         return sb.toString();
     }
 

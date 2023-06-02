@@ -23,16 +23,16 @@ package com.netflix.astyanax.contrib.dualwrites;
  *
  */
 public  class WriteMetadata {
-    
-    private final DualKeyspaceMetadata dualKeyspaceMetadata; 
+
+    private final DualKeyspaceMetadata dualKeyspaceMetadata;
 
     private final String cfName;
     private final String rowKey;
     private final Long uuid;
-    
-    public WriteMetadata(DualKeyspaceMetadata keyspaceMetadata, 
-                               String cfName, String rowKey) {
-        
+
+    public WriteMetadata(DualKeyspaceMetadata keyspaceMetadata,
+            String cfName, String rowKey) {
+
         this.dualKeyspaceMetadata = keyspaceMetadata;
         this.rowKey = rowKey;
         this.cfName = cfName;
@@ -80,25 +80,25 @@ public  class WriteMetadata {
 
     @Override
     public boolean equals(Object obj) {
-        
+
         if (this == obj) return true;
         if (obj == null) return false;
         if (getClass() != obj.getClass()) return false;
-        
+
         WriteMetadata other = (WriteMetadata) obj;
-        boolean equals = true; 
+        boolean equals = true;
         equals &= dualKeyspaceMetadata != null ? dualKeyspaceMetadata.equals(other.dualKeyspaceMetadata) : other.dualKeyspaceMetadata == null;
         equals &= cfName               != null ? cfName.equals(other.cfName) : other.cfName == null;
         equals &= rowKey               != null ? rowKey.equals(other.rowKey) : other.rowKey == null;
         equals &= uuid                 != null ? uuid.equals(other.uuid) : other.uuid == null;
-        
+
         return equals;
     }
 
     @Override
     public String toString() {
-        return "FailedWriteMetadata [" + dualKeyspaceMetadata +  
+        return "FailedWriteMetadata [" + dualKeyspaceMetadata +
                 ", cfName=" + cfName + ", rowKey=" + rowKey + ", uuid=" + uuid + "]";
-    } 
-    
+    }
+
 }

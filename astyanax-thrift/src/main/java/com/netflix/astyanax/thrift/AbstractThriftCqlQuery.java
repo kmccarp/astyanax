@@ -39,18 +39,18 @@ import com.netflix.astyanax.query.PreparedCqlQuery;
 import com.netflix.astyanax.thrift.model.ThriftCqlResultImpl;
 import com.netflix.astyanax.thrift.model.ThriftCqlRowsImpl;
 
-public abstract class AbstractThriftCqlQuery<K,C> implements CqlQuery<K,C> {
+public abstract class AbstractThriftCqlQuery<K, C> implements CqlQuery<K, C> {
     boolean useCompression = false;
-    ThriftColumnFamilyQueryImpl<K,C> cfQuery;
+    ThriftColumnFamilyQueryImpl<K, C> cfQuery;
     String cql;
     ConsistencyLevel cl = ConsistencyLevel.CL_ONE;
-    
-    AbstractThriftCqlQuery(ThriftColumnFamilyQueryImpl<K,C> cfQuery, String cql) {
+
+    AbstractThriftCqlQuery(ThriftColumnFamilyQueryImpl<K, C> cfQuery, String cql) {
         this.cfQuery = cfQuery;
         this.cql = cql;
         this.cl = cfQuery.consistencyLevel;
     }
-    
+
     @Override
     public OperationResult<CqlResult<K, C>> execute() throws ConnectionException {
         return cfQuery.keyspace.connectionPool.executeWithFailover(
@@ -60,13 +60,13 @@ public abstract class AbstractThriftCqlQuery<K,C> implements CqlQuery<K,C> {
                     public CqlResult<K, C> internalExecute(Client client, ConnectionContext context) throws Exception {
                         org.apache.cassandra.thrift.CqlResult res = execute_cql_query(client);
                         switch (res.getType()) {
-                        case ROWS:
-                            return new ThriftCqlResultImpl<K, C>(new ThriftCqlRowsImpl<K, C>(res.getRows(),
-                                    cfQuery.columnFamily.getKeySerializer(), cfQuery.columnFamily.getColumnSerializer()));
-                        case INT:
-                            return new ThriftCqlResultImpl<K, C>(res.getNum());
-                        default:
-                            return null;
+                            case ROWS:
+                                return new ThriftCqlResultImpl<K, C>(new ThriftCqlRowsImpl<K, C>(res.getRows(),
+                                        cfQuery.columnFamily.getKeySerializer(), cfQuery.columnFamily.getColumnSerializer()));
+                            case INT:
+                                return new ThriftCqlResultImpl<K, C>(res.getNum());
+                            default:
+                                return null;
                         }
                     }
                 }, cfQuery.retry);
@@ -98,7 +98,7 @@ public abstract class AbstractThriftCqlQuery<K,C> implements CqlQuery<K,C> {
                                 CassandraOperationType.CQL, cfQuery.columnFamily), cfQuery.pinnedHost, cfQuery.keyspace.getKeyspaceName()) {
                             @Override
                             public CqlResult<K, C> internalExecute(Client client, ConnectionContext state) throws Exception {
-                                Integer id = (Integer)state.getMetadata(cql);
+                                Integer id = (Integer) state.getMetadata(cql);
                                 if (id == null) {
                                     org.apache.cassandra.thrift.CqlPreparedResult res = prepare_cql_query(client);
                                     id = res.getItemId();
@@ -107,14 +107,14 @@ public abstract class AbstractThriftCqlQuery<K,C> implements CqlQuery<K,C> {
 
                                 org.apache.cassandra.thrift.CqlResult res = execute_prepared_cql_query(client, id, getValues());
                                 switch (res.getType()) {
-                                case ROWS:
-                                    return new ThriftCqlResultImpl<K, C>(new ThriftCqlRowsImpl<K, C>(res.getRows(),
-                                            cfQuery.columnFamily.getKeySerializer(), cfQuery.columnFamily.getColumnSerializer()));
-                                case INT:
-                                    return new ThriftCqlResultImpl<K, C>(res.getNum());
-                                    
-                                default:
-                                    return null;
+                                    case ROWS:
+                                        return new ThriftCqlResultImpl<K, C>(new ThriftCqlRowsImpl<K, C>(res.getRows(),
+                                                cfQuery.columnFamily.getKeySerializer(), cfQuery.columnFamily.getColumnSerializer()));
+                                    case INT:
+                                        return new ThriftCqlResultImpl<K, C>(res.getNum());
+
+                                    default:
+                                        return null;
                                 }
                             }
                         }, cfQuery.retry);
@@ -131,19 +131,19 @@ public abstract class AbstractThriftCqlQuery<K,C> implements CqlQuery<K,C> {
             }
         };
     }
-    
+
     public CqlQuery<K, C> withConsistencyLevel(ConsistencyLevel cl) {
         this.cl = cl;
         return this;
     }
-    
-    protected abstract org.apache.cassandra.thrift.CqlPreparedResult prepare_cql_query(Client client) 
+
+    protected abstract org.apache.cassandra.thrift.CqlPreparedResult prepare_cql_query(Client client)
             throws InvalidRequestException, TException;
-    
-    protected abstract org.apache.cassandra.thrift.CqlResult execute_prepared_cql_query(Client client, int id, List<ByteBuffer> values) 
+
+    protected abstract org.apache.cassandra.thrift.CqlResult execute_prepared_cql_query(Client client, int id, List<ByteBuffer> values)
             throws InvalidRequestException, UnavailableException, TimedOutException, SchemaDisagreementException, TException;
-    
-    protected abstract org.apache.cassandra.thrift.CqlResult execute_cql_query(Client client) 
+
+    protected abstract org.apache.cassandra.thrift.CqlResult execute_cql_query(Client client)
             throws InvalidRequestException, UnavailableException, TimedOutException, SchemaDisagreementException, TException;
 
 }

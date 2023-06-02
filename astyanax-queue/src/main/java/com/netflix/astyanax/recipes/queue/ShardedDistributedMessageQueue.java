@@ -138,29 +138,29 @@ import com.netflix.astyanax.util.TimeUUIDUtils;
 public class ShardedDistributedMessageQueue implements MessageQueue {
     private static final Logger LOG = LoggerFactory.getLogger(ShardedDistributedMessageQueue.class);
 
-    public static final char             COMPOSITE_ID_DELIMITER          = ':';
-    public static final char             COMPOSITE_KEY_DELIMITER         = '$';
-    public static final String           DEFAULT_COLUMN_FAMILY_NAME      = "Queues";
-    public static final ConsistencyLevel DEFAULT_CONSISTENCY_LEVEL       = ConsistencyLevel.CL_LOCAL_QUORUM;
-    public static final RetryPolicy      DEFAULT_RETRY_POLICY            = RunOnce.get();
-    public static final long             DEFAULT_LOCK_TIMEOUT            = TimeUnit.MICROSECONDS.convert(30,  TimeUnit.SECONDS);
-    public static final Integer          DEFAULT_LOCK_TTL                = (int)TimeUnit.SECONDS.convert(2,   TimeUnit.MINUTES);
-    public static final Integer          DEFAULT_METADATA_DELETE_TTL     = (int)TimeUnit.SECONDS.convert(2,  TimeUnit.SECONDS);
-    public static final Boolean          DEFAULT_POISON_QUEUE_ENABLED    = false;
-    public static final String           DEFAULT_QUEUE_SUFFIX            = "_queue";
-    public static final String           DEFAULT_METADATA_SUFFIX         = "_metadata";
-    public static final String           DEFAULT_HISTORY_SUFFIX          = "_history";
-    public static final long             SCHEMA_CHANGE_DELAY             = 3000;
+    public static final char             COMPOSITE_ID_DELIMITER = ':';
+    public static final char             COMPOSITE_KEY_DELIMITER = '$';
+    public static final String           DEFAULT_COLUMN_FAMILY_NAME = "Queues";
+    public static final ConsistencyLevel DEFAULT_CONSISTENCY_LEVEL = ConsistencyLevel.CL_LOCAL_QUORUM;
+    public static final RetryPolicy      DEFAULT_RETRY_POLICY = RunOnce.get();
+    public static final long             DEFAULT_LOCK_TIMEOUT = TimeUnit.MICROSECONDS.convert(30, TimeUnit.SECONDS);
+    public static final Integer          DEFAULT_LOCK_TTL = (int) TimeUnit.SECONDS.convert(2, TimeUnit.MINUTES);
+    public static final Integer          DEFAULT_METADATA_DELETE_TTL = (int) TimeUnit.SECONDS.convert(2, TimeUnit.SECONDS);
+    public static final Boolean          DEFAULT_POISON_QUEUE_ENABLED = false;
+    public static final String           DEFAULT_QUEUE_SUFFIX = "_queue";
+    public static final String           DEFAULT_METADATA_SUFFIX = "_metadata";
+    public static final String           DEFAULT_HISTORY_SUFFIX = "_history";
+    public static final long             SCHEMA_CHANGE_DELAY = 3000;
     public static final ImmutableMap<String, Object> DEFAULT_COLUMN_FAMILY_SETTINGS = ImmutableMap.<String, Object>builder()
-            .put("read_repair_chance",       1.0)
-            .put("gc_grace_seconds",         5)     // TODO: Calculate gc_grace_seconds
-            .put("compaction_strategy",      "SizeTieredCompactionStrategy")
+            .put("read_repair_chance", 1.0)
+            .put("gc_grace_seconds", 5)     // TODO: Calculate gc_grace_seconds
+            .put("compaction_strategy", "SizeTieredCompactionStrategy")
             .build();
 
     final static AnnotatedCompositeSerializer<MessageQueueEntry> entrySerializer
-        = new AnnotatedCompositeSerializer<MessageQueueEntry>(MessageQueueEntry.class);
+            = new AnnotatedCompositeSerializer<MessageQueueEntry>(MessageQueueEntry.class);
     final static AnnotatedCompositeSerializer<MessageMetadataEntry>   metadataSerializer
-        = new AnnotatedCompositeSerializer<MessageMetadataEntry>(MessageMetadataEntry.class);
+            = new AnnotatedCompositeSerializer<MessageMetadataEntry>(MessageMetadataEntry.class);
 
     static final ObjectMapper mapper = new ObjectMapper();
 
@@ -174,27 +174,27 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
      * @author elandau
      */
     public static class Builder {
-        private String          columnFamilyName              = DEFAULT_COLUMN_FAMILY_NAME;
+        private String          columnFamilyName = DEFAULT_COLUMN_FAMILY_NAME;
         private ShardLockManager                            lockManager;
 
         private Keyspace                        keyspace;
-        private ConsistencyLevel                consistencyLevel    = DEFAULT_CONSISTENCY_LEVEL;
-        private long                            lockTimeout         = DEFAULT_LOCK_TIMEOUT;
-        private int                             lockTtl             = DEFAULT_LOCK_TTL;
-        private String                          queueName           = MessageQueueMetadata.DEFAULT_QUEUE_NAME;
-        private int                             metadataDeleteTTL   = DEFAULT_METADATA_DELETE_TTL;
-        private Collection<MessageQueueHooks>   hooks               = Lists.newArrayList();
-        private MessageQueueMetadata            metadata            = new MessageQueueMetadata();
+        private ConsistencyLevel                consistencyLevel = DEFAULT_CONSISTENCY_LEVEL;
+        private long                            lockTimeout = DEFAULT_LOCK_TIMEOUT;
+        private int                             lockTtl = DEFAULT_LOCK_TTL;
+        private String                          queueName = MessageQueueMetadata.DEFAULT_QUEUE_NAME;
+        private int                             metadataDeleteTTL = DEFAULT_METADATA_DELETE_TTL;
+        private Collection<MessageQueueHooks>   hooks = Lists.newArrayList();
+        private MessageQueueMetadata            metadata = new MessageQueueMetadata();
         private MessageQueueStats               stats              ;
         private Boolean                         bPoisonQueueEnabled = DEFAULT_POISON_QUEUE_ENABLED;
         private Map<String, Object>             columnFamilySettings = DEFAULT_COLUMN_FAMILY_SETTINGS;
         private ShardReaderPolicy.Factory       shardReaderPolicyFactory;
         private ModShardPolicy                  modShardPolicy;
-                                               
+
         public Builder() {
             metadata.setQueueName(queueName);
         }
-        
+
         public Builder withColumnFamily(String columnFamilyName) {
             this.columnFamilyName = columnFamilyName;
             return this;
@@ -204,14 +204,14 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
             this.metadata = metadata;
             return this;
         }
-        
+
         public Builder withShardCount(int count) {
             this.metadata.setShardCount(count);
             return this;
         }
 
         public Builder withTimeBuckets(int bucketCount, int bucketDuration, TimeUnit units) {
-            this.metadata.setPartitionDuration(TimeUnit.MICROSECONDS.convert(bucketDuration,  units));
+            this.metadata.setPartitionDuration(TimeUnit.MICROSECONDS.convert(bucketDuration, units));
             this.metadata.setPartitionCount(bucketCount);
             return this;
         }
@@ -224,17 +224,17 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
         }
 
         public Builder withRetentionTimeout(Long timeout, TimeUnit units) {
-            this.metadata.setRetentionTimeout(timeout,  units);
+            this.metadata.setRetentionTimeout(timeout, units);
             return this;
         }
 
         public Builder withLockTimeout(Long timeout, TimeUnit units) {
-            this.lockTimeout = TimeUnit.MICROSECONDS.convert(timeout,  units);
+            this.lockTimeout = TimeUnit.MICROSECONDS.convert(timeout, units);
             return this;
         }
 
         public Builder withLockTtl(Long ttl, TimeUnit units) {
-            this.lockTtl = (int)TimeUnit.SECONDS.convert(ttl,  units);
+            this.lockTtl = (int) TimeUnit.SECONDS.convert(ttl, units);
             return this;
         }
 
@@ -246,7 +246,7 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
          */
         @Deprecated
         public Builder withPollInterval(Long internval, TimeUnit units) {
-            this.metadata.setPollInterval(TimeUnit.MILLISECONDS.convert(internval,  units));
+            this.metadata.setPollInterval(TimeUnit.MILLISECONDS.convert(internval, units));
             return this;
         }
 
@@ -304,7 +304,7 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
             };
             return this;
         }
-        
+
         public Builder withShardReaderPolicy(ShardReaderPolicy.Factory shardReaderPolicyFactory) {
             this.shardReaderPolicyFactory = shardReaderPolicyFactory;
             return this;
@@ -320,7 +320,7 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
                     TimeUnit.SECONDS.convert(lockTimeout, TimeUnit.MICROSECONDS) < lockTtl,
                     "Timeout " + lockTtl + " seconds must be less than TTL " + TimeUnit.SECONDS.convert(lockTtl, TimeUnit.MICROSECONDS) + " seconds");
             Preconditions.checkNotNull(keyspace, "Must specify keyspace");
-            
+
             if (shardReaderPolicyFactory == null)
                 shardReaderPolicyFactory = TimePartitionedShardReaderPolicy.Factory.builder().build();
 
@@ -329,7 +329,7 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
 
             if (stats == null)
                 stats = new CountingQueueStats();
-            
+
             return new ShardedDistributedMessageQueue(this);
         }
     }
@@ -351,36 +351,36 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
     final Map<String, Object>             columnFamilySettings;
     final ShardReaderPolicy               shardReaderPolicy;
     final ModShardPolicy                  modShardPolicy;
-    final Function<String, Message>       invalidMessageHandler  = new Function<String, Message>() {
-                                                                @Override
-                                                                public Message apply(String input) {
-                                                                    LOG.warn("Invalid message: " + input);
-                                                                    return null;
-                                                                }
-                                                            };
+    final Function<String, Message>       invalidMessageHandler = new Function<String, Message>() {
+        @Override
+        public Message apply(String input) {
+            LOG.warn("Invalid message: " + input);
+            return null;
+        }
+    };
 
     final MessageQueueStats               stats;
-    final AtomicLong                      counter             = new AtomicLong(new Random().nextInt(1000));
+    final AtomicLong                      counter = new AtomicLong(new Random().nextInt(1000));
 
     private ShardedDistributedMessageQueue(Builder builder) throws MessageQueueException {
-        this.queueColumnFamily    = ColumnFamily.newColumnFamily(builder.columnFamilyName + DEFAULT_QUEUE_SUFFIX,    StringSerializer.get(), entrySerializer);
+        this.queueColumnFamily = ColumnFamily.newColumnFamily(builder.columnFamilyName + DEFAULT_QUEUE_SUFFIX, StringSerializer.get(), entrySerializer);
         this.keyIndexColumnFamily = ColumnFamily.newColumnFamily(builder.columnFamilyName + DEFAULT_METADATA_SUFFIX, StringSerializer.get(), metadataSerializer);
-        this.historyColumnFamily  = ColumnFamily.newColumnFamily(builder.columnFamilyName + DEFAULT_HISTORY_SUFFIX,  StringSerializer.get(), TimeUUIDSerializer.get());
+        this.historyColumnFamily = ColumnFamily.newColumnFamily(builder.columnFamilyName + DEFAULT_HISTORY_SUFFIX, StringSerializer.get(), TimeUUIDSerializer.get());
 
-        this.consistencyLevel     = builder.consistencyLevel;
-        this.keyspace             = builder.keyspace;
-        this.hooks                = builder.hooks;
-        this.modShardPolicy       = builder.modShardPolicy;
-        this.lockManager          = builder.lockManager;
-        this.lockTimeout          = builder.lockTimeout;
-        this.lockTtl              = builder.lockTtl;
-        this.bPoisonQueueEnabled  = builder.bPoisonQueueEnabled;
-        this.metadata             = builder.metadata;
+        this.consistencyLevel = builder.consistencyLevel;
+        this.keyspace = builder.keyspace;
+        this.hooks = builder.hooks;
+        this.modShardPolicy = builder.modShardPolicy;
+        this.lockManager = builder.lockManager;
+        this.lockTimeout = builder.lockTimeout;
+        this.lockTtl = builder.lockTtl;
+        this.bPoisonQueueEnabled = builder.bPoisonQueueEnabled;
+        this.metadata = builder.metadata;
         this.columnFamilySettings = builder.columnFamilySettings;
-        this.metadataDeleteTTL    = builder.metadataDeleteTTL;
-        this.stats                = builder.stats;
+        this.metadataDeleteTTL = builder.metadataDeleteTTL;
+        this.stats = builder.stats;
 
-        this.shardReaderPolicy    = builder.shardReaderPolicyFactory.create(metadata);
+        this.shardReaderPolicy = builder.shardReaderPolicyFactory.create(metadata);
 
 //        try {
 //            Column<MessageQueueEntry> column = keyspace.prepareQuery(queueColumnFamily)
@@ -463,7 +463,7 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
                 clazz);
     }
 
-    @SuppressWarnings({ "unused", "unchecked" })
+    @SuppressWarnings({"unused", "unchecked"})
     private <T> T deserializeString(String data, String className) throws JsonParseException, JsonMappingException, IOException, ClassNotFoundException {
         return (T) mapper.readValue(
                 new ByteArrayInputStream(data.getBytes()),
@@ -585,9 +585,9 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
             ColumnList<MessageMetadataEntry> columns = keyspace.prepareQuery(keyIndexColumnFamily)
                     .getRow(groupRowKey)
                     .withColumnRange(metadataSerializer.buildRange()
-                    .greaterThanEquals((byte)MessageMetadataEntryType.MessageId.ordinal())
-                    .lessThanEquals((byte)MessageMetadataEntryType.MessageId.ordinal())
-                    .build()
+                            .greaterThanEquals((byte) MessageMetadataEntryType.MessageId.ordinal())
+                            .lessThanEquals((byte) MessageMetadataEntryType.MessageId.ordinal())
+                            .build()
                     )
                     .execute()
                     .getResult();
@@ -619,9 +619,9 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
                     .setConsistencyLevel(consistencyLevel)
                     .getRow(groupRowKey)
                     .withColumnRange(metadataSerializer.buildRange()
-                    .greaterThanEquals((byte)MessageMetadataEntryType.MessageId.ordinal())
-                    .lessThanEquals((byte)MessageMetadataEntryType.MessageId.ordinal())
-                    .build()
+                            .greaterThanEquals((byte) MessageMetadataEntryType.MessageId.ordinal())
+                            .lessThanEquals((byte) MessageMetadataEntryType.MessageId.ordinal())
+                            .build()
                     )
                     .execute()
                     .getResult();
@@ -650,9 +650,9 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
                     .setConsistencyLevel(consistencyLevel)
                     .getRow(groupRowKey)
                     .withColumnRange(metadataSerializer.buildRange()
-                    .greaterThanEquals((byte)MessageMetadataEntryType.MessageId.ordinal())
-                    .lessThanEquals((byte)MessageMetadataEntryType.MessageId.ordinal())
-                    .build()
+                            .greaterThanEquals((byte) MessageMetadataEntryType.MessageId.ordinal())
+                            .lessThanEquals((byte) MessageMetadataEntryType.MessageId.ordinal())
+                            .build()
                     )
                     .execute()
                     .getResult();
@@ -732,7 +732,7 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
                 }
                 return;
             } catch (Exception e) {
-                if (e.getClass().getSimpleName().equals("SchemaDisagreementException")){
+                if (e.getClass().getSimpleName().equals("SchemaDisagreementException")) {
                     // Check by class name since SchemaDisagreementException is defined in cassandra-thrift,
                     // but astayanx-cassandra should not have a Thrift-specific dependency.
                     try {
@@ -755,8 +755,8 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
             @Override
             public Void call() throws Exception {
                 keyspace.createColumnFamily(queueColumnFamily, ImmutableMap.<String, Object>builder()
-                        .put("key_validation_class",     "UTF8Type")
-                        .put("comparator_type",          "CompositeType(BytesType, BytesType(reversed=true), TimeUUIDType, TimeUUIDType, BytesType)")
+                        .put("key_validation_class", "UTF8Type")
+                        .put("comparator_type", "CompositeType(BytesType, BytesType(reversed=true), TimeUUIDType, TimeUUIDType, BytesType)")
                         .putAll(columnFamilySettings)
                         .build());
                 return null;
@@ -767,8 +767,8 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
             @Override
             public Void call() throws Exception {
                 keyspace.createColumnFamily(keyIndexColumnFamily, ImmutableMap.<String, Object>builder()
-                        .put("key_validation_class",     "UTF8Type")
-                        .put("comparator_type",          "CompositeType(BytesType, UTF8Type)")
+                        .put("key_validation_class", "UTF8Type")
+                        .put("comparator_type", "CompositeType(BytesType, UTF8Type)")
                         .putAll(columnFamilySettings)
                         .build());
                 return null;
@@ -809,7 +809,7 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
         } catch (ConnectionException e) {
             if (!e.getMessage().contains("already exist"))
                 throw new MessageQueueException("Failed to create column family for " + queueColumnFamily.getName(), e);
-            }
+        }
     }
 
     @Override
@@ -847,8 +847,8 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
 
             @Override
             public SendMessageResponse sendMessages(Collection<Message> messages) throws MessageQueueException {
-                Map<String, Message> uniqueKeys        = Maps.newHashMap();
-                Set<String>          notUniqueKeys     = Sets.newHashSet();
+                Map<String, Message> uniqueKeys = Maps.newHashMap();
+                Set<String>          notUniqueKeys = Sets.newHashSet();
                 List<Message>        notUniqueMessages = Lists.newArrayList();
 
                 MutationBatch mb = keyspace.prepareMutationBatch().setConsistencyLevel(consistencyLevel);
@@ -860,7 +860,7 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
                         String groupKey = getCompositeKey(getName(), message.getKey());
                         uniqueKeys.put(groupKey, message);
                         mb.withRow(keyIndexColumnFamily, groupKey)
-                            .putEmptyColumn(lockColumn, (Integer)lockTtl);
+                                .putEmptyColumn(lockColumn, (Integer) lockTtl);
                     }
                 }
 
@@ -881,9 +881,9 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
                                 .setConsistencyLevel(consistencyLevel)
                                 .getRowSlice(uniqueKeys.keySet())
                                 .withColumnRange(metadataSerializer.buildRange()
-                                    .greaterThanEquals((byte)MessageMetadataEntryType.Unique.ordinal())
-                                    .lessThanEquals((byte)MessageMetadataEntryType.Unique.ordinal())
-                                .build())
+                                        .greaterThanEquals((byte) MessageMetadataEntryType.Unique.ordinal())
+                                        .lessThanEquals((byte) MessageMetadataEntryType.Unique.ordinal())
+                                        .build())
                                 .execute()
                                 .getResult();
                     } catch (ConnectionException e) {
@@ -936,7 +936,7 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
             curTimeMicros = TimeUnit.MICROSECONDS.convert(System.currentTimeMillis(), TimeUnit.MILLISECONDS);
         }
         else {
-            curTimeMicros = TimeUnit.MICROSECONDS.convert(message.getTrigger().getTriggerTime(),  TimeUnit.MILLISECONDS);
+            curTimeMicros = TimeUnit.MICROSECONDS.convert(message.getTrigger().getTriggerTime(), TimeUnit.MILLISECONDS);
         }
         curTimeMicros += (counter.incrementAndGet() % 1000);
 
@@ -961,13 +961,13 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
         // Write the queue entry
         String shardKey = getShardKey(message);
         mb.withRow(queueColumnFamily, shardKey)
-          .putColumn(entry, new String(baos.toByteArray()), metadata.getRetentionTimeout());
+                .putColumn(entry, new String(baos.toByteArray()), metadata.getRetentionTimeout());
 
         // Write the lookup from queue key to queue entry
         if (message.hasKey()) {
             mb.withRow(keyIndexColumnFamily, getCompositeKey(getName(), message.getKey()))
                     .putEmptyColumn(MessageMetadataEntry.newMessageId(getCompositeKey(shardKey, entry.getMessageId())),
-                    metadata.getRetentionTimeout());
+                            metadata.getRetentionTimeout());
         }
 
         // Allow hook processing
@@ -1026,7 +1026,7 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
 
             if (messages.size() == itemsToPeek)
                 return messages;
-            }
+        }
 
         return messages;
     }
@@ -1045,14 +1045,14 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
                     .setConsistencyLevel(consistencyLevel)
                     .getKey(shardName)
                     .withColumnRange(new RangeBuilder()
-                    .setLimit(itemsToPeek)
-                    .setStart(entrySerializer
-                                .makeEndpoint((byte)MessageQueueEntryType.Message.ordinal(), Equality.GREATER_THAN_EQUALS)
-                                .toBytes())
-                    .setEnd(entrySerializer
-                                .makeEndpoint((byte)MessageQueueEntryType.Message.ordinal(), Equality.LESS_THAN_EQUALS)
-                                .toBytes())
-                    .build())
+                            .setLimit(itemsToPeek)
+                            .setStart(entrySerializer
+                                    .makeEndpoint((byte) MessageQueueEntryType.Message.ordinal(), Equality.GREATER_THAN_EQUALS)
+                                    .toBytes())
+                            .setEnd(entrySerializer
+                                    .makeEndpoint((byte) MessageQueueEntryType.Message.ordinal(), Equality.LESS_THAN_EQUALS)
+                                    .toBytes())
+                            .build())
                     .execute()
                     .getResult();
 
@@ -1104,18 +1104,18 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
                     .setConsistencyLevel(consistencyLevel)
                     .getKey(shardName)
                     .withColumnRange(new RangeBuilder()
-                        .setLimit(1)   // Read extra messages because of the lock column
-                    .setStart(entrySerializer
-                                .makeEndpoint((byte)MessageQueueEntryType.Message.ordinal(), Equality.EQUAL)
-                                .toBytes()
-                                )
-                    .setEnd(entrySerializer
-                                .makeEndpoint((byte)MessageQueueEntryType.Message.ordinal(), Equality.EQUAL)
-                                .append((byte)0, Equality.EQUAL)
-                                .append(currentTime, Equality.LESS_THAN_EQUALS)
-                                .toBytes()
-                                )
-                    .build())
+                            .setLimit(1)   // Read extra messages because of the lock column
+                            .setStart(entrySerializer
+                                    .makeEndpoint((byte) MessageQueueEntryType.Message.ordinal(), Equality.EQUAL)
+                                    .toBytes()
+                            )
+                            .setEnd(entrySerializer
+                                    .makeEndpoint((byte) MessageQueueEntryType.Message.ordinal(), Equality.EQUAL)
+                                    .append((byte) 0, Equality.EQUAL)
+                                    .append(currentTime, Equality.LESS_THAN_EQUALS)
+                                    .toBytes()
+                            )
+                            .build())
                     .execute()
                     .getResult();
             return !result.isEmpty();
@@ -1128,7 +1128,7 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
     public Map<String, MessageQueueShardStats>         getShardStats() {
         return shardReaderPolicy.getShardStats();
     }
-    
+
     public ShardReaderPolicy getShardReaderPolicy() {
         return shardReaderPolicy;
     }

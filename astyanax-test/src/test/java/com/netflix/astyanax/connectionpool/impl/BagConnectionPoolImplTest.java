@@ -86,7 +86,7 @@ public class BagConnectionPoolImplTest extends BaseConnectionPoolTest {
         config.setInitConnsPerHost(0);
         config.initialize();
 
-        
+
         ConnectionPool<TestClient> pool = new BagOfConnectionsConnectionPoolImpl<TestClient>(
                 config, new TestConnectionFactory(config, monitor), monitor);
 

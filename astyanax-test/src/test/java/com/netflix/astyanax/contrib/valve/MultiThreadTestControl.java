@@ -20,14 +20,14 @@ public class MultiThreadTestControl {
 
     // atomic boolean tells them to stop running
     final AtomicBoolean stop = new AtomicBoolean(false);
-    
+
     // latch tells main test that threads have stopped running and hence successCount is not moving fwd
     final CountDownLatch latch;
 
     public MultiThreadTestControl() {
         this(8);
     }
-    
+
     public MultiThreadTestControl(int nThreads) {
         numThreads = nThreads;
         barrier = new CyclicBarrier(numThreads);
@@ -35,18 +35,18 @@ public class MultiThreadTestControl {
     }
 
     public void runTest(final Callable<Void> perThreadIterationCall) {
-        
+
         threadPool = Executors.newFixedThreadPool(numThreads);
-        
-        for (int i=0; i<numThreads; i++) {
-            
+
+        for (int i = 0; i < numThreads; i++) {
+
             threadPool.submit(new Callable<Void>() {
 
                 @Override
                 public Void call() throws Exception {
-                    
+
                     barrier.await();
-                    
+
                     while (!stop.get()) {
                         perThreadIterationCall.call();
                     }
@@ -56,11 +56,11 @@ public class MultiThreadTestControl {
                 }
             });
         }
-     
+
     }
-    
+
     public void stopTest() {
-        
+
         stop.set(true);
         threadPool.shutdownNow();
         try {
@@ -69,8 +69,8 @@ public class MultiThreadTestControl {
             throw new RuntimeException(e);
         }
     }
-    
+
 }
-    
+
 
 

@@ -33,7 +33,7 @@ import com.netflix.astyanax.serializers.ShortSerializer;
 import com.netflix.astyanax.serializers.StringSerializer;
 import com.netflix.astyanax.serializers.UUIDSerializer;
 
-public abstract class AbstractColumnImpl <C> implements Column<C> {
+public abstract class AbstractColumnImpl<C> implements Column<C> {
     private final C name;
 
     public AbstractColumnImpl(C name) {
@@ -54,12 +54,12 @@ public abstract class AbstractColumnImpl <C> implements Column<C> {
     public final byte getByteValue() {
         return getValue(ByteSerializer.get());
     }
-    
+
     @Override
     public final short getShortValue() {
         return getValue(ShortSerializer.get());
     }
-    
+
     @Override
     public final int getIntegerValue() {
         return getValue(IntegerSerializer.get());
@@ -99,7 +99,7 @@ public abstract class AbstractColumnImpl <C> implements Column<C> {
     public final float getFloatValue() {
         return getValue(FloatSerializer.get());
     }
-    
+
     @Override
     public final double getDoubleValue() {
         return getValue(DoubleSerializer.get());

@@ -29,7 +29,7 @@ public class KeyModShardPolicy extends TimeModShardPolicy {
     public static KeyModShardPolicy getInstance() {
         return instance;
     }
-    
+
     @Override
     public int getMessageShard(Message message, MessageQueueMetadata settings) {
         if (message.hasKey())

@@ -32,9 +32,9 @@ public interface AstyanaxTypeFactory<T> {
     Keyspace createKeyspace(String ksName, ConnectionPool<T> cp, AstyanaxConfiguration asConfig,
             KeyspaceTracerFactory tracerFactory);
 
-    Cluster createCluster(ConnectionPool<T> cp, AstyanaxConfiguration asConfig, 
+    Cluster createCluster(ConnectionPool<T> cp, AstyanaxConfiguration asConfig,
             KeyspaceTracerFactory tracerFactory);
 
-    ConnectionFactory<T> createConnectionFactory(AstyanaxConfiguration asConfig, ConnectionPoolConfiguration cfConfig, 
+    ConnectionFactory<T> createConnectionFactory(AstyanaxConfiguration asConfig, ConnectionPoolConfiguration cfConfig,
             KeyspaceTracerFactory tracerFactory, ConnectionPoolMonitor monitor);
 }

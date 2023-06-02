@@ -12,64 +12,64 @@ import javax.persistence.Id;
 @Entity
 public class DoubleIdColumnEntity {
 
-	@Id
-	@Column(name="id")
-	private String id;
-	
-	@Column(name="num")
-	private int num;
-	
-	@Column(name="str")
-	private String str;
+    @Id
+    @Column(name = "id")
+    private String id;
 
-	public String getId() {
-		return id;
-	}
+    @Column(name = "num")
+    private int num;
 
-	public void setId(String id) {
-		this.id = id;
-	}
+    @Column(name = "str")
+    private String str;
 
-	public int getNum() {
-		return num;
-	}
+    public String getId() {
+        return id;
+    }
 
-	public void setNum(int num) {
-		this.num = num;
-	}
+    public void setId(String id) {
+        this.id = id;
+    }
 
-	public String getStr() {
-		return str;
-	}
+    public int getNum() {
+        return num;
+    }
 
-	public void setStr(String str) {
-		this.str = str;
-	}
+    public void setNum(int num) {
+        this.num = num;
+    }
 
-	@Override
-	public String toString() {
-		return String.format("DoubleIdColumnEntity(id = %s, num = %d, str = %s", 
-				id, num, str);
-	}
+    public String getStr() {
+        return str;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
+    public void setStr(String str) {
+        this.str = str;
+    }
 
-		if (obj == null)
-			return false;
+    @Override
+    public String toString() {
+        return String.format("DoubleIdColumnEntity(id = %s, num = %d, str = %s",
+                id, num, str);
+    }
 
-		if (getClass() != obj.getClass())
-			return false;
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
 
-		DoubleIdColumnEntity other = (DoubleIdColumnEntity) obj;
-		if(id.equals(other.id) &&
-				num == other.num &&
-				str.equals(other.str)
-				)
-			return true;
-		else
-			return false;
-	}
+        if (obj == null)
+            return false;
+
+        if (getClass() != obj.getClass())
+            return false;
+
+        DoubleIdColumnEntity other = (DoubleIdColumnEntity) obj;
+        if (id.equals(other.id) &&
+                num == other.num &&
+                str.equals(other.str)
+        )
+            return true;
+        else
+            return false;
+    }
 }

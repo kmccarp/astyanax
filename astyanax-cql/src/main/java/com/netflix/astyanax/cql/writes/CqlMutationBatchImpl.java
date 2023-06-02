@@ -42,117 +42,118 @@ import com.netflix.astyanax.retry.RetryPolicy;
 
 public class CqlMutationBatchImpl extends AbstractMutationBatchImpl {
 
-	private final KeyspaceContext ksContext; 
-	
-	// Control to turn use of prepared statement caching ON/OFF
-	private boolean useCaching = false;
-	
-	public CqlMutationBatchImpl(KeyspaceContext ksCtx, Clock clock, ConsistencyLevel consistencyLevel, RetryPolicy retry) {
-		super(clock, consistencyLevel, retry);
-		this.ksContext = ksCtx;
-	}
+    private final KeyspaceContext ksContext;
 
-	@Override
-	public <K, C> ColumnListMutation<C> createColumnListMutation(String keyspace, ColumnFamily<K, C> cf, K rowKey) {
-		return new CqlColumnListMutationImpl<K, C>(ksContext, cf, rowKey, getConsistencyLevel(), timestamp);
-	}
+    // Control to turn use of prepared statement caching ON/OFF
+    private boolean useCaching = false;
 
-	@Override
-	public void mergeColumnListMutation(ColumnListMutation<?> from, ColumnListMutation<?> to) {
-	
-		CqlColumnListMutationImpl<?, ?> fromCqlListMutation = (CqlColumnListMutationImpl<?, ?>) from;
-		CqlColumnListMutationImpl<?, ?> toCqlListMutation = (CqlColumnListMutationImpl<?, ?>) to;
-		
-		toCqlListMutation.mergeColumnListMutation(fromCqlListMutation);
-	}
+    public CqlMutationBatchImpl(KeyspaceContext ksCtx, Clock clock, ConsistencyLevel consistencyLevel, RetryPolicy retry) {
+        super(clock, consistencyLevel, retry);
+        this.ksContext = ksCtx;
+    }
 
-	@Override
-	public OperationResult<Void> execute() throws ConnectionException {
-		
-		return new CqlAbstractExecutionImpl<Void>(ksContext, getRetryPolicy()) {
+    @Override
+    public <K, C> ColumnListMutation<C> createColumnListMutation(String keyspace, ColumnFamily<K, C> cf, K rowKey) {
+        return new CqlColumnListMutationImpl<K, C>(ksContext, cf, rowKey, getConsistencyLevel(), timestamp);
+    }
 
-			@Override
-			public CassandraOperationType getOperationType() {
-				return CassandraOperationType.BATCH_MUTATE;
-			}
+    @Override
+    public void mergeColumnListMutation(ColumnListMutation<?> from, ColumnListMutation<?> to) {
 
-			@Override
-			public Statement getQuery() {
-				return getCachedPreparedStatement();
-			}
+        CqlColumnListMutationImpl<?, ?> fromCqlListMutation = (CqlColumnListMutationImpl<?, ?>) from;
+        CqlColumnListMutationImpl<?, ?> toCqlListMutation = (CqlColumnListMutationImpl<?, ?>) to;
 
-			@Override
-			public Void parseResultSet(ResultSet resultSet) {
-				return null; // do nothing for mutations
-			}
-		}.execute();
-	}
+        toCqlListMutation.mergeColumnListMutation(fromCqlListMutation);
+    }
 
-	@Override
-	public ListenableFuture<OperationResult<Void>> executeAsync() throws ConnectionException {
-		
-		return new CqlAbstractExecutionImpl<Void>(ksContext, getRetryPolicy()) {
+    @Override
+    public OperationResult<Void> execute() throws ConnectionException {
 
-			@Override
-			public CassandraOperationType getOperationType() {
-				return CassandraOperationType.BATCH_MUTATE;
-			}
+        return new CqlAbstractExecutionImpl<Void>(ksContext, getRetryPolicy()) {
 
-			@Override
-			public Statement getQuery() {
-				return getCachedPreparedStatement();
-			}
+            @Override
+            public CassandraOperationType getOperationType() {
+                return CassandraOperationType.BATCH_MUTATE;
+            }
 
-			@Override
-			public Void parseResultSet(ResultSet resultSet) {
-				return null; // do nothing for mutations
-			}
-		}.executeAsync();
-	}
+            @Override
+            public Statement getQuery() {
+                return getCachedPreparedStatement();
+            }
 
-	private List<CqlColumnListMutationImpl<?, ?>> getColumnMutations() {
-		
-		List<CqlColumnListMutationImpl<?,?>> colListMutation = new ArrayList<CqlColumnListMutationImpl<?,?>>();
-		
-		for (Entry<ByteBuffer, Map<String, ColumnListMutation<?>>> entry : super.getMutationMap().entrySet()) {
-			for (ColumnListMutation<?> colMutation : entry.getValue().values()) {
-				colListMutation.add((CqlColumnListMutationImpl<?, ?>) colMutation);
-			}
-		}
-		return colListMutation;
-	}
+            @Override
+            public Void parseResultSet(ResultSet resultSet) {
+                return null; // do nothing for mutations
+            }
+        }.execute();
+    }
 
-	private BatchStatement getCachedPreparedStatement() {
-		
-		final List<CqlColumnListMutationImpl<?, ?>> colListMutations = getColumnMutations();
+    @Override
+    public ListenableFuture<OperationResult<Void>> executeAsync() throws ConnectionException {
 
-		if (colListMutations == null || colListMutations.size() == 0) {
-			return new BatchStatement(Type.UNLOGGED);
-		}
-		
-		ColListMutationType mutationType = colListMutations.get(0).getType();
+        return new CqlAbstractExecutionImpl<Void>(ksContext, getRetryPolicy()) {
 
-		BatchStatement batch = new BatchStatement(Type.UNLOGGED);
-		if (mutationType == ColListMutationType.CounterColumnsUpdate) {
-			batch = new BatchStatement(Type.COUNTER);
-		} else if (useAtomicBatch()) {
-			batch = new BatchStatement(Type.LOGGED);
-		}
-		
-		for (CqlColumnListMutationImpl<?, ?> colListMutation : colListMutations) {
-			
-			CFMutationQueryGen queryGen = colListMutation.getMutationQueryGen();
-			queryGen.addColumnListMutationToBatch(batch, colListMutation, useCaching);
-		}
-		
-		batch.setConsistencyLevel(ConsistencyLevelMapping.getCL(this.getConsistencyLevel()));
-		
-		return batch;
-	}
+            @Override
+            public CassandraOperationType getOperationType() {
+                return CassandraOperationType.BATCH_MUTATE;
+            }
 
-	@Override
-	public MutationBatch withCaching(boolean condition) {
-		useCaching = condition;
-		return this;
-	}
+            @Override
+            public Statement getQuery() {
+                return getCachedPreparedStatement();
+            }
+
+            @Override
+            public Void parseResultSet(ResultSet resultSet) {
+                return null; // do nothing for mutations
+            }
+        }.executeAsync();
+    }
+
+    private List<CqlColumnListMutationImpl<?, ?>> getColumnMutations() {
+
+        List<CqlColumnListMutationImpl<?, ?>> colListMutation = new ArrayList<CqlColumnListMutationImpl<?, ?>>();
+
+        for (Entry<ByteBuffer, Map<String, ColumnListMutation<?>>> entry : super.getMutationMap().entrySet()) {
+            for (ColumnListMutation<?> colMutation : entry.getValue().values()) {
+                colListMutation.add((CqlColumnListMutationImpl<?, ?>) colMutation);
+            }
+        }
+        return colListMutation;
+    }
+
+    private BatchStatement getCachedPreparedStatement() {
+
+        final List<CqlColumnListMutationImpl<?, ?>> colListMutations = getColumnMutations();
+
+        if (colListMutations == null || colListMutations.size() == 0) {
+            return new BatchStatement(Type.UNLOGGED);
+        }
+
+        ColListMutationType mutationType = colListMutations.get(0).getType();
+
+        BatchStatement batch = new BatchStatement(Type.UNLOGGED);
+        if (mutationType == ColListMutationType.CounterColumnsUpdate) {
+            batch = new BatchStatement(Type.COUNTER);
+        }
+        else if (useAtomicBatch()) {
+            batch = new BatchStatement(Type.LOGGED);
+        }
+
+        for (CqlColumnListMutationImpl<?, ?> colListMutation : colListMutations) {
+
+            CFMutationQueryGen queryGen = colListMutation.getMutationQueryGen();
+            queryGen.addColumnListMutationToBatch(batch, colListMutation, useCaching);
+        }
+
+        batch.setConsistencyLevel(ConsistencyLevelMapping.getCL(this.getConsistencyLevel()));
+
+        return batch;
+    }
+
+    @Override
+    public MutationBatch withCaching(boolean condition) {
+        useCaching = condition;
+        return this;
+    }
 }

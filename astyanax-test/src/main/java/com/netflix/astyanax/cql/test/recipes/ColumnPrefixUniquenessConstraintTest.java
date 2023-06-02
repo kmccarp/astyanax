@@ -37,89 +37,89 @@ import com.netflix.astyanax.serializers.StringSerializer;
 
 public class ColumnPrefixUniquenessConstraintTest extends KeyspaceTests {
 
-	public static ColumnFamily<Long, String> CF_UNIQUE_CONSTRAINT = ColumnFamily
-			.newColumnFamily(
-					"cfunique2", 
-					LongSerializer.get(),
-					StringSerializer.get());
+    public static ColumnFamily<Long, String> CF_UNIQUE_CONSTRAINT = ColumnFamily
+            .newColumnFamily(
+                    "cfunique2",
+                    LongSerializer.get(),
+                    StringSerializer.get());
 
-	@BeforeClass
-	public static void init() throws Exception {
-		initContext();
-		keyspace.createColumnFamily(CF_UNIQUE_CONSTRAINT, null);
-		CF_UNIQUE_CONSTRAINT.describe(keyspace);
-	}
+    @BeforeClass
+    public static void init() throws Exception {
+        initContext();
+        keyspace.createColumnFamily(CF_UNIQUE_CONSTRAINT, null);
+        CF_UNIQUE_CONSTRAINT.describe(keyspace);
+    }
 
-	@AfterClass
-	public static void tearDown() throws Exception {
-		keyspace.dropColumnFamily(CF_UNIQUE_CONSTRAINT);
-	}
-
-
-	Supplier<String> UniqueColumnSupplier = new Supplier<String>() {
-
-		@Override
-		public String get() {
-			return UUID.randomUUID().toString();
-		}
-	};
-
-	@Test
-	public void testUnique() throws Exception {
-
-		ColumnPrefixUniquenessConstraint<Long> unique = 
-				new ColumnPrefixUniquenessConstraint<Long>(keyspace, CF_UNIQUE_CONSTRAINT, 1L)
-				.withConsistencyLevel(ConsistencyLevel.CL_ONE);
-
-		unique.acquire();
-
-		try { 
-			unique = 
-					new ColumnPrefixUniquenessConstraint<Long>(keyspace, CF_UNIQUE_CONSTRAINT, 1L)
-					.withConsistencyLevel(ConsistencyLevel.CL_ONE);
-			unique.acquire();
-			Assert.fail("Should have gotten a BusyLockException");
-		} catch (BusyLockException e) {
-			System.out.println(e.getMessage());
-		}
-	}
-	
-
-	@Test
-	public void testUniqueAndRelease() throws Exception {
-
-		ColumnPrefixUniquenessConstraint<Long> unique = 
-				new ColumnPrefixUniquenessConstraint<Long>(keyspace, CF_UNIQUE_CONSTRAINT, 2L)
-				.withConsistencyLevel(ConsistencyLevel.CL_ONE);
-
-		unique.acquire();
-		unique.release();
-
-		unique = new ColumnPrefixUniquenessConstraint<Long>(keyspace, CF_UNIQUE_CONSTRAINT, 2L)
-					.withConsistencyLevel(ConsistencyLevel.CL_ONE);
-		unique.acquire();
-	}
+    @AfterClass
+    public static void tearDown() throws Exception {
+        keyspace.dropColumnFamily(CF_UNIQUE_CONSTRAINT);
+    }
 
 
-	@Test
-	public void testUniquenessWithCustomMutation() throws Exception {
+    Supplier<String> UniqueColumnSupplier = new Supplier<String>() {
 
-		ColumnList<String> result = keyspace.prepareQuery(CF_UNIQUE_CONSTRAINT).getRow(10L).execute().getResult();
-		Assert.assertTrue(result.isEmpty());
+        @Override
+        public String get() {
+            return UUID.randomUUID().toString();
+        }
+    };
 
-		ColumnPrefixUniquenessConstraint<Long> unique = 
-				new ColumnPrefixUniquenessConstraint<Long>(keyspace, CF_UNIQUE_CONSTRAINT, 3L)
-				.withConsistencyLevel(ConsistencyLevel.CL_ONE);
+    @Test
+    public void testUnique() throws Exception {
 
-		unique.acquireAndApplyMutation(new Function<MutationBatch, Boolean>() {
-			public Boolean apply(MutationBatch input) {
+        ColumnPrefixUniquenessConstraint<Long> unique =
+                new ColumnPrefixUniquenessConstraint<Long>(keyspace, CF_UNIQUE_CONSTRAINT, 1L)
+                        .withConsistencyLevel(ConsistencyLevel.CL_ONE);
 
-				input.withRow(CF_UNIQUE_CONSTRAINT, 10L).putEmptyColumn("MyCustomColumn", null);
-				return true;
-			}
-		});
+        unique.acquire();
 
-		result = keyspace.prepareQuery(CF_UNIQUE_CONSTRAINT).getRow(10L).execute().getResult();
-		Assert.assertFalse(result.isEmpty());
-	}
+        try {
+            unique =
+                    new ColumnPrefixUniquenessConstraint<Long>(keyspace, CF_UNIQUE_CONSTRAINT, 1L)
+                            .withConsistencyLevel(ConsistencyLevel.CL_ONE);
+            unique.acquire();
+            Assert.fail("Should have gotten a BusyLockException");
+        } catch (BusyLockException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+
+    @Test
+    public void testUniqueAndRelease() throws Exception {
+
+        ColumnPrefixUniquenessConstraint<Long> unique =
+                new ColumnPrefixUniquenessConstraint<Long>(keyspace, CF_UNIQUE_CONSTRAINT, 2L)
+                        .withConsistencyLevel(ConsistencyLevel.CL_ONE);
+
+        unique.acquire();
+        unique.release();
+
+        unique = new ColumnPrefixUniquenessConstraint<Long>(keyspace, CF_UNIQUE_CONSTRAINT, 2L)
+                .withConsistencyLevel(ConsistencyLevel.CL_ONE);
+        unique.acquire();
+    }
+
+
+    @Test
+    public void testUniquenessWithCustomMutation() throws Exception {
+
+        ColumnList<String> result = keyspace.prepareQuery(CF_UNIQUE_CONSTRAINT).getRow(10L).execute().getResult();
+        Assert.assertTrue(result.isEmpty());
+
+        ColumnPrefixUniquenessConstraint<Long> unique =
+                new ColumnPrefixUniquenessConstraint<Long>(keyspace, CF_UNIQUE_CONSTRAINT, 3L)
+                        .withConsistencyLevel(ConsistencyLevel.CL_ONE);
+
+        unique.acquireAndApplyMutation(new Function<MutationBatch, Boolean>() {
+            public Boolean apply(MutationBatch input) {
+
+                input.withRow(CF_UNIQUE_CONSTRAINT, 10L).putEmptyColumn("MyCustomColumn", null);
+                return true;
+            }
+        });
+
+        result = keyspace.prepareQuery(CF_UNIQUE_CONSTRAINT).getRow(10L).execute().getResult();
+        Assert.assertFalse(result.isEmpty());
+    }
 }

@@ -137,7 +137,7 @@ public class ThriftConverter {
         else {
             SlicePredicate predicate = new SlicePredicate();
             predicate.setSlice_range(new SliceRange((columns.getStartColumn() == null) ? ByteBuffer.wrap(new byte[0])
-                    : ByteBuffer.wrap(colSer.toBytes(columns.getStartColumn())),
+                            : ByteBuffer.wrap(colSer.toBytes(columns.getStartColumn())),
                     (columns.getEndColumn() == null) ? ByteBuffer.wrap(new byte[0]) : ByteBuffer.wrap(colSer
                             .toBytes(columns.getEndColumn())), columns.getReversed(), columns.getLimit()));
             return predicate;
@@ -204,26 +204,26 @@ public class ThriftConverter {
 
     public static org.apache.cassandra.thrift.ConsistencyLevel ToThriftConsistencyLevel(ConsistencyLevel cl) {
         switch (cl) {
-        case CL_ONE:
-            return org.apache.cassandra.thrift.ConsistencyLevel.ONE;
-        case CL_QUORUM:
-            return org.apache.cassandra.thrift.ConsistencyLevel.QUORUM;
-        case CL_EACH_QUORUM:
-            return org.apache.cassandra.thrift.ConsistencyLevel.EACH_QUORUM;
-        case CL_LOCAL_QUORUM:
-            return org.apache.cassandra.thrift.ConsistencyLevel.LOCAL_QUORUM;
-        case CL_TWO:
-            return org.apache.cassandra.thrift.ConsistencyLevel.TWO;
-        case CL_THREE:
-            return org.apache.cassandra.thrift.ConsistencyLevel.THREE;
-        case CL_ALL:
-            return org.apache.cassandra.thrift.ConsistencyLevel.ALL;
-        case CL_ANY:
-            return org.apache.cassandra.thrift.ConsistencyLevel.ANY;
-        case CL_LOCAL_ONE:
-            return org.apache.cassandra.thrift.ConsistencyLevel.LOCAL_ONE;
-        default:
-            return org.apache.cassandra.thrift.ConsistencyLevel.QUORUM;
+            case CL_ONE:
+                return org.apache.cassandra.thrift.ConsistencyLevel.ONE;
+            case CL_QUORUM:
+                return org.apache.cassandra.thrift.ConsistencyLevel.QUORUM;
+            case CL_EACH_QUORUM:
+                return org.apache.cassandra.thrift.ConsistencyLevel.EACH_QUORUM;
+            case CL_LOCAL_QUORUM:
+                return org.apache.cassandra.thrift.ConsistencyLevel.LOCAL_QUORUM;
+            case CL_TWO:
+                return org.apache.cassandra.thrift.ConsistencyLevel.TWO;
+            case CL_THREE:
+                return org.apache.cassandra.thrift.ConsistencyLevel.THREE;
+            case CL_ALL:
+                return org.apache.cassandra.thrift.ConsistencyLevel.ALL;
+            case CL_ANY:
+                return org.apache.cassandra.thrift.ConsistencyLevel.ANY;
+            case CL_LOCAL_ONE:
+                return org.apache.cassandra.thrift.ConsistencyLevel.LOCAL_ONE;
+            default:
+                return org.apache.cassandra.thrift.ConsistencyLevel.QUORUM;
         }
     }
 }

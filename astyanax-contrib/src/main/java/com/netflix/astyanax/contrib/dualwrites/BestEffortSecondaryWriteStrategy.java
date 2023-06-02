@@ -36,21 +36,21 @@ import com.netflix.astyanax.connectionpool.exceptions.ConnectionException;
 public class BestEffortSecondaryWriteStrategy implements DualWritesStrategy {
 
     private final FailedWritesLogger failedWritesLogger;
-    
+
     public BestEffortSecondaryWriteStrategy(FailedWritesLogger logger) {
         this.failedWritesLogger = logger;
     }
 
     @Override
     public <R> Execution<R> wrapExecutions(final Execution<R> primary, final Execution<R> secondary, final Collection<WriteMetadata> writeMetadata) {
-        
+
         return new Execution<R>() {
 
             @Override
             public OperationResult<R> execute() throws ConnectionException {
-                
+
                 OperationResult<R> result = primary.execute();
-                try { 
+                try {
                     secondary.execute();
                 } catch (ConnectionException e) {
                     if (failedWritesLogger != null) {

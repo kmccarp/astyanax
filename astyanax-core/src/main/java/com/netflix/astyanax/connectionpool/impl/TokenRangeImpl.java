@@ -37,7 +37,7 @@ public class TokenRangeImpl implements TokenRange {
         this.endToken = endToken;
         if (endpoints != null)
             this.endpoints = ImmutableList.copyOf(endpoints);
-        else 
+        else
             this.endpoints = Lists.newArrayList();
     }
 

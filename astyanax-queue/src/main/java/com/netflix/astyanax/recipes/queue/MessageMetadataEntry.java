@@ -22,18 +22,18 @@ public class MessageMetadataEntry {
     /**
      * Type of column.  See MessageMetadataType
      */
-    @Component(ordinal=0)
+    @Component(ordinal = 0)
     private Byte type;
-    
-    @Component(ordinal=1)
+
+    @Component(ordinal = 1)
     private String name;
-    
+
     public MessageMetadataEntry() {
-        
+
     }
 
     public MessageMetadataEntry(MessageMetadataEntryType type, String name) {
-        this.type = (byte)type.ordinal();
+        this.type = (byte) type.ordinal();
         this.name = name;
     }
 
@@ -44,6 +44,7 @@ public class MessageMetadataEntry {
     public MessageMetadataEntryType getMetadataType() {
         return MessageMetadataEntryType.values()[type];
     }
+
     public void setType(Byte type) {
         this.type = type;
     }
@@ -55,7 +56,7 @@ public class MessageMetadataEntry {
     public void setName(String name) {
         this.name = name;
     }
-    
+
     public static MessageMetadataEntry newMessageId(String messageId) {
         return new MessageMetadataEntry(MessageMetadataEntryType.MessageId, messageId);
     }
@@ -63,15 +64,15 @@ public class MessageMetadataEntry {
     public static MessageMetadataEntry newField(String name) {
         return new MessageMetadataEntry(MessageMetadataEntryType.Field, name);
     }
-    
+
     public static MessageMetadataEntry newUnique() {
         return new MessageMetadataEntry(MessageMetadataEntryType.Unique, TimeUUIDUtils.getUniqueTimeUUIDinMicros().toString());
     }
 
     public static MessageMetadataEntry newLock() {
-        return new MessageMetadataEntry(MessageMetadataEntryType.Lock,   TimeUUIDUtils.getUniqueTimeUUIDinMicros().toString());
+        return new MessageMetadataEntry(MessageMetadataEntryType.Lock, TimeUUIDUtils.getUniqueTimeUUIDinMicros().toString());
     }
-    
+
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -93,16 +94,18 @@ public class MessageMetadataEntry {
         if (name == null) {
             if (other.name != null)
                 return false;
-        } else if (!name.equals(other.name))
+        }
+        else if (!name.equals(other.name))
             return false;
         if (type == null) {
             if (other.type != null)
                 return false;
-        } else if (!type.equals(other.type))
+        }
+        else if (!type.equals(other.type))
             return false;
         return true;
     }
-    
+
     @Override
     public String toString() {
         return "MessageMetadata [type=" + MessageMetadataEntryType.values()[type] + ", name=" + name + "]";

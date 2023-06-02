@@ -32,7 +32,7 @@ import com.netflix.astyanax.impl.AckingQueue;
 
 public class MutationBatchExecutorWithQueue {
     private static final Logger LOG = LoggerFactory.getLogger(MutationBatchExecutorWithQueue.class);
-    
+
     private ExecutorService executor;
     private Predicate<Exception> retryablePredicate = Predicates.alwaysFalse();
     private long waitOnNoHosts = 1000;
@@ -115,7 +115,7 @@ public class MutationBatchExecutorWithQueue {
     }
 
     /**
-	 */
+     */
     public void execute(MutationBatch m) throws Exception {
         queue.pushMutation(m);
     }

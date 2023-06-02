@@ -28,28 +28,28 @@ import com.netflix.astyanax.model.ColumnFamily;
 import com.netflix.astyanax.serializers.StringSerializer;
 
 public class CounterColumnTests extends KeyspaceTests {
-	
+
     public static ColumnFamily<String, String> CF_COUNTER1 = ColumnFamily
             .newColumnFamily(
-                    "Counter1", 
+                    "Counter1",
                     StringSerializer.get(),
                     StringSerializer.get());
 
     @BeforeClass
-	public static void init() throws Exception {
-		initContext();
-    	keyspace.createColumnFamily(CF_COUNTER1,ImmutableMap.<String, Object>builder()
+    public static void init() throws Exception {
+        initContext();
+        keyspace.createColumnFamily(CF_COUNTER1, ImmutableMap.<String, Object>builder()
                 .put("default_validation_class", "CounterColumnType")
                 .build());
-		
-		CF_COUNTER1.describe(keyspace);
-	}
+
+        CF_COUNTER1.describe(keyspace);
+    }
 
     @AfterClass
-	public static void tearDown() throws Exception {
-		initContext();
-		keyspace.dropColumnFamily(CF_COUNTER1);
-	}
+    public static void tearDown() throws Exception {
+        initContext();
+        keyspace.dropColumnFamily(CF_COUNTER1);
+    }
 
     @Test
     public void testIncrementCounter() throws Exception {
@@ -59,8 +59,8 @@ public class CounterColumnTests extends KeyspaceTests {
         column = keyspace.prepareQuery(CF_COUNTER1).getRow("CounterRow1").getColumn("MyCounter").execute().getResult();
         //Assert.assertNull(column);
 
-        baseAmount = 0; 
-        
+        baseAmount = 0;
+
         MutationBatch m = keyspace.prepareMutationBatch();
         m.withRow(CF_COUNTER1, "CounterRow1").incrementCounterColumn("MyCounter", incrAmount);
         m.execute();

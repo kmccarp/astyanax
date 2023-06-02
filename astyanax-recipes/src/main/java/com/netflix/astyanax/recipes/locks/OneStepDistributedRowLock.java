@@ -39,38 +39,38 @@ import com.netflix.astyanax.serializers.ByteBufferSerializer;
 import com.netflix.astyanax.serializers.LongSerializer;
 
 public class OneStepDistributedRowLock<K, C> implements DistributedRowLock {
-    public static final int      LOCK_TIMEOUT                    = 60;
+    public static final int      LOCK_TIMEOUT = 60;
     public static final TimeUnit DEFAULT_OPERATION_TIMEOUT_UNITS = TimeUnit.MINUTES;
 
     private final ColumnFamily<K, C> columnFamily;      // The column family for data and lock
     private final Keyspace   keyspace;                  // The keyspace
     private final K          key;                       // Key being locked
 
-    private long             timeout          = LOCK_TIMEOUT;                   // Timeout after which the lock expires.  Units defined by timeoutUnits.
-    private TimeUnit         timeoutUnits     = DEFAULT_OPERATION_TIMEOUT_UNITS;
+    private long             timeout = LOCK_TIMEOUT;                   // Timeout after which the lock expires.  Units defined by timeoutUnits.
+    private TimeUnit         timeoutUnits = DEFAULT_OPERATION_TIMEOUT_UNITS;
     private ConsistencyLevel consistencyLevel = ConsistencyLevel.CL_LOCAL_QUORUM;
-    private boolean          failOnStaleLock  = false;           
-    private Set<C>           locksToDelete    = Sets.newHashSet();
-    private C                lockColumn       = null;
-    private ColumnMap<C>     columns          = null;
-    private Integer          ttl              = null;                           // Units in seconds
-    private boolean          readDataColumns  = false;
-    private RetryPolicy      backoffPolicy    = RunOnce.get();
-    private long             acquireTime      = 0;
-    private int              retryCount       = 0;
+    private boolean          failOnStaleLock = false;
+    private Set<C>           locksToDelete = Sets.newHashSet();
+    private C                lockColumn = null;
+    private ColumnMap<C>     columns = null;
+    private Integer          ttl = null;                           // Units in seconds
+    private boolean          readDataColumns = false;
+    private RetryPolicy      backoffPolicy = RunOnce.get();
+    private long             acquireTime = 0;
+    private int              retryCount = 0;
     private LockColumnStrategy<C> columnStrategy = null;
-    
+
     public OneStepDistributedRowLock(Keyspace keyspace, ColumnFamily<K, C> columnFamily, K key) {
-        this.keyspace     = keyspace;
+        this.keyspace = keyspace;
         this.columnFamily = columnFamily;
-        this.key          = key;
+        this.key = key;
     }
 
     public OneStepDistributedRowLock<K, C> withColumnStrategy(LockColumnStrategy<C> columnStrategy) {
         this.columnStrategy = columnStrategy;
         return this;
     }
-    
+
     /**
      * Modify the consistency level being used. Consistency should always be a
      * variant of quorum. The default is CL_QUORUM, which is OK for single
@@ -95,7 +95,7 @@ public class OneStepDistributedRowLock<K, C> implements DistributedRowLock {
         this.readDataColumns = flag;
         return this;
     }
-    
+
     /**
      * When set to true the operation will fail if a stale lock is detected
      * 
@@ -117,7 +117,7 @@ public class OneStepDistributedRowLock<K, C> implements DistributedRowLock {
      * @return
      */
     public OneStepDistributedRowLock<K, C> expireLockAfter(long timeout, TimeUnit unit) {
-        this.timeout      = timeout;
+        this.timeout = timeout;
         this.timeoutUnits = unit;
         return this;
     }
@@ -135,14 +135,14 @@ public class OneStepDistributedRowLock<K, C> implements DistributedRowLock {
         this.ttl = ttl;
         return this;
     }
-    
+
     public OneStepDistributedRowLock<K, C> withTtl(Integer ttl, TimeUnit units) {
-        this.ttl = (int) TimeUnit.SECONDS.convert(ttl,  units);
+        this.ttl = (int) TimeUnit.SECONDS.convert(ttl, units);
         return this;
     }
-    
+
     public OneStepDistributedRowLock<K, C> withBackoff(RetryPolicy policy) {
-        this.backoffPolicy  = policy;
+        this.backoffPolicy = policy;
         return this;
     }
 
@@ -155,26 +155,26 @@ public class OneStepDistributedRowLock<K, C> implements DistributedRowLock {
      */
     @Override
     public void acquire() throws Exception {
-        
+
         Preconditions.checkArgument(ttl == null || TimeUnit.SECONDS.convert(timeout, timeoutUnits) < ttl, "Timeout " + timeout + " must be less than TTL " + ttl);
-        
+
         RetryPolicy retry = backoffPolicy.duplicate();
         retryCount = 0;
         while (true) {
             try {
                 long curTimeMicros = getCurrentTimeMicros();
-                
+
                 MutationBatch m = keyspace.prepareMutationBatch().setConsistencyLevel(consistencyLevel);
                 fillLockMutation(m, curTimeMicros, ttl);
                 m.execute();
-                
+
                 verifyLock(curTimeMicros);
                 acquireTime = System.currentTimeMillis();
                 return;
             }
             catch (BusyLockException e) {
                 release();
-                if(!retry.allowRetry())
+                if (!retry.allowRetry())
                     throw e;
                 retryCount++;
             }
@@ -194,7 +194,7 @@ public class OneStepDistributedRowLock<K, C> implements DistributedRowLock {
         acquire();
         return getDataColumns();
     }
-    
+
     /**
      * Verify that the lock was acquired.  This shouldn't be called unless it's part of a recipe
      * built on top of AbstractDistributedRowLock.  
@@ -203,9 +203,9 @@ public class OneStepDistributedRowLock<K, C> implements DistributedRowLock {
      * @throws BusyLockException
      */
     public void verifyLock(long curTimeInMicros) throws Exception, BusyLockException, StaleLockException {
-        if (getLockColumn() == null) 
+        if (getLockColumn() == null)
             throw new IllegalStateException("verifyLock() called without attempting to take the lock");
-        
+
         // Read back all columns. There should be only 1 if we got the lock
         Map<C, Long> lockResult = readLockColumns(readDataColumns);
 
@@ -246,7 +246,7 @@ public class OneStepDistributedRowLock<K, C> implements DistributedRowLock {
     public void releaseWithMutation(MutationBatch m) throws Exception {
         releaseWithMutation(m, false);
     }
-    
+
     public boolean releaseWithMutation(MutationBatch m, boolean force) throws Exception {
         long elapsed = System.currentTimeMillis() - acquireTime;
         boolean isStale = false;
@@ -256,14 +256,14 @@ public class OneStepDistributedRowLock<K, C> implements DistributedRowLock {
                 throw new StaleLockException("Lock for '" + getKey() + "' became stale");
             }
         }
-        
+
         m.setConsistencyLevel(consistencyLevel);
         fillReleaseMutation(m, false);
         m.execute();
-        
+
         return isStale;
     }
-    
+
     /**
      * Return a mapping of existing lock columns and their expiration times
      * 
@@ -273,7 +273,7 @@ public class OneStepDistributedRowLock<K, C> implements DistributedRowLock {
     public Map<C, Long> readLockColumns() throws Exception {
         return readLockColumns(false);
     }
-    
+
     /**
      * Read all the lock columns.  Will also ready data columns if withDataColumns(true) was called
      * 
@@ -287,27 +287,27 @@ public class OneStepDistributedRowLock<K, C> implements DistributedRowLock {
         if (readDataColumns) {
             columns = new OrderedColumnMap<C>();
             ColumnList<C> lockResult = keyspace
-                .prepareQuery(columnFamily)
+                    .prepareQuery(columnFamily)
                     .setConsistencyLevel(consistencyLevel)
                     .getKey(key)
-                .execute()
+                    .execute()
                     .getResult();
-    
+
             for (Column<C> c : lockResult) {
                 if (columnStrategy.isLockColumn(c.getName()))
                     result.put(c.getName(), readTimeoutValue(c));
-                else 
+                else
                     columns.add(c);
             }
         }
         // Read only the lock columns
         else {
             ColumnList<C> lockResult = keyspace
-                .prepareQuery(columnFamily)
+                    .prepareQuery(columnFamily)
                     .setConsistencyLevel(consistencyLevel)
                     .getKey(key)
                     .withColumnRange(columnStrategy.getLockColumnRange())
-                .execute()
+                    .execute()
                     .getResult();
 
             for (Column<C> c : lockResult) {
@@ -315,9 +315,9 @@ public class OneStepDistributedRowLock<K, C> implements DistributedRowLock {
             }
 
         }
-        return result;    
+        return result;
     }
-    
+
     /**
      * Release all locks. Use this carefully as it could release a lock for a
      * running operation.
@@ -392,16 +392,16 @@ public class OneStepDistributedRowLock<K, C> implements DistributedRowLock {
         else {
             lockColumn = columnStrategy.generateLockColumn();
         }
-        
-        Long timeoutValue 
-              = (time == null)
-              ? new Long(0)
-              : time + TimeUnit.MICROSECONDS.convert(timeout, timeoutUnits);
-              
+
+        Long timeoutValue
+                = (time == null)
+                ? new Long(0)
+                : time + TimeUnit.MICROSECONDS.convert(timeout, timeoutUnits);
+
         m.withRow(columnFamily, key).putColumn(lockColumn, generateTimeoutValue(timeoutValue), ttl);
         return lockColumn;
     }
-    
+
     /**
      * Generate the expire time value to put in the column value.
      * @param timeout
@@ -409,14 +409,14 @@ public class OneStepDistributedRowLock<K, C> implements DistributedRowLock {
      */
     private ByteBuffer generateTimeoutValue(long timeout) {
         if (columnFamily.getDefaultValueSerializer() == ByteBufferSerializer.get() ||
-            columnFamily.getDefaultValueSerializer() == LongSerializer.get()) {
+                columnFamily.getDefaultValueSerializer() == LongSerializer.get()) {
             return LongSerializer.get().toByteBuffer(timeout);
         }
         else {
             return columnFamily.getDefaultValueSerializer().fromString(Long.toString(timeout));
         }
     }
-    
+
     /**
      * Read the expiration time from the column value
      * @param column
@@ -424,7 +424,7 @@ public class OneStepDistributedRowLock<K, C> implements DistributedRowLock {
      */
     public long readTimeoutValue(Column<?> column) {
         if (columnFamily.getDefaultValueSerializer() == ByteBufferSerializer.get() ||
-            columnFamily.getDefaultValueSerializer() == LongSerializer.get()) {
+                columnFamily.getDefaultValueSerializer() == LongSerializer.get()) {
             return column.getLongValue();
         }
         else {
@@ -444,7 +444,7 @@ public class OneStepDistributedRowLock<K, C> implements DistributedRowLock {
         for (C c : locksToDelete) {
             row.deleteColumn(c);
         }
-        if (!excludeCurrentLock && lockColumn != null) 
+        if (!excludeCurrentLock && lockColumn != null)
             row.deleteColumn(lockColumn);
         locksToDelete.clear();
         lockColumn = null;
@@ -454,11 +454,11 @@ public class OneStepDistributedRowLock<K, C> implements DistributedRowLock {
     public ColumnMap<C> getDataColumns() {
         return columns;
     }
-    
+
     public K getKey() {
         return key;
     }
-    
+
     public Keyspace getKeyspace() {
         return keyspace;
     }
@@ -470,7 +470,7 @@ public class OneStepDistributedRowLock<K, C> implements DistributedRowLock {
     public C getLockColumn() {
         return lockColumn;
     }
-    
+
     public int getRetryCount() {
         return retryCount;
     }

@@ -28,117 +28,117 @@ import com.netflix.astyanax.cql.util.ConsistencyLevelTransform;
 import static com.datastax.driver.core.ProtocolOptions.DEFAULT_MAX_SCHEMA_AGREEMENT_WAIT_SECONDS;
 
 public class JavaDriverConfigBridge {
-	
-	private final AstyanaxConfiguration asConfig;
-	private final ConnectionPoolConfiguration cpConfig;
-	
-	public JavaDriverConfigBridge(AstyanaxConfiguration asConfig, ConnectionPoolConfiguration cpConfig) {
-		this.asConfig = asConfig;
-		this.cpConfig = cpConfig;
-	}
-	
-	public Configuration getJDConfig() {
 
-		return Configuration.builder()
-				.withPolicies(getPolicies())
-				.withProtocolOptions(getProtocolOptions())
-				.withPoolingOptions(getPoolingOptions())
-				.withSocketOptions(getSocketOptions())
-				.withMetricsOptions(getMetricsOptions())
-				.withQueryOptions(getQueryOptions())
-				.build();
-	}
-	
-	private Policies getPolicies() {
-		return Policies.builder()
-				.withLoadBalancingPolicy(getLB())
-				.build();
-	}
-	
-	private LoadBalancingPolicy getLB() {
-		
-		switch (asConfig.getConnectionPoolType()) {
-		case ROUND_ROBIN:
-				return new RoundRobinPolicy();
-		case TOKEN_AWARE:
-				return new TokenAwarePolicy(new RoundRobinPolicy());
-		case BAG:
-			throw new RuntimeException("Unsupported connection pool type, use ROUND_ROBIN or TOKEN_AWARE");
-		default:
-			return new RoundRobinPolicy();
-		}
-	}
-	
-	private ProtocolOptions getProtocolOptions() {
-			
-		int port = cpConfig.getPort();
+    private final AstyanaxConfiguration asConfig;
+    private final ConnectionPoolConfiguration cpConfig;
 
-		AuthProvider authProvider = AuthProvider.NONE;
-		
-		AuthenticationCredentials creds = cpConfig.getAuthenticationCredentials();
-		if (creds != null) {
-			authProvider = new PlainTextAuthProvider(creds.getUsername(), creds.getPassword());
-		}
+    public JavaDriverConfigBridge(AstyanaxConfiguration asConfig, ConnectionPoolConfiguration cpConfig) {
+        this.asConfig = asConfig;
+        this.cpConfig = cpConfig;
+    }
 
-		return new ProtocolOptions(port, ProtocolVersion.NEWEST_SUPPORTED, DEFAULT_MAX_SCHEMA_AGREEMENT_WAIT_SECONDS,
-				null, authProvider);
-	}
+    public Configuration getJDConfig() {
 
-	private PoolingOptions getPoolingOptions() {
-		return new CpConfigBasedPoolingOptions();
-	}
-	
-	private SocketOptions getSocketOptions() {
-		return new CpConfigBasedSocketOptions();
-	}
+        return Configuration.builder()
+                .withPolicies(getPolicies())
+                .withProtocolOptions(getProtocolOptions())
+                .withPoolingOptions(getPoolingOptions())
+                .withSocketOptions(getSocketOptions())
+                .withMetricsOptions(getMetricsOptions())
+                .withQueryOptions(getQueryOptions())
+                .build();
+    }
 
-	private MetricsOptions getMetricsOptions() {
-		return new MetricsOptions();
-	}
+    private Policies getPolicies() {
+        return Policies.builder()
+                .withLoadBalancingPolicy(getLB())
+                .build();
+    }
 
-	private QueryOptions getQueryOptions() {
-		return new ConfigBasedQueryOptions();
-	}
+    private LoadBalancingPolicy getLB() {
 
-	private class CpConfigBasedPoolingOptions extends PoolingOptions {
+        switch (asConfig.getConnectionPoolType()) {
+            case ROUND_ROBIN:
+                return new RoundRobinPolicy();
+            case TOKEN_AWARE:
+                return new TokenAwarePolicy(new RoundRobinPolicy());
+            case BAG:
+                throw new RuntimeException("Unsupported connection pool type, use ROUND_ROBIN or TOKEN_AWARE");
+            default:
+                return new RoundRobinPolicy();
+        }
+    }
 
-		private CpConfigBasedPoolingOptions() {
-			
-		}
+    private ProtocolOptions getProtocolOptions() {
 
-		@Override
-		public int getCoreConnectionsPerHost(HostDistance distance) {
-			return cpConfig.getMaxConnsPerHost() > 4 ? cpConfig.getMaxConnsPerHost()/2 : cpConfig.getMaxConnsPerHost();
-		}
+        int port = cpConfig.getPort();
 
-		@Override
-		public int getMaxConnectionsPerHost(HostDistance distance) {
-			return cpConfig.getMaxConnsPerHost();
-		}
-	}
+        AuthProvider authProvider = AuthProvider.NONE;
 
-	private class CpConfigBasedSocketOptions extends SocketOptions {
+        AuthenticationCredentials creds = cpConfig.getAuthenticationCredentials();
+        if (creds != null) {
+            authProvider = new PlainTextAuthProvider(creds.getUsername(), creds.getPassword());
+        }
 
-		private CpConfigBasedSocketOptions() {
-			
-		}
+        return new ProtocolOptions(port, ProtocolVersion.NEWEST_SUPPORTED, DEFAULT_MAX_SCHEMA_AGREEMENT_WAIT_SECONDS,
+                null, authProvider);
+    }
 
-		@Override
-		public int getConnectTimeoutMillis() {
-			return cpConfig.getConnectTimeout();
-		}
+    private PoolingOptions getPoolingOptions() {
+        return new CpConfigBasedPoolingOptions();
+    }
 
-		@Override
-		public int getReadTimeoutMillis() {
-			return cpConfig.getSocketTimeout();
-		}
-	}
-	
-	private class ConfigBasedQueryOptions extends QueryOptions {
+    private SocketOptions getSocketOptions() {
+        return new CpConfigBasedSocketOptions();
+    }
 
-		@Override
-		public ConsistencyLevel getConsistencyLevel() {
-			return ConsistencyLevelTransform.getConsistencyLevel(asConfig.getDefaultReadConsistencyLevel());
-		}
-	}
+    private MetricsOptions getMetricsOptions() {
+        return new MetricsOptions();
+    }
+
+    private QueryOptions getQueryOptions() {
+        return new ConfigBasedQueryOptions();
+    }
+
+    private class CpConfigBasedPoolingOptions extends PoolingOptions {
+
+        private CpConfigBasedPoolingOptions() {
+
+        }
+
+        @Override
+        public int getCoreConnectionsPerHost(HostDistance distance) {
+            return cpConfig.getMaxConnsPerHost() > 4 ? cpConfig.getMaxConnsPerHost() / 2 : cpConfig.getMaxConnsPerHost();
+        }
+
+        @Override
+        public int getMaxConnectionsPerHost(HostDistance distance) {
+            return cpConfig.getMaxConnsPerHost();
+        }
+    }
+
+    private class CpConfigBasedSocketOptions extends SocketOptions {
+
+        private CpConfigBasedSocketOptions() {
+
+        }
+
+        @Override
+        public int getConnectTimeoutMillis() {
+            return cpConfig.getConnectTimeout();
+        }
+
+        @Override
+        public int getReadTimeoutMillis() {
+            return cpConfig.getSocketTimeout();
+        }
+    }
+
+    private class ConfigBasedQueryOptions extends QueryOptions {
+
+        @Override
+        public ConsistencyLevel getConsistencyLevel() {
+            return ConsistencyLevelTransform.getConsistencyLevel(asConfig.getDefaultReadConsistencyLevel());
+        }
+    }
 }

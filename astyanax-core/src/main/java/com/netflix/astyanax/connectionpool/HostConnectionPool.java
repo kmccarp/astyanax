@@ -140,12 +140,12 @@ public interface HostConnectionPool<CL> {
      * @return Return true if the pool is active.
      */
     boolean isActive();
-    
+
     /**
      * @return Return true if the has been shut down and is no longer accepting traffic.
      */
     boolean isShutdown();
-    
+
     /**
      * @return Return implementation specific score to be used by weighted pool
      * selection algorithms

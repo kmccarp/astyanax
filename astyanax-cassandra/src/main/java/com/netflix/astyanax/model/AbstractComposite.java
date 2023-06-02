@@ -82,24 +82,24 @@ public abstract class AbstractComposite extends AbstractList<Object> implements 
     static final Logger logger = Logger.getLogger(AbstractComposite.class.getName());
 
     public static final BiMap<Class<? extends Serializer>, String> DEFAULT_SERIALIZER_TO_COMPARATOR_MAPPING = new ImmutableBiMap.Builder<Class<? extends Serializer>, String>()
-            .put(IntegerSerializer.class,    IntegerSerializer.get().getComparatorType().getTypeName())
-            .put(BooleanSerializer.class,    BooleanSerializer.get().getComparatorType().getTypeName())
-            .put(AsciiSerializer.class,      AsciiSerializer.get().getComparatorType().getTypeName())
+            .put(IntegerSerializer.class, IntegerSerializer.get().getComparatorType().getTypeName())
+            .put(BooleanSerializer.class, BooleanSerializer.get().getComparatorType().getTypeName())
+            .put(AsciiSerializer.class, AsciiSerializer.get().getComparatorType().getTypeName())
             .put(BigIntegerSerializer.class, BigIntegerSerializer.get().getComparatorType().getTypeName())
             .put(ByteBufferSerializer.class, ByteBufferSerializer.get().getComparatorType().getTypeName())
-            .put(LongSerializer.class,       LongSerializer.get().getComparatorType().getTypeName())
-            .put(StringSerializer.class,     StringSerializer.get().getComparatorType().getTypeName())
-            .put(UUIDSerializer.class,       UUIDSerializer.get().getComparatorType().getTypeName()).build();
+            .put(LongSerializer.class, LongSerializer.get().getComparatorType().getTypeName())
+            .put(StringSerializer.class, StringSerializer.get().getComparatorType().getTypeName())
+            .put(UUIDSerializer.class, UUIDSerializer.get().getComparatorType().getTypeName()).build();
 
     static final ImmutableClassToInstanceMap<Serializer> SERIALIZERS = new ImmutableClassToInstanceMap.Builder<Serializer>()
-            .put(IntegerSerializer.class,    IntegerSerializer.get())
-            .put(BooleanSerializer.class,    BooleanSerializer.get())
-            .put(AsciiSerializer.class,      AsciiSerializer.get())
+            .put(IntegerSerializer.class, IntegerSerializer.get())
+            .put(BooleanSerializer.class, BooleanSerializer.get())
+            .put(AsciiSerializer.class, AsciiSerializer.get())
             .put(BigIntegerSerializer.class, BigIntegerSerializer.get())
             .put(ByteBufferSerializer.class, ByteBufferSerializer.get())
-            .put(LongSerializer.class,       LongSerializer.get())
-            .put(StringSerializer.class,     StringSerializer.get())
-            .put(UUIDSerializer.class,       UUIDSerializer.get()).build();
+            .put(LongSerializer.class, LongSerializer.get())
+            .put(StringSerializer.class, StringSerializer.get())
+            .put(UUIDSerializer.class, UUIDSerializer.get()).build();
 
     public static final BiMap<Byte, String> DEFAULT_ALIAS_TO_COMPARATOR_MAPPING = new ImmutableBiMap.Builder<Byte, String>()
             .put((byte) 'a', ComparatorType.ASCIITYPE.getTypeName())
@@ -464,7 +464,7 @@ public abstract class AbstractComposite extends AbstractList<Object> implements 
         return o;
     }
 
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings({"unchecked"})
     private static Collection<?> flatten(Collection<?> c) {
         if (c instanceof AbstractComposite) {
             return ((AbstractComposite) c).getComponents();

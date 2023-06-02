@@ -19,8 +19,8 @@ import com.netflix.astyanax.retry.RetryPolicy.RetryPolicyFactory;
 
 public class RunOnceRetryPolicyFactory implements RetryPolicyFactory {
 
-	@Override
-	public RetryPolicy createRetryPolicy() {
-		return new RunOnce();
-	}
+    @Override
+    public RetryPolicy createRetryPolicy() {
+        return new RunOnce();
+    }
 }

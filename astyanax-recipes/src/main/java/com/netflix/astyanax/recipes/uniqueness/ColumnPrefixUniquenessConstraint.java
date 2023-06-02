@@ -55,7 +55,7 @@ public class ColumnPrefixUniquenessConstraint<K> implements UniquenessConstraint
         lock.withColumnPrefix(prefix);
         return this;
     }
-    
+
     /**
      * Specify the unique value to use for the column name when doing the uniqueness
      * constraint.  In many cases this will be a TimeUUID that is used as the row
@@ -69,7 +69,7 @@ public class ColumnPrefixUniquenessConstraint<K> implements UniquenessConstraint
         lock.withLockId(unique);
         return this;
     }
-    
+
     public String readUniqueColumn() throws Exception {
         String column = null;
         for (Entry<String, Long> entry : lock.readLockColumns().entrySet()) {
@@ -82,13 +82,13 @@ public class ColumnPrefixUniquenessConstraint<K> implements UniquenessConstraint
                 }
             }
         }
-        
+
         if (column == null)
             throw new NotFoundException("Unique column not found for " + lock.getKey());
         return column;
-        
+
     }
-    
+
     @Override
     public void acquire() throws NotUniqueException, Exception {
         acquireAndApplyMutation(null);
@@ -106,22 +106,22 @@ public class ColumnPrefixUniquenessConstraint<K> implements UniquenessConstraint
         lock.fillReleaseMutation(m, true);
         lock.fillLockMutation(m, null, null);
         m.setConsistencyLevel(lock.getConsistencyLevel())
-            .execute();
+                .execute();
     }
-    
+
     @Override
     public void acquireAndApplyMutation(Function<MutationBatch, Boolean> callback) throws NotUniqueException, Exception {
         lock.acquire();
-        
+
         MutationBatch mb = lock.getKeyspace().prepareMutationBatch();
         if (callback != null)
             callback.apply(mb);
-        lock.fillReleaseMutation(mb,  true);
+        lock.fillReleaseMutation(mb, true);
         lock.fillLockMutation(mb, null, null);
         mb.setConsistencyLevel(lock.getConsistencyLevel())
-            .execute();
+                .execute();
     }
-    
+
     @Override
     public void release() throws Exception {
         lock.release();

@@ -40,67 +40,67 @@ import com.netflix.astyanax.model.Rows;
  */
 public class DirectCqlResult<K, C> implements CqlResult<K, C> {
 
-	private Long number = null;
-	private CqlRowListImpl<K, C> rows; 
-	
-	public DirectCqlResult(List<Row> rows, ColumnFamily<K,C> cf) {
-		
-		List<com.netflix.astyanax.model.Row<K,C>> rowList = new ArrayList<com.netflix.astyanax.model.Row<K,C>>();
-		
-		for (Row row : rows) {
-			rowList.add(getAstyanaxRow(row, cf));
-		}
-		this.rows = new CqlRowListImpl<K, C>(rowList);
-	}
+    private Long number = null;
+    private CqlRowListImpl<K, C> rows;
 
-	public DirectCqlResult(Long number) {
-		this.number = number;
-	}
-	
-	@Override
-	public Rows<K, C> getRows() {
-		return this.rows;
-	}
+    public DirectCqlResult(List<Row> rows, ColumnFamily<K, C> cf) {
 
-	@Override
-	public int getNumber() {
-		return number.intValue();
-	}
+        List<com.netflix.astyanax.model.Row<K, C>> rowList = new ArrayList<com.netflix.astyanax.model.Row<K, C>>();
 
-	@Override
-	public boolean hasRows() {
-		return rows != null && rows.size() > 0;
-	}
+        for (Row row : rows) {
+            rowList.add(getAstyanaxRow(row, cf));
+        }
+        this.rows = new CqlRowListImpl<K, C>(rowList);
+    }
 
-	@Override
-	public boolean hasNumber() {
-		return this.number != null;
-	}
+    public DirectCqlResult(Long number) {
+        this.number = number;
+    }
 
-	private com.netflix.astyanax.model.Row<K, C> getAstyanaxRow(Row row, ColumnFamily<K,C> cf) {
-		CqlRowImpl<K,C> rowImpl = new CqlRowImpl<K,C>(getAstyanaxRowKey(row, cf), getAstyanaxColumnList(row), cf);
-		return rowImpl;
-	}
-	
-	private K getAstyanaxRowKey(Row row, ColumnFamily<K,C> cf) {
-		
-		Serializer<K> keySerializer = cf.getKeySerializer();
-		return (K) CqlTypeMapping.getDynamicColumn(row, keySerializer, 0, cf);
-	}
-	
-	private CqlColumnListImpl<C> getAstyanaxColumnList(Row row) {
-		
-		List<CqlColumnImpl<C>> list = new ArrayList<CqlColumnImpl<C>>();
+    @Override
+    public Rows<K, C> getRows() {
+        return this.rows;
+    }
 
-		List<Definition> colDefs  = row.getColumnDefinitions().asList();
-		int index = 0;
-		
-		for (Definition colDef : colDefs) {
-			C columnName = (C) colDef.getName();
-			list.add(new CqlColumnImpl<C>(columnName, row, index, colDef));
-			index++;
-		}
-		
-		return new CqlColumnListImpl<C>(list);
-	}
+    @Override
+    public int getNumber() {
+        return number.intValue();
+    }
+
+    @Override
+    public boolean hasRows() {
+        return rows != null && rows.size() > 0;
+    }
+
+    @Override
+    public boolean hasNumber() {
+        return this.number != null;
+    }
+
+    private com.netflix.astyanax.model.Row<K, C> getAstyanaxRow(Row row, ColumnFamily<K, C> cf) {
+        CqlRowImpl<K, C> rowImpl = new CqlRowImpl<K, C>(getAstyanaxRowKey(row, cf), getAstyanaxColumnList(row), cf);
+        return rowImpl;
+    }
+
+    private K getAstyanaxRowKey(Row row, ColumnFamily<K, C> cf) {
+
+        Serializer<K> keySerializer = cf.getKeySerializer();
+        return (K) CqlTypeMapping.getDynamicColumn(row, keySerializer, 0, cf);
+    }
+
+    private CqlColumnListImpl<C> getAstyanaxColumnList(Row row) {
+
+        List<CqlColumnImpl<C>> list = new ArrayList<CqlColumnImpl<C>>();
+
+        List<Definition> colDefs = row.getColumnDefinitions().asList();
+        int index = 0;
+
+        for (Definition colDef : colDefs) {
+            C columnName = (C) colDef.getName();
+            list.add(new CqlColumnImpl<C>(columnName, row, index, colDef));
+            index++;
+        }
+
+        return new CqlColumnListImpl<C>(list);
+    }
 }

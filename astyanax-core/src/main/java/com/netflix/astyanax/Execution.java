@@ -26,7 +26,7 @@ import com.netflix.astyanax.connectionpool.exceptions.ConnectionException;
  * 
  * @author elandau
  */
-public interface Execution<R>  {
+public interface Execution<R> {
     /**
      * Block while executing the operations
      *

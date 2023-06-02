@@ -32,10 +32,10 @@ public class LifecycleEvents<T> {
     private Method postRemove;
     private Method preRemove;
     private Method postLoad;
-    
+
     public LifecycleEvents(Class<T> clazz) {
         this.clazz = clazz;
-        
+
         for (Method method : this.clazz.getDeclaredMethods()) {
             if (method.isAnnotationPresent(PrePersist.class)) {
                 Preconditions.checkState(prePersist == null, "Duplicate PrePersist annotation on " + method.getName());
@@ -70,29 +70,29 @@ public class LifecycleEvents<T> {
             prePersist.invoke(obj);
         }
     }
-    
+
     public void onPostPersist(T obj) throws Exception {
         if (postPersist != null) {
             postPersist.invoke(obj);
         }
     }
-    
+
     public void onPreRemove(T obj) throws Exception {
         if (preRemove != null) {
             preRemove.invoke(obj);
         }
     }
-    
+
     public void onPostRemove(T obj) throws Exception {
         if (postRemove != null) {
             postRemove.invoke(obj);
         }
     }
-    
+
     public void onPostLoad(T obj) throws Exception {
         if (postLoad != null) {
             postLoad.invoke(obj);
         }
     }
-    
+
 }

@@ -62,7 +62,7 @@ public class ThriftSyncConnectionFactoryImpl implements ConnectionFactory<Cassan
     private static final Logger LOG = LoggerFactory.getLogger(ThriftSyncConnectionFactoryImpl.class);
     private final static ExecutorService executor = Executors.newCachedThreadPool(new ThreadFactoryBuilder().setDaemon(true)
             .build());
-    
+
     private final AtomicLong idCounter = new AtomicLong(0);
     private final RateLimiter limiter;
     private final ConnectionPoolConfiguration cpConfig;
@@ -88,7 +88,7 @@ public class ThriftSyncConnectionFactoryImpl implements ConnectionFactory<Cassan
 
         return new ThriftConnection(pool, asConfig.getMaxThriftSize());
     }
-    
+
     public class ThriftConnection implements Connection<Cassandra.Client> {
         private final long id = idCounter.incrementAndGet();
         private Cassandra.Client cassandraClient;
@@ -105,12 +105,12 @@ public class ThriftSyncConnectionFactoryImpl implements ConnectionFactory<Cassan
         private final HostConnectionPool<Cassandra.Client> pool;
 
         private Map<String, Object> metadata = Maps.newHashMap();
-        
+
         public ThriftConnection(HostConnectionPool<Cassandra.Client> pool, int maxThriftSizeVal) {
             this.pool = pool;
             this.maxThriftSize = maxThriftSizeVal;
         }
-        
+
         @Override
         public <R> OperationResult<R> execute(Operation<Cassandra.Client, R> op) throws ConnectionException {
             long startTime = System.nanoTime();
@@ -144,8 +144,8 @@ public class ThriftSyncConnectionFactoryImpl implements ConnectionFactory<Cassan
                     throw lastException;
                 }
                 startTime = System.nanoTime(); // We don't want to include
-                                               // the set_keyspace in our
-                                               // latency calculation
+                // the set_keyspace in our
+                // latency calculation
             }
 
             // Execute the operation
@@ -176,12 +176,13 @@ public class ThriftSyncConnectionFactoryImpl implements ConnectionFactory<Cassan
             long startTime = System.currentTimeMillis();
             try {
                 final SSLConnectionContext sslCxt = cpConfig.getSSLConnectionContext();
-                if(sslCxt != null) {
+                if (sslCxt != null) {
                     TSSLTransportParameters params = new TSSLTransportParameters(sslCxt.getSslProtocol(), sslCxt.getSslCipherSuites().toArray(new String[0]));
                     params.setTrustStore(sslCxt.getSslTruststore(), sslCxt.getSslTruststorePassword());
                     //thrift's SSL implementation does not allow you set the socket connect timeout, only read timeout
                     socket = TSSLTransportFactory.getClientSocket(getHost().getIpAddress(), getHost().getPort(), cpConfig.getSocketTimeout(), params);
-                } else {
+                }
+                else {
                     socket = new TSocket(getHost().getIpAddress(), getHost().getPort(), cpConfig.getConnectTimeout());
                 }
 
@@ -191,7 +192,7 @@ public class ThriftSyncConnectionFactoryImpl implements ConnectionFactory<Cassan
 
                 setTimeout(cpConfig.getSocketTimeout());
                 transport = new TFramedTransport(socket, maxThriftSize);
-                if(!transport.isOpen())
+                if (!transport.isOpen())
                     transport.open();
 
                 cassandraClient = new Cassandra.Client(new TBinaryProtocol.Factory().getProtocol(transport));

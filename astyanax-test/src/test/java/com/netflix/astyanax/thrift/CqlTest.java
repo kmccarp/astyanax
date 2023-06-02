@@ -112,9 +112,9 @@ public class CqlTest {
         }
 
         keyspace.createKeyspace(ImmutableMap
-                .<String, Object> builder()
+                .<String, Object>builder()
                 .put("strategy_options",
-                        ImmutableMap.<String, Object> builder()
+                        ImmutableMap.<String, Object>builder()
                                 .put("replication_factor", "1").build())
                 .put("strategy_class", "SimpleStrategy").build());
 

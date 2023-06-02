@@ -45,25 +45,25 @@ public interface MessageQueue {
      * @return  Number of messages, including messages currently being processed
      */
     long getMessageCount() throws MessageQueueException;
-    
+
     /**
      * Clear all messages in the queue
      * @throws MessageQueueException
      */
     void clearMessages() throws MessageQueueException;
-    
+
     /**
      * Create the underlying storage
      * @throws MessageQueueExcewption
      */
     void createStorage() throws MessageQueueException;
-    
+
     /**
      * Destroy the storage associated with this column family
      * @throws MessageQueueException
      */
     void dropStorage() throws MessageQueueException;
-    
+
     /**
      * Create any metadata in the storage necessary for the queue
      * @throws MessageQueueException
@@ -77,7 +77,7 @@ public interface MessageQueue {
      * @throws MessageQueueException
      */
     void deleteQueue() throws MessageQueueException;
-    
+
     /**
      * Read a specific message from the queue.  The message isn't modified or removed from the queue.
      * 
@@ -104,7 +104,7 @@ public interface MessageQueue {
      * @throws MessageQueueException
      */
     Message peekMessageByKey(String key) throws MessageQueueException;
-    
+
     /**
      * Return list of pending associated with the key.  
      * 
@@ -113,7 +113,7 @@ public interface MessageQueue {
      * @throws MessageQueueException
      */
     List<Message> peekMessagesByKey(String key) throws MessageQueueException;
-    
+
     /**
      * Read history for the specified key
      * @param key
@@ -121,14 +121,14 @@ public interface MessageQueue {
      * @throws MessageQueueException
      */
     List<MessageHistory> getKeyHistory(String key, Long startTime, Long endTime, int count) throws MessageQueueException;
-    
+
     /**
      * Delete a specific message from the queue.  
      * @param message
      * @throws MessageQueueException
      */
     void deleteMessage(String messageId) throws MessageQueueException;
-    
+
     /**
      * Delete a message using the specified key.  This operation will require a lookup of key to messageId
      * prior to deleting the message 
@@ -137,14 +137,14 @@ public interface MessageQueue {
      * @throws MessageQueueException
      */
     boolean deleteMessageByKey(String key) throws MessageQueueException;
-    
+
     /**
      * Delete a set of messages
      * @param messageIds
      * @throws MessageQueueException
      */
     void deleteMessages(Collection<String> messageIds) throws MessageQueueException;
-    
+
     /**
      * Get the counts for each shard in the queue.  This is an estimate.
      * This is an expensive operation and should be used sparingly.
@@ -152,7 +152,7 @@ public interface MessageQueue {
      * @throws MessageQueueException
      */
     Map<String, Integer> getShardCounts() throws MessageQueueException;
-    
+
     /**
      * Return a map of shards and their stats for THIS instance of the queue.
      * These counts are only for the lifetime of this instance and are only incremented
@@ -176,7 +176,7 @@ public interface MessageQueue {
      * @throws MessageQueueException
      */
     MessageProducer createProducer();
-    
+
     /**
      * Return the queue's unique name
      * @return

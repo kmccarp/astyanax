@@ -17,8 +17,8 @@ package com.netflix.astyanax.connectionpool.exceptions;
 
 public class AuthenticationException extends OperationException {
     /**
-	 * 
-	 */
+     * 
+     */
     private static final long serialVersionUID = -1376061218661301537L;
 
     /**

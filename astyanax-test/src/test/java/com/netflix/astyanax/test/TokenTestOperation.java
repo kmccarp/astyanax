@@ -28,15 +28,15 @@ public class TokenTestOperation extends TestOperation {
     public TokenTestOperation(ByteBuffer rowKey) {
         this.rowKey = rowKey;
     }
-    
+
     public TokenTestOperation(BigInteger rowKey) {
         this.rowKey = BigIntegerSerializer.get().toByteBuffer(rowKey);
     }
-    
+
     public TokenTestOperation(Long rowKey) {
         this.rowKey = LongSerializer.get().toByteBuffer(rowKey);
     }
-    
+
     @Override
     public ByteBuffer getRowKey() {
         return rowKey.duplicate();

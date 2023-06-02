@@ -79,11 +79,11 @@ public enum ComparatorType {
         return null;
     }
 
-    public static String getShadedClassName(String className){
+    public static String getShadedClassName(String className) {
         return ShadedTypeParser.getShadedClassName(className);
     }
 
-    public static String getShadedTypeName(String typeName){
+    public static String getShadedTypeName(String typeName) {
         return ShadedTypeParser.getShadedTypeName(typeName);
     }
 }

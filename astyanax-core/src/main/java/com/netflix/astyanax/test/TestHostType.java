@@ -347,7 +347,8 @@ public enum TestHostType {
         public void open(long timeout) throws ConnectionException {
             if (++retry == 2) {
                 // success
-            } else {
+            }
+            else {
                 throw new TransportException("TransportException");
             }
         }
@@ -400,7 +401,7 @@ public enum TestHostType {
             think(15000);
         }
     },
-    
+
     SWAP_EVERY_200 {
         private AtomicInteger counter = new AtomicInteger(0);
 
@@ -414,7 +415,7 @@ public enum TestHostType {
             else {
                 think(1);
             }
-            
+
             return new OperationResultImpl<R>(pool.getHost(), op.execute(null, null),
                     0);
         }
@@ -444,9 +445,11 @@ public enum TestHostType {
             double p = new Random().nextDouble();
             if (p < 0.002) {
                 throw new HostDownException("HostDownException");
-            } else if (p < 0.004) {
+            }
+            else if (p < 0.004) {
                 throw new TimeoutException("HostDownException");
-            } else if (p < 0.006) {
+            }
+            else if (p < 0.006) {
                 throw new TransportException("TransportException");
             }
             think(200);

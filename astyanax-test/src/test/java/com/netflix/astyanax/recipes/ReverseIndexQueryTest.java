@@ -177,7 +177,7 @@ public class ReverseIndexQueryTest {
     }
 
     @Test
-    public void testReverseIndex() throws Exception{
+    public void testReverseIndex() throws Exception {
         LOG.info("Starting");
         final AtomicLong counter = new AtomicLong();
 
@@ -204,17 +204,17 @@ public class ReverseIndexQueryTest {
                         return null;
                     }
                 }).forEachIndexEntry(new IndexEntryCallback<Long, Long>() {
-                    @Override
-                    public boolean handleEntry(Long key, Long value,
-                            ByteBuffer meta) {
-                        LOG.info("Row : " + key + " IndexValue: " + value
-                                + " Meta: "
-                                + LongSerializer.get().fromByteBuffer(meta));
-                        if (key % 2 == 1)
-                            return false;
-                        return true;
-                    }
-                }).execute();
+            @Override
+            public boolean handleEntry(Long key, Long value,
+                    ByteBuffer meta) {
+                LOG.info("Row : " + key + " IndexValue: " + value
+                        + " Meta: "
+                        + LongSerializer.get().fromByteBuffer(meta));
+                if (key % 2 == 1)
+                    return false;
+                return true;
+            }
+        }).execute();
 
         LOG.info("Read " + counter.get() + " rows");
     }

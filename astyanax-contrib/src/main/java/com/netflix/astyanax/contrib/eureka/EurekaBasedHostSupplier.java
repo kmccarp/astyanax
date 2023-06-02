@@ -68,17 +68,17 @@ public class EurekaBasedHostSupplier implements Supplier<List<Host>> {
 
         Application app = discoveryClient.getApplication(applicationName);
         List<Host> hosts = Lists.newArrayList();
-        
+
         if (app == null) {
             return hosts;
         }
-        
+
         List<InstanceInfo> ins = app.getInstances();
-        
+
         if (ins == null || ins.isEmpty()) {
             return hosts;
         }
-        
+
         hosts = Lists.newArrayList(Collections2.transform(
                 Collections2.filter(ins, new Predicate<InstanceInfo>() {
                     @Override
@@ -92,15 +92,15 @@ public class EurekaBasedHostSupplier implements Supplier<List<Host>> {
                                 StringUtils.split(info.getHostName(), ".")[0], '-');
 
                         Host host = new Host(info.getHostName(), info.getPort())
-                        .addAlternateIpAddress(
-                                StringUtils.join(new String[] { parts[1], parts[2], parts[3],
-                                        parts[4] }, "."))
-                                        .addAlternateIpAddress(info.getIPAddr())
-                                        .setId(info.getId());
+                                .addAlternateIpAddress(
+                                        StringUtils.join(new String[]{parts[1], parts[2], parts[3],
+                                                parts[4]}, "."))
+                                .addAlternateIpAddress(info.getIPAddr())
+                                .setId(info.getId());
 
                         try {
                             if (info.getDataCenterInfo() instanceof AmazonInfo) {
-                                AmazonInfo amazonInfo = (AmazonInfo)info.getDataCenterInfo();
+                                AmazonInfo amazonInfo = (AmazonInfo) info.getDataCenterInfo();
                                 host.setRack(amazonInfo.get(MetaDataKey.availabilityZone));
                             }
                         }

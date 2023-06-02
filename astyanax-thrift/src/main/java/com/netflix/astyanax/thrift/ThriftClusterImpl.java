@@ -54,7 +54,7 @@ import com.netflix.astyanax.thrift.ddl.*;
 
 public class ThriftClusterImpl implements Cluster {
     private static final Logger LOG = LoggerFactory.getLogger(ThriftClusterImpl.class);
-    
+
     private static final int MAX_SCHEMA_CHANGE_ATTEMPTS = 6;
     private static final int SCHEMA_DISAGREEMENT_BACKOFF = 10000;
 
@@ -64,13 +64,13 @@ public class ThriftClusterImpl implements Cluster {
     private final KeyspaceTracerFactory tracerFactory;
 
     public ThriftClusterImpl(
-            AstyanaxConfiguration config, 
+            AstyanaxConfiguration config,
             ConnectionPool<Cassandra.Client> connectionPool,
             KeyspaceTracerFactory tracerFactory) {
-        this.config         = config;
+        this.config = config;
         this.connectionPool = connectionPool;
-        this.tracerFactory  = tracerFactory;
-        this.keyspaces      = Maps.newConcurrentMap();
+        this.tracerFactory = tracerFactory;
+        this.keyspaces = Maps.newConcurrentMap();
     }
 
     @Override
@@ -215,15 +215,15 @@ public class ThriftClusterImpl implements Cluster {
         return internalCreateColumnFamily(((ThriftColumnFamilyDefinitionImpl) def)
                 .getThriftColumnFamilyDefinition());
     }
-    
+
     @Override
     public OperationResult<SchemaChangeResult> createColumnFamily(final Map<String, Object> options) throws ConnectionException {
         final ThriftColumnFamilyDefinitionImpl def = new ThriftColumnFamilyDefinitionImpl();
         def.setFields(options);
-        
+
         return internalCreateColumnFamily(def.getThriftColumnFamilyDefinition());
     }
-    
+
     @Override
     public OperationResult<SchemaChangeResult> createColumnFamily(final Properties props) throws ConnectionException {
         final CfDef def;
@@ -232,10 +232,10 @@ public class ThriftClusterImpl implements Cluster {
         } catch (Exception e) {
             throw new BadRequestException("Error converting properties to CfDef", e);
         }
-        
+
         return internalCreateColumnFamily(def);
     }
-    
+
     private OperationResult<SchemaChangeResult> internalCreateColumnFamily(final CfDef def) throws ConnectionException {
         return executeSchemaChangeOperation(new AbstractKeyspaceOperationImpl<SchemaChangeResult>(
                 tracerFactory.newTracer(CassandraOperationType.ADD_COLUMN_FAMILY), def.getKeyspace()) {
@@ -243,7 +243,7 @@ public class ThriftClusterImpl implements Cluster {
             public SchemaChangeResult internalExecute(Client client, ConnectionContext context) throws Exception {
                 precheckSchemaAgreement(client);
                 return new SchemaChangeResponseImpl()
-                    .setSchemaId(client.system_add_column_family(def));
+                        .setSchemaId(client.system_add_column_family(def));
             }
         });
     }
@@ -252,12 +252,12 @@ public class ThriftClusterImpl implements Cluster {
     public OperationResult<SchemaChangeResult>  updateColumnFamily(final ColumnFamilyDefinition def) throws ConnectionException {
         return internalColumnFamily(((ThriftColumnFamilyDefinitionImpl) def).getThriftColumnFamilyDefinition());
     }
-    
+
     @Override
-    public OperationResult<SchemaChangeResult> updateColumnFamily(final Map<String, Object> options) throws ConnectionException  {
+    public OperationResult<SchemaChangeResult> updateColumnFamily(final Map<String, Object> options) throws ConnectionException {
         final ThriftColumnFamilyDefinitionImpl def = new ThriftColumnFamilyDefinitionImpl();
         def.setFields(options);
-        
+
         return internalColumnFamily(def.getThriftColumnFamilyDefinition());
     }
 
@@ -269,10 +269,10 @@ public class ThriftClusterImpl implements Cluster {
         } catch (Exception e) {
             throw new BadRequestException("Error converting properties to CfDef", e);
         }
-        
+
         return internalColumnFamily(def);
     }
-    
+
     private OperationResult<SchemaChangeResult>  internalColumnFamily(final CfDef def) throws ConnectionException {
         return executeSchemaChangeOperation(new AbstractKeyspaceOperationImpl<SchemaChangeResult>(
                 tracerFactory.newTracer(CassandraOperationType.UPDATE_COLUMN_FAMILY), def.getKeyspace()) {
@@ -293,12 +293,12 @@ public class ThriftClusterImpl implements Cluster {
     public OperationResult<SchemaChangeResult>  addKeyspace(final KeyspaceDefinition def) throws ConnectionException {
         return internalCreateKeyspace(((ThriftKeyspaceDefinitionImpl) def).getThriftKeyspaceDefinition());
     }
-    
+
     @Override
-    public OperationResult<SchemaChangeResult> createKeyspace(final Map<String, Object> options) throws ConnectionException  {
+    public OperationResult<SchemaChangeResult> createKeyspace(final Map<String, Object> options) throws ConnectionException {
         final ThriftKeyspaceDefinitionImpl def = new ThriftKeyspaceDefinitionImpl();
         def.setFields(options);
-        
+
         return internalCreateKeyspace(def.getThriftKeyspaceDefinition());
     }
 
@@ -313,10 +313,10 @@ public class ThriftClusterImpl implements Cluster {
         } catch (Exception e) {
             throw new BadRequestException("Error converting properties to KsDef", e);
         }
-        
+
         return internalCreateKeyspace(def);
     }
-    
+
     private OperationResult<SchemaChangeResult> internalCreateKeyspace(final KsDef def) throws ConnectionException {
         return executeSchemaChangeOperation(new AbstractOperationImpl<SchemaChangeResult>(
                 tracerFactory.newTracer(CassandraOperationType.ADD_KEYSPACE)) {
@@ -324,7 +324,7 @@ public class ThriftClusterImpl implements Cluster {
             public SchemaChangeResult internalExecute(Client client, ConnectionContext context) throws Exception {
                 precheckSchemaAgreement(client);
                 return new SchemaChangeResponseImpl()
-                    .setSchemaId(client.system_add_keyspace(def));
+                        .setSchemaId(client.system_add_keyspace(def));
             }
         });
     }
@@ -333,16 +333,16 @@ public class ThriftClusterImpl implements Cluster {
     public OperationResult<SchemaChangeResult>  updateKeyspace(final KeyspaceDefinition def) throws ConnectionException {
         return internalUpdateKeyspace(((ThriftKeyspaceDefinitionImpl) def).getThriftKeyspaceDefinition());
     }
-    
+
     @Override
-    public OperationResult<SchemaChangeResult> updateKeyspace(final Map<String, Object> options) throws ConnectionException  {
+    public OperationResult<SchemaChangeResult> updateKeyspace(final Map<String, Object> options) throws ConnectionException {
         final ThriftKeyspaceDefinitionImpl def = new ThriftKeyspaceDefinitionImpl();
         try {
             def.setFields(options);
         } catch (Exception e) {
             throw new BadRequestException("Error converting properties to KsDef", e);
         }
-        
+
         return internalUpdateKeyspace(def.getThriftKeyspaceDefinition());
     }
 
@@ -380,9 +380,9 @@ public class ThriftClusterImpl implements Cluster {
     public AstyanaxConfiguration getConfig() {
         return config;
     }
-    
+
     @Override
-    public OperationResult<SchemaChangeResult> dropColumnFamily(final String keyspaceName, final String columnFamilyName) throws ConnectionException  {
+    public OperationResult<SchemaChangeResult> dropColumnFamily(final String keyspaceName, final String columnFamilyName) throws ConnectionException {
         return connectionPool
                 .executeWithFailover(
                         new AbstractKeyspaceOperationImpl<SchemaChangeResult>(
@@ -396,7 +396,7 @@ public class ThriftClusterImpl implements Cluster {
     }
 
     @Override
-    public OperationResult<SchemaChangeResult> dropKeyspace(final String keyspaceName) throws ConnectionException  {
+    public OperationResult<SchemaChangeResult> dropKeyspace(final String keyspaceName) throws ConnectionException {
         return connectionPool
                 .executeWithFailover(
                         new AbstractKeyspaceOperationImpl<SchemaChangeResult>(
@@ -414,7 +414,7 @@ public class ThriftClusterImpl implements Cluster {
         List<KeyspaceDefinition> keyspaces = this.describeKeyspaces();
         Properties props = new Properties();
         for (KeyspaceDefinition ksDef : keyspaces) {
-            ThriftKeyspaceDefinitionImpl thriftKsDef = (ThriftKeyspaceDefinitionImpl)ksDef;
+            ThriftKeyspaceDefinitionImpl thriftKsDef = (ThriftKeyspaceDefinitionImpl) ksDef;
             try {
                 for (Entry<Object, Object> prop : thriftKsDef.getProperties().entrySet()) {
                     props.setProperty(ksDef.getName() + "." + prop.getKey(), (String) prop.getValue());
@@ -430,12 +430,12 @@ public class ThriftClusterImpl implements Cluster {
         KeyspaceDefinition ksDef = this.describeKeyspace(keyspace);
         if (ksDef == null)
             throw new NotFoundException(String.format("Keyspace '%s' not found", keyspace));
-        
+
         Properties props = new Properties();
-        ThriftKeyspaceDefinitionImpl thriftKsDef = (ThriftKeyspaceDefinitionImpl)ksDef;
+        ThriftKeyspaceDefinitionImpl thriftKsDef = (ThriftKeyspaceDefinitionImpl) ksDef;
         try {
             for (Entry<Object, Object> prop : thriftKsDef.getProperties().entrySet()) {
-                props.setProperty((String)prop.getKey(), (String) prop.getValue());
+                props.setProperty((String) prop.getKey(), (String) prop.getValue());
             }
         } catch (Exception e) {
             LOG.error(String.format("Error fetching properties for keyspace '%s'", keyspace));
@@ -449,19 +449,19 @@ public class ThriftClusterImpl implements Cluster {
         ColumnFamilyDefinition cfDef = ksDef.getColumnFamily(columnFamily);
         if (cfDef == null)
             throw new NotFoundException(String.format("Column family '%s' in keyspace '%s' not found", columnFamily, keyspace));
-        
+
         Properties props = new Properties();
-        ThriftColumnFamilyDefinitionImpl thriftCfDef = (ThriftColumnFamilyDefinitionImpl)cfDef;
+        ThriftColumnFamilyDefinitionImpl thriftCfDef = (ThriftColumnFamilyDefinitionImpl) cfDef;
         try {
             for (Entry<Object, Object> prop : thriftCfDef.getProperties().entrySet()) {
-                props.setProperty((String)prop.getKey(), (String) prop.getValue());
+                props.setProperty((String) prop.getKey(), (String) prop.getValue());
             }
         } catch (Exception e) {
             LOG.error("Error processing column family properties");
         }
         return props;
     }
-    
+
     /**
      * Do a quick check to see if there is a schema disagreement.  This is done as an extra precaution
      * to reduce the chances of putting the cluster into a bad state.  This will not gurantee however, that 

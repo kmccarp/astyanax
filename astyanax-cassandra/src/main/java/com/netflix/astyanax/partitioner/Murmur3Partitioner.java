@@ -30,20 +30,20 @@ public class Murmur3Partitioner implements Partitioner {
     public static final BigInteger MINIMUM = new BigInteger(Long.toString(Long.MIN_VALUE));
     public static final BigInteger MAXIMUM = new BigInteger(Long.toString(Long.MAX_VALUE));
 
-    public static final BigInteger ONE     = new BigInteger("1");
-    
+    public static final BigInteger ONE = new BigInteger("1");
+
     private static final com.netflix.astyanax.shaded.org.apache.cassandra.dht.Murmur3Partitioner partitioner =
             new com.netflix.astyanax.shaded.org.apache.cassandra.dht.Murmur3Partitioner();
     private static final Murmur3Partitioner instance = new Murmur3Partitioner();
-    
+
     public static Partitioner get() {
         return instance;
     }
-    
+
     private Murmur3Partitioner() {
-        
+
     }
-    
+
     @Override
     public String getMinToken() {
         return MINIMUM.toString();
@@ -59,7 +59,7 @@ public class Murmur3Partitioner implements Partitioner {
         if (first.equals(last)) {
             last = getTokenMinusOne(last);
         }
-        
+
         List<TokenRange> tokens = Lists.newArrayList();
         List<String> splits = splitRange(new BigInteger(first), new BigInteger(last), count);
         Iterator<String> iter = splits.iterator();
@@ -81,7 +81,7 @@ public class Murmur3Partitioner implements Partitioner {
     public String getTokenForKey(ByteBuffer key) {
         return partitioner.getToken(key).toString();
     }
-    
+
     public <T> String getTokenForKey(T key, Serializer<T> serializer) {
         return partitioner.getToken(serializer.toByteBuffer(key)).toString();
     }
@@ -99,9 +99,9 @@ public class Murmur3Partitioner implements Partitioner {
     public static List<String> splitRange(BigInteger first, BigInteger last, int count) {
         List<String> tokens = Lists.newArrayList();
         tokens.add(first.toString());
-        BigInteger delta = (last.subtract(first).divide(BigInteger.valueOf((long)count)));
+        BigInteger delta = (last.subtract(first).divide(BigInteger.valueOf((long) count)));
         BigInteger current = first;
-        for (int i = 0; i < count-1; i++) {
+        for (int i = 0; i < count - 1; i++) {
             current = current.add(delta);
             tokens.add(current.toString());
         }

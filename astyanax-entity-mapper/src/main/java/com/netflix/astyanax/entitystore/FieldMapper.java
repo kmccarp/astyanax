@@ -41,21 +41,21 @@ public class FieldMapper<T> {
         ASC,
         DESC,
     }
-    
+
     public FieldMapper(final Field field) {
         this(field, null);
     }
-    
+
     public FieldMapper(final Field field, ByteBuffer prefix) {
-        
+
         if (prefix != null) {
-            this.serializer   = new PrefixedSerializer<ByteBuffer, T>(prefix, ByteBufferSerializer.get(), (Serializer<T>) MappingUtils.getSerializerForField(field));
+            this.serializer = new PrefixedSerializer<ByteBuffer, T>(prefix, ByteBufferSerializer.get(), (Serializer<T>) MappingUtils.getSerializerForField(field));
         }
         else {
-            this.serializer       = (Serializer<T>) MappingUtils.getSerializerForField(field);
+            this.serializer = (Serializer<T>) MappingUtils.getSerializerForField(field);
         }
-        this.field            = field;
-        
+        this.field = field;
+
         Column columnAnnotation = field.getAnnotation(Column.class);
         if (columnAnnotation == null || columnAnnotation.name().isEmpty()) {
             name = field.getName();
@@ -63,7 +63,7 @@ public class FieldMapper<T> {
         else {
             name = columnAnnotation.name();
         }
-        
+
         OrderBy orderByAnnotation = field.getAnnotation(OrderBy.class);
         if (orderByAnnotation == null) {
             reversed = false;
@@ -77,27 +77,27 @@ public class FieldMapper<T> {
     public Serializer<?> getSerializer() {
         return serializer;
     }
-    
+
     public ByteBuffer toByteBuffer(Object entity) throws IllegalArgumentException, IllegalAccessException {
         return serializer.toByteBuffer(getValue(entity));
     }
-    
+
     public T fromByteBuffer(ByteBuffer buffer) {
         return serializer.fromByteBuffer(buffer);
     }
-    
+
     public T getValue(Object entity) throws IllegalArgumentException, IllegalAccessException {
-        return (T)field.get(entity);
+        return (T) field.get(entity);
     }
-    
+
     public ByteBuffer valueToByteBuffer(Object value) {
-        return serializer.toByteBuffer((T)value);
+        return serializer.toByteBuffer((T) value);
     }
-    
+
     public void setValue(Object entity, Object value) throws IllegalArgumentException, IllegalAccessException {
         field.set(entity, value);
     }
-    
+
     public void setField(Object entity, ByteBuffer buffer) throws IllegalArgumentException, IllegalAccessException {
         field.set(entity, fromByteBuffer(buffer));
     }
@@ -105,11 +105,11 @@ public class FieldMapper<T> {
     public boolean isAscending() {
         return reversed == false;
     }
-    
+
     public boolean isDescending() {
         return reversed == true;
     }
-    
+
     public String getName() {
         return name;
     }

@@ -25,325 +25,325 @@ import com.netflix.astyanax.thrift.ThriftFamilyFactory;
 import com.netflix.astyanax.util.SingletonEmbeddedCassandra;
 
 public class DefaultEntityManagerTtlTest {
-	
-	private static Keyspace                  keyspace;
-	private static AstyanaxContext<Keyspace> keyspaceContext;
 
-	private static String TEST_CLUSTER_NAME  = "junit_cass_sandbox";
-	private static String TEST_KEYSPACE_NAME = "EntityPersisterTestKeyspace";
-	private static final String SEEDS = "localhost:9160";
+    private static Keyspace                  keyspace;
+    private static AstyanaxContext<Keyspace> keyspaceContext;
 
-	public static ColumnFamily<String, String> CF_SAMPLE_ENTITY = ColumnFamily.newColumnFamily(
-			"SampleEntityColumnFamily", 
-			StringSerializer.get(),
-			StringSerializer.get());
+    private static String TEST_CLUSTER_NAME = "junit_cass_sandbox";
+    private static String TEST_KEYSPACE_NAME = "EntityPersisterTestKeyspace";
+    private static final String SEEDS = "localhost:9160";
 
-	public static ColumnFamily<String, String> CF_SIMPLE_ENTITY = ColumnFamily.newColumnFamily(
-			"SimpleEntityColumnFamily", 
-			StringSerializer.get(),
-			StringSerializer.get());
+    public static ColumnFamily<String, String> CF_SAMPLE_ENTITY = ColumnFamily.newColumnFamily(
+            "SampleEntityColumnFamily",
+            StringSerializer.get(),
+            StringSerializer.get());
 
-	@BeforeClass
-	public static void setup() throws Exception {
+    public static ColumnFamily<String, String> CF_SIMPLE_ENTITY = ColumnFamily.newColumnFamily(
+            "SimpleEntityColumnFamily",
+            StringSerializer.get(),
+            StringSerializer.get());
 
-		SingletonEmbeddedCassandra.getInstance();
+    @BeforeClass
+    public static void setup() throws Exception {
 
-		Thread.sleep(1000 * 3);
+        SingletonEmbeddedCassandra.getInstance();
 
-		createKeyspace();
+        Thread.sleep(1000 * 3);
 
-		Thread.sleep(1000 * 3);
-	}
+        createKeyspace();
 
-	@AfterClass
-	public static void teardown() throws Exception {
-		if (keyspaceContext != null)
-			keyspaceContext.shutdown();
+        Thread.sleep(1000 * 3);
+    }
 
-		Thread.sleep(1000 * 10);
-	}
+    @AfterClass
+    public static void teardown() throws Exception {
+        if (keyspaceContext != null)
+            keyspaceContext.shutdown();
 
-	private static void createKeyspace() throws Exception {
-		keyspaceContext = new AstyanaxContext.Builder()
-		.forCluster(TEST_CLUSTER_NAME)
-		.forKeyspace(TEST_KEYSPACE_NAME)
-		.withAstyanaxConfiguration(
-				new AstyanaxConfigurationImpl()
-				.setDiscoveryType(NodeDiscoveryType.RING_DESCRIBE)
-				.setConnectionPoolType(ConnectionPoolType.ROUND_ROBIN))
-				.withConnectionPoolConfiguration(
-						new ConnectionPoolConfigurationImpl(TEST_CLUSTER_NAME
-								+ "_" + TEST_KEYSPACE_NAME)
-						.setSocketTimeout(30000)
-						.setMaxTimeoutWhenExhausted(2000)
-						.setMaxConnsPerHost(20)
-						.setInitConnsPerHost(10)
-						.setSeeds(SEEDS))
-						.withConnectionPoolMonitor(new CountingConnectionPoolMonitor())
-						.buildKeyspace(ThriftFamilyFactory.getInstance());
+        Thread.sleep(1000 * 10);
+    }
 
-		keyspaceContext.start();
+    private static void createKeyspace() throws Exception {
+        keyspaceContext = new AstyanaxContext.Builder()
+                .forCluster(TEST_CLUSTER_NAME)
+                .forKeyspace(TEST_KEYSPACE_NAME)
+                .withAstyanaxConfiguration(
+                        new AstyanaxConfigurationImpl()
+                                .setDiscoveryType(NodeDiscoveryType.RING_DESCRIBE)
+                                .setConnectionPoolType(ConnectionPoolType.ROUND_ROBIN))
+                .withConnectionPoolConfiguration(
+                        new ConnectionPoolConfigurationImpl(TEST_CLUSTER_NAME
+                                + "_" + TEST_KEYSPACE_NAME)
+                                .setSocketTimeout(30000)
+                                .setMaxTimeoutWhenExhausted(2000)
+                                .setMaxConnsPerHost(20)
+                                .setInitConnsPerHost(10)
+                                .setSeeds(SEEDS))
+                .withConnectionPoolMonitor(new CountingConnectionPoolMonitor())
+                .buildKeyspace(ThriftFamilyFactory.getInstance());
 
-		keyspace = keyspaceContext.getEntity();
+        keyspaceContext.start();
 
-		try {
-			keyspace.dropKeyspace();
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
+        keyspace = keyspaceContext.getEntity();
 
-		keyspace.createKeyspace(ImmutableMap.<String, Object>builder()
-				.put("strategy_options", ImmutableMap.<String, Object>builder()
-						.put("replication_factor", "1")
-						.build())
-						.put("strategy_class",     "SimpleStrategy")
-						.build()
-				);
+        try {
+            keyspace.dropKeyspace();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
 
-		keyspace.createColumnFamily(CF_SAMPLE_ENTITY, null);
-		keyspace.createColumnFamily(CF_SIMPLE_ENTITY, null);
-	}
-	
-	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	
-	@Entity
-	@TTL(2)
-	private static class TtlEntity {
-	    @Id
-	    private String id;
-	    
-	    @Column
-	    private String column;
-	    
-	    public TtlEntity() {
-	        
-	    }
+        keyspace.createKeyspace(ImmutableMap.<String, Object>builder()
+                .put("strategy_options", ImmutableMap.<String, Object>builder()
+                        .put("replication_factor", "1")
+                        .build())
+                .put("strategy_class", "SimpleStrategy")
+                .build()
+        );
 
-	    public String getId() {
-	        return id;
-	    }
+        keyspace.createColumnFamily(CF_SAMPLE_ENTITY, null);
+        keyspace.createColumnFamily(CF_SIMPLE_ENTITY, null);
+    }
 
-	    public void setId(String id) {
-	        this.id = id;
-	    }
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    @Entity
+    @TTL(2)
+    private static class TtlEntity {
+        @Id
+        private String id;
 
-	    public String getColumn() {
-	        return column;
-	    }
+        @Column
+        private String column;
 
-	    public void setColumn(String column) {
-	        this.column = column;
-	    }
-	    
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
-				return false;
-			TtlEntity other = (TtlEntity) obj;
-			if(id.equals(other.id) && column.equals(other.column))
-				return true;
-			else
-				return false;
-		}
+        public TtlEntity() {
 
-	    @Override
-	    public String toString() {
-	        return "SimpleEntity [id=" + id + ", column=" + column + "]";
-	    }
-	}
+        }
 
-	private TtlEntity createTtlEntity(String id) {
-		TtlEntity e = new TtlEntity();
-		e.setId(id);
-		e.setColumn(RandomStringUtils.randomAlphanumeric(4));
-		return e;
-	}
-	
-	@Test
-	public void testTtlClassAnnotation() throws Exception {
-		final String id = "testTtlClassAnnotation";
-		EntityManager<TtlEntity, String> entityPersister = new DefaultEntityManager.Builder<TtlEntity, String>()
-				.withEntityType(TtlEntity.class)
-				.withKeyspace(keyspace)
-				.withColumnFamily(CF_SAMPLE_ENTITY)
-				.build();
-		TtlEntity origEntity = createTtlEntity(id);
+        public String getId() {
+            return id;
+        }
 
-		entityPersister.put(origEntity);
+        public void setId(String id) {
+            this.id = id;
+        }
 
-		// use low-level astyanax API to confirm the write
-		{
-			ColumnList<String> cl = keyspace.prepareQuery(CF_SAMPLE_ENTITY).getKey(id).execute().getResult();
-			// test column number
-			Assert.assertEquals(1, cl.size());
-			// test column value
-			Assert.assertEquals(origEntity.getColumn(), cl.getColumnByName("column").getStringValue());
-			// custom ttl
-			Assert.assertEquals(2, cl.getColumnByName("column").getTtl());
-		}
+        public String getColumn() {
+            return column;
+        }
 
-		TtlEntity getEntity = entityPersister.get(id);
-		Assert.assertEquals(id, getEntity.getId());
-		Assert.assertEquals(origEntity, getEntity);
+        public void setColumn(String column) {
+            this.column = column;
+        }
 
-		// entity should expire after 3s since TTL is 2s in annotation
-		Thread.sleep(1000 * 3);
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            TtlEntity other = (TtlEntity) obj;
+            if (id.equals(other.id) && column.equals(other.column))
+                return true;
+            else
+                return false;
+        }
 
-		// use low-level astyanax API to confirm the TTL expiration
-		{
-			ColumnList<String> cl = keyspace.prepareQuery(CF_SAMPLE_ENTITY).getKey(id).execute().getResult();
-			Assert.assertEquals(0, cl.size());
-		}
-	}
-	
-	@Test
-	public void testConstructorTtlOverride() throws Exception {
-		final String id = "testConstructorTtlOverride";
-		EntityManager<TtlEntity, String> entityPersister = new DefaultEntityManager.Builder<TtlEntity, String>()
-				.withEntityType(TtlEntity.class)
-				.withKeyspace(keyspace)
-				.withColumnFamily(CF_SAMPLE_ENTITY)
-				.withTTL(5)
-				.build();
-		TtlEntity origEntity = createTtlEntity(id);
+        @Override
+        public String toString() {
+            return "SimpleEntity [id=" + id + ", column=" + column + "]";
+        }
+    }
 
-		entityPersister.put(origEntity);
+    private TtlEntity createTtlEntity(String id) {
+        TtlEntity e = new TtlEntity();
+        e.setId(id);
+        e.setColumn(RandomStringUtils.randomAlphanumeric(4));
+        return e;
+    }
 
-		// use low-level astyanax API to confirm the write
-		{
-			ColumnList<String> cl = keyspace.prepareQuery(CF_SAMPLE_ENTITY).getKey(id).execute().getResult();
-			// test column number
-			Assert.assertEquals(1, cl.size());
-			// test column value
-			Assert.assertEquals(origEntity.getColumn(), cl.getColumnByName("column").getStringValue());
-			// custom ttl
-			Assert.assertEquals(5, cl.getColumnByName("column").getTtl());
-		}
+    @Test
+    public void testTtlClassAnnotation() throws Exception {
+        final String id = "testTtlClassAnnotation";
+        EntityManager<TtlEntity, String> entityPersister = new DefaultEntityManager.Builder<TtlEntity, String>()
+                .withEntityType(TtlEntity.class)
+                .withKeyspace(keyspace)
+                .withColumnFamily(CF_SAMPLE_ENTITY)
+                .build();
+        TtlEntity origEntity = createTtlEntity(id);
 
-		TtlEntity getEntity = entityPersister.get(id);
-		Assert.assertEquals(origEntity, getEntity);
+        entityPersister.put(origEntity);
 
-		// entity should still be alive after 3s since TTL is overriden to 5s
-		Thread.sleep(1000 * 3);
-		
-		getEntity = entityPersister.get(id);
-		Assert.assertEquals(origEntity, getEntity);
-		
-		// entity should expire after 3s since 6s have passed with 5s TTL
-		Thread.sleep(1000 * 3);
+        // use low-level astyanax API to confirm the write
+        {
+            ColumnList<String> cl = keyspace.prepareQuery(CF_SAMPLE_ENTITY).getKey(id).execute().getResult();
+            // test column number
+            Assert.assertEquals(1, cl.size());
+            // test column value
+            Assert.assertEquals(origEntity.getColumn(), cl.getColumnByName("column").getStringValue());
+            // custom ttl
+            Assert.assertEquals(2, cl.getColumnByName("column").getTtl());
+        }
 
-		// use low-level astyanax API to confirm the TTL expiration
-		{
-			ColumnList<String> cl = keyspace.prepareQuery(CF_SAMPLE_ENTITY).getKey(id).execute().getResult();
-			Assert.assertEquals(0, cl.size());
-		}
-	}
-	
-	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	
-	@Entity
-	private static class MethodTtlEntity {
-	    @Id
-	    private String id;
-	    
-	    @Column
-	    private String column;
-	    
-	    public MethodTtlEntity() {
-	        
-	    }
+        TtlEntity getEntity = entityPersister.get(id);
+        Assert.assertEquals(id, getEntity.getId());
+        Assert.assertEquals(origEntity, getEntity);
 
-		public String getId() {
-	        return id;
-	    }
+        // entity should expire after 3s since TTL is 2s in annotation
+        Thread.sleep(1000 * 3);
 
-	    public void setId(String id) {
-	        this.id = id;
-	    }
+        // use low-level astyanax API to confirm the TTL expiration
+        {
+            ColumnList<String> cl = keyspace.prepareQuery(CF_SAMPLE_ENTITY).getKey(id).execute().getResult();
+            Assert.assertEquals(0, cl.size());
+        }
+    }
 
-	    public String getColumn() {
-	        return column;
-	    }
+    @Test
+    public void testConstructorTtlOverride() throws Exception {
+        final String id = "testConstructorTtlOverride";
+        EntityManager<TtlEntity, String> entityPersister = new DefaultEntityManager.Builder<TtlEntity, String>()
+                .withEntityType(TtlEntity.class)
+                .withKeyspace(keyspace)
+                .withColumnFamily(CF_SAMPLE_ENTITY)
+                .withTTL(5)
+                .build();
+        TtlEntity origEntity = createTtlEntity(id);
 
-	    public void setColumn(String column) {
-	        this.column = column;
-	    }
-	    
-	    @SuppressWarnings("unused")
-		@TTL
-	    public Integer getTTL() {
-	    	return 2;
-	    }
-	    
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
-				return false;
-			MethodTtlEntity other = (MethodTtlEntity) obj;
-			if(id.equals(other.id) && column.equals(other.column))
-				return true;
-			else
-				return false;
-		}
+        entityPersister.put(origEntity);
 
-	    @Override
-	    public String toString() {
-	        return "MethodTtlEntity [id=" + id + ", column=" + column + "]";
-	    }
-	}
-	
-	private MethodTtlEntity createMethodTtlEntity(String id) {
-		MethodTtlEntity e = new MethodTtlEntity();
-		e.setId(id);
-		e.setColumn(RandomStringUtils.randomAlphanumeric(4));
-		return e;
-	}
-	
-	@Test
-	public void testMethodTtlOverride() throws Exception {
-		final String id = "testMethodTtlOverride";
-		EntityManager<MethodTtlEntity, String> entityPersister = new DefaultEntityManager.Builder<MethodTtlEntity, String>()
-				.withEntityType(MethodTtlEntity.class)
-				.withKeyspace(keyspace)
-				.withColumnFamily(CF_SAMPLE_ENTITY)
-				.withTTL(60) // constructor TTL value is 60s
-				.build();
-		MethodTtlEntity origEntity = createMethodTtlEntity(id);
+        // use low-level astyanax API to confirm the write
+        {
+            ColumnList<String> cl = keyspace.prepareQuery(CF_SAMPLE_ENTITY).getKey(id).execute().getResult();
+            // test column number
+            Assert.assertEquals(1, cl.size());
+            // test column value
+            Assert.assertEquals(origEntity.getColumn(), cl.getColumnByName("column").getStringValue());
+            // custom ttl
+            Assert.assertEquals(5, cl.getColumnByName("column").getTtl());
+        }
 
-		entityPersister.put(origEntity);
+        TtlEntity getEntity = entityPersister.get(id);
+        Assert.assertEquals(origEntity, getEntity);
 
-		// use low-level astyanax API to confirm the write
-		{
-			ColumnList<String> cl = keyspace.prepareQuery(CF_SAMPLE_ENTITY).getKey(id).execute().getResult();
-			// test column number
-			Assert.assertEquals(1, cl.size());
-			// test column value
-			Assert.assertEquals(origEntity.getColumn(), cl.getColumnByName("column").getStringValue());
-			// custom ttl
-			Assert.assertEquals(2, cl.getColumnByName("column").getTtl());
-		}
+        // entity should still be alive after 3s since TTL is overriden to 5s
+        Thread.sleep(1000 * 3);
 
-		MethodTtlEntity getEntity = entityPersister.get(id);
-		Assert.assertEquals(id, getEntity.getId());
-		Assert.assertEquals(origEntity, getEntity);
+        getEntity = entityPersister.get(id);
+        Assert.assertEquals(origEntity, getEntity);
 
-		// entity should still be alive after 4s since TTL is overridden to 2s
-		Thread.sleep(1000 * 4);
+        // entity should expire after 3s since 6s have passed with 5s TTL
+        Thread.sleep(1000 * 3);
 
-		// use low-level astyanax API to confirm the TTL expiration
-		{
-			ColumnList<String> cl = keyspace.prepareQuery(CF_SAMPLE_ENTITY).getKey(id).execute().getResult();
-			Assert.assertEquals(0, cl.size());
-		}
-	}
-	
+        // use low-level astyanax API to confirm the TTL expiration
+        {
+            ColumnList<String> cl = keyspace.prepareQuery(CF_SAMPLE_ENTITY).getKey(id).execute().getResult();
+            Assert.assertEquals(0, cl.size());
+        }
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    @Entity
+    private static class MethodTtlEntity {
+        @Id
+        private String id;
+
+        @Column
+        private String column;
+
+        public MethodTtlEntity() {
+
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getColumn() {
+            return column;
+        }
+
+        public void setColumn(String column) {
+            this.column = column;
+        }
+
+        @SuppressWarnings("unused")
+        @TTL
+        public Integer getTTL() {
+            return 2;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            MethodTtlEntity other = (MethodTtlEntity) obj;
+            if (id.equals(other.id) && column.equals(other.column))
+                return true;
+            else
+                return false;
+        }
+
+        @Override
+        public String toString() {
+            return "MethodTtlEntity [id=" + id + ", column=" + column + "]";
+        }
+    }
+
+    private MethodTtlEntity createMethodTtlEntity(String id) {
+        MethodTtlEntity e = new MethodTtlEntity();
+        e.setId(id);
+        e.setColumn(RandomStringUtils.randomAlphanumeric(4));
+        return e;
+    }
+
+    @Test
+    public void testMethodTtlOverride() throws Exception {
+        final String id = "testMethodTtlOverride";
+        EntityManager<MethodTtlEntity, String> entityPersister = new DefaultEntityManager.Builder<MethodTtlEntity, String>()
+                .withEntityType(MethodTtlEntity.class)
+                .withKeyspace(keyspace)
+                .withColumnFamily(CF_SAMPLE_ENTITY)
+                .withTTL(60) // constructor TTL value is 60s
+                .build();
+        MethodTtlEntity origEntity = createMethodTtlEntity(id);
+
+        entityPersister.put(origEntity);
+
+        // use low-level astyanax API to confirm the write
+        {
+            ColumnList<String> cl = keyspace.prepareQuery(CF_SAMPLE_ENTITY).getKey(id).execute().getResult();
+            // test column number
+            Assert.assertEquals(1, cl.size());
+            // test column value
+            Assert.assertEquals(origEntity.getColumn(), cl.getColumnByName("column").getStringValue());
+            // custom ttl
+            Assert.assertEquals(2, cl.getColumnByName("column").getTtl());
+        }
+
+        MethodTtlEntity getEntity = entityPersister.get(id);
+        Assert.assertEquals(id, getEntity.getId());
+        Assert.assertEquals(origEntity, getEntity);
+
+        // entity should still be alive after 4s since TTL is overridden to 2s
+        Thread.sleep(1000 * 4);
+
+        // use low-level astyanax API to confirm the TTL expiration
+        {
+            ColumnList<String> cl = keyspace.prepareQuery(CF_SAMPLE_ENTITY).getKey(id).execute().getResult();
+            Assert.assertEquals(0, cl.size());
+        }
+    }
+
 }
