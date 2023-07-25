@@ -27,16 +27,18 @@ public class TokenGenerator {
 
     public static String initialToken(int size, int position, BigInteger minInitialToken, BigInteger maxInitialToken ) {
         BigInteger decValue = minInitialToken;
-        if (position != 0)
+        if (position != 0) {
             decValue = maxInitialToken.multiply(new BigInteger("" + position)).divide(new BigInteger("" + size));
+        }
         return decValue.toString();
     }
 
     public static String tokenMinusOne(String payload) {
         BigInteger bigInt = new BigInteger(payload);
         // if zero rotate to the Maximum else minus one.
-        if (bigInt.equals(MINIMUM))
+        if (bigInt.equals(MINIMUM)) {
             bigInt = MAXIMUM;
+        }
         bigInt = bigInt.subtract(new BigInteger("1"));
         return bigInt.toString();
     }

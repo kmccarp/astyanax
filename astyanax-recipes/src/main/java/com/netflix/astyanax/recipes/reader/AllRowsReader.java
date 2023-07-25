@@ -63,7 +63,7 @@ public class AllRowsReader<K, C> implements Callable<Boolean> {
     private static final Logger LOG = LoggerFactory.getLogger(AllRowsReader.class);
     
     private static final Partitioner DEFAULT_PARTITIONER = BigInteger127Partitioner.get();
-    private final static int DEFAULT_PAGE_SIZE = 100;
+    private static final int DEFAULT_PAGE_SIZE = 100;
     
     private final Keyspace      keyspace;
     private final ColumnFamily<K, C> columnFamily;
@@ -84,11 +84,11 @@ public class AllRowsReader<K, C> implements Callable<Boolean> {
     private final   Partitioner         partitioner;
     private final   ConsistencyLevel	consistencyLevel;
     private final   RetryPolicy         retryPolicy;
-    private AtomicReference<Exception>  error = new AtomicReference<Exception>();
+    private final AtomicReference<Exception>  error = new AtomicReference<>();
 
-	private String dc;
+    private final String dc;
 
-	private String rack;
+    private final String rack;
     
     public static class Builder<K, C> {
         private final Keyspace      keyspace;
@@ -108,7 +108,7 @@ public class AllRowsReader<K, C> implements Callable<Boolean> {
         private Boolean             includeEmptyRows;  // Default to null will discard tombstones
         private String				dc;
         private String				rack;
-        private ConsistencyLevel	consistencyLevel = null;
+        private ConsistencyLevel	consistencyLevel;
         private RetryPolicy         retryPolicy;
         
         public Builder(Keyspace ks, ColumnFamily<K, C> columnFamily) {
@@ -159,7 +159,7 @@ public class AllRowsReader<K, C> implements Callable<Boolean> {
          * @return
          */
         public Builder<K, C> withColumnSlice(C... columns) {
-            this.columnSlice = new ColumnSlice<C>(ImmutableList.copyOf(columns));
+            this.columnSlice = new ColumnSlice<>(ImmutableList.copyOf(columns));
             return this;
         }
 
@@ -170,7 +170,7 @@ public class AllRowsReader<K, C> implements Callable<Boolean> {
          * @return
          */
         public Builder<K, C> withColumnSlice(Collection<C> columns) {
-            this.columnSlice = new ColumnSlice<C>(columns);
+            this.columnSlice = new ColumnSlice<>(columns);
             return this;
         }
 
@@ -338,7 +338,7 @@ public class AllRowsReader<K, C> implements Callable<Boolean> {
                     throw new RuntimeException("Unable to determine partitioner", e);
                 }
             }
-            return new AllRowsReader<K,C>(keyspace, 
+            return new AllRowsReader<>(keyspace, 
                     columnFamily, 
                     concurrencyLevel, 
                     executor,
@@ -394,24 +394,29 @@ public class AllRowsReader<K, C> implements Callable<Boolean> {
         this.rack				= rack;
         this.consistencyLevel   = consistencyLevel;
         this.retryPolicy        = retryPolicy;
-        
+
         // Flag explicitly set
-        if (includeEmptyRows != null) 
+        if (includeEmptyRows != null) {
             this.includeEmptyRows = includeEmptyRows;
+        }
         // Asking for a column range of size 0
-        else if (columnSlice != null && columnSlice.getColumns() == null && columnSlice.getLimit() == 0)
+        else if (columnSlice != null && columnSlice.getColumns() == null && columnSlice.getLimit() == 0) {
             this.includeEmptyRows = true;
+        }
         // Default to false
-        else 
+        else {
             this.includeEmptyRows = false;
+        }
     }
     
     private ColumnFamilyQuery<K, C> prepareQuery() {
     	ColumnFamilyQuery<K, C> query = keyspace.prepareQuery(columnFamily);
-    	if (consistencyLevel != null)
-    		query.setConsistencyLevel(consistencyLevel);
-    	if (retryPolicy != null)
-    	    query.withRetryPolicy(retryPolicy);
+        if (consistencyLevel != null) {
+            query.setConsistencyLevel(consistencyLevel);
+        }
+        if (retryPolicy != null) {
+            query.withRetryPolicy(retryPolicy);
+        }
     	return query;
     }
 
@@ -440,9 +445,10 @@ public class AllRowsReader<K, C> implements Callable<Boolean> {
                     int rowsToSkip = 0;
                     while (!cancelling.get()) {
                         RowSliceQuery<K, C> query = prepareQuery().getKeyRange(null, null, currentToken, endToken, localPageSize);
-                        
-                        if (columnSlice != null)
+
+                        if (columnSlice != null) {
                             query.withColumnSlice(columnSlice);
+                        }
                         
                         Rows<K, C> rows = query.execute().getResult();
                         if (!rows.isEmpty()) {
@@ -456,16 +462,18 @@ public class AllRowsReader<K, C> implements Callable<Boolean> {
                                 else {
                                     // Iterate through all the rows and notify the callback function
                                     for (Row<K,C> row : rows) {
-                                        if (cancelling.get())
+                                        if (cancelling.get()) {
                                             break;
+                                        }
                                         // When repeating the last row, rows to skip will be > 0 
                                         // We skip the rows that were repeated from the previous query
                                         if (rowsToSkip > 0) {
                                             rowsToSkip--;
                                             continue;
                                         }
-                                        if (!includeEmptyRows && (row.getColumns() == null || row.getColumns().isEmpty()))
+                                        if (!includeEmptyRows && (row.getColumns() == null || row.getColumns().isEmpty())) {
                                             continue;
+                                        }
                                         if (!rowFunction.apply(row)) {
                                             cancel();
                                             return false;
@@ -553,10 +561,12 @@ public class AllRowsReader<K, C> implements Callable<Boolean> {
         else {
             List<TokenRange> ranges = keyspace.describeRing(dc, rack);
             for (TokenRange range : ranges) {
-                if (range.getStartToken().equals(range.getEndToken())) 
+                if (range.getStartToken().equals(range.getEndToken())) {
                     subtasks.add(makeTokenRangeTask(range.getStartToken(), range.getEndToken()));
-                else
+                }
+                else {
                     subtasks.add(makeTokenRangeTask(partitioner.getTokenMinusOne(range.getStartToken()), range.getEndToken()));
+                }
             }
         }
         
@@ -603,7 +613,7 @@ public class AllRowsReader<K, C> implements Callable<Boolean> {
         Boolean succeeded = true;
         
         // Tracking state for multiple exceptions, if any
-        List<StackTraceElement> stackTraces = new ArrayList<StackTraceElement>();
+        List<StackTraceElement> stackTraces = new ArrayList<>();
         StringBuilder sb = new StringBuilder();
         int exCount = 0;
         
@@ -620,7 +630,7 @@ public class AllRowsReader<K, C> implements Callable<Boolean> {
                 succeeded = false;
                 
                 exCount++;
-                sb.append("ex" + exCount + ": ").append(e.getMessage()).append("\n");
+                sb.append("ex").append(exCount).append(": ").append(e.getMessage()).append("\n");
                 StackTraceElement[] stackTrace = e.getStackTrace();
                 if (stackTrace != null && stackTrace.length > 0) {
                     StackTraceElement delimiterSE = new StackTraceElement("StackTrace: ex" + exCount, "", "", 0);

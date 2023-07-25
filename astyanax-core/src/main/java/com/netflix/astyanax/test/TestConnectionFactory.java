@@ -69,15 +69,17 @@ public class TestConnectionFactory implements ConnectionFactory<TestClient> {
                     long now = System.nanoTime();
                     latency = now - startTime;
                     pool.addLatencySample(latency, now);
-                    return new OperationResultImpl<R>(result.getHost(), result.getResult(), latency);
+                    return new OperationResultImpl<>(result.getHost(), result.getResult(), latency);
                 } catch (Exception e) {
                     long now = System.nanoTime();
                     latency = now - startTime;
                     ConnectionException connectionException;
-                    if (!(e instanceof ConnectionException))
+                    if (!(e instanceof ConnectionException)) {
                         connectionException = new UnknownException(e);
-                    else 
-                        connectionException = (ConnectionException)e;
+                    }
+                    else {
+                        connectionException = (ConnectionException) e;
+                    }
                     connectionException.setLatency(latency);
                     
                     if (!(connectionException instanceof IsTimeoutException)) {

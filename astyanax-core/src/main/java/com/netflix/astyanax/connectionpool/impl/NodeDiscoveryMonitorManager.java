@@ -31,14 +31,14 @@ import com.netflix.astyanax.connectionpool.NodeDiscoveryMonitorMBean;
  * @author elandau
  *
  */
-public class NodeDiscoveryMonitorManager {
-    private MBeanServer mbs;
+public final class NodeDiscoveryMonitorManager {
+    private final MBeanServer mbs;
 
     private static class LazyHolder {
         private static final NodeDiscoveryMonitorManager instance = new NodeDiscoveryMonitorManager();
     }
-    
-    private HashMap<String, NodeDiscoveryMonitorMBean> monitors;
+
+    private final HashMap<String, NodeDiscoveryMonitorMBean> monitors;
 
     private NodeDiscoveryMonitorManager() {
         mbs = ManagementFactory.getPlatformMBeanServer();
@@ -88,7 +88,7 @@ public class NodeDiscoveryMonitorManager {
         StringBuilder sb = new StringBuilder();
         sb.append("com.netflix.MonitoredResources");
         sb.append(":type=ASTYANAX");
-        sb.append(",name=" + monitorName.toString());
+        sb.append(",name=").append(monitorName);
         sb.append(",ServiceType=discovery");
         return sb.toString();
     }

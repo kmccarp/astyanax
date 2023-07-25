@@ -52,7 +52,7 @@ public class AsyncFailedWritesLogger implements FailedWritesLogger {
 
     public AsyncFailedWritesLogger(FailedWritesLogger writer, int queueSize) {
         this.actualWriter = writer;
-        this.taskQueue = new LinkedBlockingQueue<WriteMetadata>(queueSize);
+        this.taskQueue = new LinkedBlockingQueue<>(queueSize);
     }
     
     @Override

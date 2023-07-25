@@ -29,7 +29,7 @@ import com.google.common.collect.Lists;
 public class JmxConnectionPoolMonitor implements JmxConnectionPoolMonitorMBean {
     private final ConnectionPool<?> pool;
 
-    private final static int DEFAULT_PORT = 7102;
+    private static final int DEFAULT_PORT = 7102;
 
     public JmxConnectionPoolMonitor(ConnectionPool<?> pool) {
         this.pool = pool;

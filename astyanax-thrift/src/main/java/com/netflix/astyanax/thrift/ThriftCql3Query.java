@@ -35,17 +35,17 @@ public class ThriftCql3Query<K,C> extends AbstractThriftCqlQuery<K, C> {
     }
 
     @Override
-    protected org.apache.cassandra.thrift.CqlPreparedResult prepare_cql_query(Client client) throws InvalidRequestException, TException {
+    protected org.apache.cassandra.thrift.CqlPreparedResult prepareCqlQuery(Client client) throws InvalidRequestException, TException {
         return client.prepare_cql3_query(StringSerializer.get().toByteBuffer(cql), Compression.NONE);
     }
     
     @Override
-    protected org.apache.cassandra.thrift.CqlResult execute_prepared_cql_query(Client client, int id, List<ByteBuffer> values) throws InvalidRequestException, UnavailableException, TimedOutException, SchemaDisagreementException, TException {
+    protected org.apache.cassandra.thrift.CqlResult executePreparedCqlQuery(Client client, int id, List<ByteBuffer> values) throws InvalidRequestException, UnavailableException, TimedOutException, SchemaDisagreementException, TException {
         return client.execute_prepared_cql3_query(id, values, ThriftConverter.ToThriftConsistencyLevel(cl));
     }
     
     @Override
-    protected org.apache.cassandra.thrift.CqlResult execute_cql_query(Client client) throws InvalidRequestException, UnavailableException, TimedOutException, SchemaDisagreementException, TException {
+    protected org.apache.cassandra.thrift.CqlResult executeCqlQuery(Client client) throws InvalidRequestException, UnavailableException, TimedOutException, SchemaDisagreementException, TException {
         return client.execute_cql3_query(
             StringSerializer.get().toByteBuffer(cql),
             useCompression ? Compression.GZIP : Compression.NONE,

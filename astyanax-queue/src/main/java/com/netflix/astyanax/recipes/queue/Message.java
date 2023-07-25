@@ -74,18 +74,18 @@ public class Message {
     /**
      * Set to true if history should be maintained for each handling of the message
      */
-    private boolean isKeepHistory = false;
+    private boolean isKeepHistory;
 
     /**
      * True if the key is expected to be unique
      */
-    private boolean hasUniqueKey = false;
+    private boolean hasUniqueKey;
     
     /**
      * Set to true if next trigger should be committed when the messages is
      * popped as opposed to being sent when a messages is acked.
      */
-    private boolean isAutoCommitTrigger = false;
+    private boolean isAutoCommitTrigger;
     
     public Message() {
         
@@ -146,8 +146,9 @@ public class Message {
     }
     
     public Message addParameter(String key, Object value) {
-        if (this.parameters == null)
+        if (this.parameters == null) {
             this.parameters = Maps.newHashMap();
+        }
         this.parameters.put(key, value);
         return this;
     }
@@ -257,24 +258,38 @@ public class Message {
         StringBuilder sb = new StringBuilder();
         sb.append("Message[");
         if (token != null) {
-            sb.append("token=" + token + " (" + TimeUUIDUtils.getMicrosTimeFromUUID(token) + ")");
+            sb.append("token=").append(token).append(" (").append(TimeUUIDUtils.getMicrosTimeFromUUID(token)).append(")");
         }
-        if (random != null)
-            sb.append(", random=" + random);
-        if (trigger != null)
-            sb.append(", trigger=" + trigger);
-        if (parameters != null)
-            sb.append(", parameters=" + parameters);           
-        sb.append(", priority=" + priority);
-        sb.append(", timeout=" + timeout);
-        if (key != null)
-            sb.append(", key=" + key);
-        if (hasUniqueKey)
-            sb.append(", hasUniqueKey=" + hasUniqueKey);
-        if (taskClass != null)
-            sb.append(", taskClass=" + taskClass);
-        if (isKeepHistory)
-            sb.append(", isKeepHistory=" + isKeepHistory);
+        if (random != null) {
+            
+                sb.append(", random=").append(random);
+        }
+        if (trigger != null) {
+            
+                sb.append(", trigger=").append(trigger);
+        }
+        if (parameters != null) {
+            
+                sb.append(", parameters=").append(parameters);
+        }           
+        sb.append(", priority=").append(priority);
+        sb.append(", timeout=").append(timeout);
+        if (key != null) {
+            
+                sb.append(", key=").append(key);
+        }
+        if (hasUniqueKey) {
+            
+                sb.append(", hasUniqueKey=").append(hasUniqueKey);
+        }
+        if (taskClass != null) {
+            
+                sb.append(", taskClass=").append(taskClass);
+        }
+        if (isKeepHistory) {
+            
+                sb.append(", isKeepHistory=").append(isKeepHistory);
+        }
         
         sb.append("]");
         return sb.toString();

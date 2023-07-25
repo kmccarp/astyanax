@@ -42,10 +42,10 @@ import com.netflix.astyanax.serializers.StringSerializer;
 
 public class PreparedStatementTests extends ReadTests {
 
-	private static int TestRowCount = 10;
+    private static final int TestRowCount = 10;
 
-	private static ColumnFamily<String, String> CF_ROW_RANGE = 
-			new ColumnFamily<String, String>("rowrange", StringSerializer.get(), StringSerializer.get(), IntegerSerializer.get());
+    private static final ColumnFamily<String, String> CF_ROW_RANGE =
+        new ColumnFamily<>("rowrange", StringSerializer.get(), StringSerializer.get(), IntegerSerializer.get());
 	
 	@BeforeClass
 	public static void init() throws Exception {
@@ -291,8 +291,8 @@ public class PreparedStatementTests extends ReadTests {
 			.putColumn("lastname", "smith_" + i, null)
 			.putColumn("address", "john smith address " + i, null)
 			.putColumn("age", 30+i, null)
-			.putColumn("ageShort", new Integer(30+i).shortValue(), null)
-			.putColumn("ageLong", new Integer(30+i).longValue(), null)
+			.putColumn("ageShort", Integer.valueOf(30 + i).shortValue(), null)
+			.putColumn("ageLong", Integer.valueOf(30 + i).longValue(), null)
 			.putColumn("percentile", 30.1)
 			.putColumn("married", true)
 			.putColumn("single", false)

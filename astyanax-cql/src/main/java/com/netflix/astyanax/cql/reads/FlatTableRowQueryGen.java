@@ -82,9 +82,9 @@ import com.netflix.astyanax.ddl.ColumnDefinition;
  *
  */
 public class FlatTableRowQueryGen {
-	
-	// Reference to the session that is needed for "preparing" the statements
-	private AtomicReference<Session> sessionRef = new AtomicReference<Session>(null);
+
+    // Reference to the session that is needed for "preparing" the statements
+    private final AtomicReference<Session> sessionRef = new AtomicReference<>(null);
 	private final String keyspace; 
 	private final CqlColumnFamilyDefinitionImpl cfDef;
 
@@ -110,91 +110,90 @@ public class FlatTableRowQueryGen {
 		allPrimayKeyCols = cfDef.getAllPkColNames();
 		regularCols = cfDef.getRegularColumnDefinitionList();
 	}
-	
-	/**
-	 * Query generator that generates a query to read the entire row, i.e all the columns. 
-	 * Note that since it implements the {@link QueryGenCache} it also maintains an inner cached reference 
-	 * to the {@link PreparedStatement} that it creates which can then be re-used by subsequent queries that 
-	 * have the same signature (i.e read all columns)
-	 */
-	private QueryGenCache<CqlRowQueryImpl<?,?>> SelectEntireRow = new QueryGenCache<CqlRowQueryImpl<?,?>>(sessionRef) {
 
-		@Override
-		public Callable<RegularStatement> getQueryGen(CqlRowQueryImpl<?, ?> rowQuery) {
+    /**
+     * Query generator that generates a query to read the entire row, i.e all the columns. 
+     * Note that since it implements the {@link QueryGenCache} it also maintains an inner cached reference 
+     * to the {@link PreparedStatement} that it creates which can then be re-used by subsequent queries that 
+     * have the same signature (i.e read all columns)
+     */
+    private final QueryGenCache<CqlRowQueryImpl<?, ?>> selectEntireRow = new QueryGenCache<CqlRowQueryImpl<?, ?>>(sessionRef) {
 
-			return new Callable<RegularStatement>() {
+        @Override
+        public Callable<RegularStatement> getQueryGen(CqlRowQueryImpl<?, ?> rowQuery) {
 
-				@Override
-				public RegularStatement call() throws Exception {
-					Selection select = QueryBuilder.select();
+            return new Callable<RegularStatement>() {
 
-					for (int i=0; i<allPrimayKeyCols.length; i++) {
-						select.column(allPrimayKeyCols[i]);
-					}
+                @Override
+                public RegularStatement call() throws Exception {
+                    Selection select = QueryBuilder.select();
 
-					for (ColumnDefinition colDef : regularCols) {
-						String colName = colDef.getName();
-						select.column(colName).ttl(colName).writeTime(colName);
-					}
+                    for (int i = 0; i < allPrimayKeyCols.length; i++) {
+                        select.column(allPrimayKeyCols[i]);
+                    }
 
-					RegularStatement stmt = select.from(keyspace, cfDef.getName()).where(eq(partitionKeyCol, BIND_MARKER));
-					return stmt; 
-				}
-			};
-		}
+                    for (ColumnDefinition colDef : regularCols) {
+                        String colName = colDef.getName();
+                        select.column(colName).ttl(colName).writeTime(colName);
+                    }
 
-		@Override
-		public BoundStatement bindValues(PreparedStatement pStatement, CqlRowQueryImpl<?, ?> rowQuery) {
-			return pStatement.bind(rowQuery.getRowKey());
-		}
-	};
+                    return select.from(keyspace, cfDef.getName()).where(eq(partitionKeyCol, BIND_MARKER));
+                }
+            };
+        }
 
-	/**
-	 * Query generator that generates a query to peform a column slice operation on the specified row. 
-	 * Note that performing column slice operations on flat tables is dangerous since the query signature is not the same,
-	 * hence use this with caution. See above for an explanation on query signatures and query cacheability. 
-	 * 
-	 * Note that since it implements the {@link QueryGenCache} it also maintains an inner cached reference 
-	 * to the {@link PreparedStatement} that it creates which can then be re-used by subsequent queries that 
-	 * have the same signature (i.e read the same column slice for a given row)
-	 */
-	private QueryGenCache<CqlRowQueryImpl<?,?>> SelectColumnSlice = new QueryGenCache<CqlRowQueryImpl<?,?>>(sessionRef) {
+        @Override
+        public BoundStatement bindValues(PreparedStatement pStatement, CqlRowQueryImpl<?, ?> rowQuery) {
+            return pStatement.bind(rowQuery.getRowKey());
+        }
+    };
 
-		@Override
-		public Callable<RegularStatement> getQueryGen(final CqlRowQueryImpl<?, ?> rowQuery) {
+    /**
+     * Query generator that generates a query to peform a column slice operation on the specified row. 
+     * Note that performing column slice operations on flat tables is dangerous since the query signature is not the same,
+     * hence use this with caution. See above for an explanation on query signatures and query cacheability. 
+     * 
+     * Note that since it implements the {@link QueryGenCache} it also maintains an inner cached reference 
+     * to the {@link PreparedStatement} that it creates which can then be re-used by subsequent queries that 
+     * have the same signature (i.e read the same column slice for a given row)
+     */
+    private final QueryGenCache<CqlRowQueryImpl<?, ?>> selectColumnSlice = new QueryGenCache<CqlRowQueryImpl<?, ?>>(sessionRef) {
 
-			return new Callable<RegularStatement>() {
+        @Override
+        public Callable<RegularStatement> getQueryGen(final CqlRowQueryImpl<?, ?> rowQuery) {
 
-				@Override
-				public RegularStatement call() throws Exception {
+            return new Callable<RegularStatement>() {
 
-					Select.Selection select = QueryBuilder.select();
-					select.column(partitionKeyCol);
+                @Override
+                public RegularStatement call() throws Exception {
 
-					for (Object col : rowQuery.getColumnSlice().getColumns()) {
-						String columnName = (String)col;
-						select.column(columnName).ttl(columnName).writeTime(columnName);
-					}
+                    Select.Selection select = QueryBuilder.select();
+                    select.column(partitionKeyCol);
 
-					return select.from(keyspace, cfDef.getName()).where(eq(partitionKeyCol, BIND_MARKER));
-				}
-			};
-		}
+                    for (Object col : rowQuery.getColumnSlice().getColumns()) {
+                        String columnName = (String) col;
+                        select.column(columnName).ttl(columnName).writeTime(columnName);
+                    }
 
-		@Override
-		public BoundStatement bindValues(PreparedStatement pStatement, CqlRowQueryImpl<?, ?> rowQuery) {
-			return pStatement.bind(rowQuery.getRowKey());
-		}
-	};
+                    return select.from(keyspace, cfDef.getName()).where(eq(partitionKeyCol, BIND_MARKER));
+                }
+            };
+        }
+
+        @Override
+        public BoundStatement bindValues(PreparedStatement pStatement, CqlRowQueryImpl<?, ?> rowQuery) {
+            return pStatement.bind(rowQuery.getRowKey());
+        }
+    };
 	
 	public Statement getQueryStatement(final CqlRowQueryImpl<?,?> rowQuery, boolean useCaching)  {
 		
 		switch (rowQuery.getQueryType()) {
 		
 		case AllColumns:
-			return SelectEntireRow.getBoundStatement(rowQuery, useCaching);
+			return selectEntireRow.getBoundStatement(rowQuery, useCaching);
 		case ColumnSlice:
-			return SelectColumnSlice.getBoundStatement(rowQuery, useCaching);
+			return selectColumnSlice.getBoundStatement(rowQuery, useCaching);
 		case ColumnRange:
 			throw new RuntimeException("Cannot perform col range query with current schema, missing pk cols");
 		default :

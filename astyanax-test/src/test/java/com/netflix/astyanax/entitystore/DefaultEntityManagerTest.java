@@ -38,8 +38,8 @@ public class DefaultEntityManagerTest {
 	private static Keyspace                  keyspace;
 	private static AstyanaxContext<Keyspace> keyspaceContext;
 
-	private static String TEST_CLUSTER_NAME  = "junit_cass_sandbox";
-	private static String TEST_KEYSPACE_NAME = "EntityPersisterTestKeyspace";
+    private static final String TEST_CLUSTER_NAME = "junit_cass_sandbox";
+    private static final String TEST_KEYSPACE_NAME = "EntityPersisterTestKeyspace";
 	private static final String SEEDS = "localhost:9160";
 
 	public static ColumnFamily<String, String> CF_SAMPLE_ENTITY = ColumnFamily.newColumnFamily(
@@ -67,8 +67,9 @@ public class DefaultEntityManagerTest {
 
 	@AfterClass
 	public static void teardown() throws Exception {
-		if (keyspaceContext != null)
-			keyspaceContext.shutdown();
+        if (keyspaceContext != null) {
+            keyspaceContext.shutdown();
+        }
 
 		Thread.sleep(1000 * 10);
 	}

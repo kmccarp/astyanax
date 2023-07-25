@@ -53,7 +53,7 @@ public class ThriftCounterColumnListImpl<C> extends AbstractColumnList<C> {
             @Override
             public Column<C> next() {
                 CounterColumn c = base.next();
-                return new ThriftCounterColumnImpl<C>(colSer.fromBytes(c.getName()), c);
+                return new ThriftCounterColumnImpl<>(colSer.fromBytes(c.getName()), c);
             }
 
             @Override
@@ -72,13 +72,13 @@ public class ThriftCounterColumnListImpl<C> extends AbstractColumnList<C> {
         if (c == null) {
             return null;
         }
-        return new ThriftCounterColumnImpl<C>(colSer.fromBytes(c.getName()), c);
+        return new ThriftCounterColumnImpl<>(colSer.fromBytes(c.getName()), c);
     }
 
     @Override
     public Column<C> getColumnByIndex(int idx) {
         CounterColumn c = columns.get(idx);
-        return new ThriftCounterColumnImpl<C>(colSer.fromBytes(c.getName()), c);
+        return new ThriftCounterColumnImpl<>(colSer.fromBytes(c.getName()), c);
     }
 
     @Override

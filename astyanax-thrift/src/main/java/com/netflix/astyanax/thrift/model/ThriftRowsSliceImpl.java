@@ -42,14 +42,14 @@ import com.netflix.astyanax.model.Rows;
  */
 public class ThriftRowsSliceImpl<K, C> implements Rows<K, C> {
 
-    private List<Row<K,C>>   rows;
+    private final List<Row<K, C>>   rows;
     private Map<K, Row<K,C>> lookup;
 
     public ThriftRowsSliceImpl(List<KeySlice> rows, Serializer<K> keySer, Serializer<C> colSer) {
         this.rows   = Lists.newArrayListWithCapacity(rows.size());
         
         for (KeySlice row : rows) {
-            Row<K,C> thriftRow = new ThriftRowImpl<K, C>(
+            Row<K,C> thriftRow = new ThriftRowImpl<>(
                     keySer.fromBytes(row.getKey()), 
                     ByteBuffer.wrap(row.getKey()),
                     new ThriftColumnOrSuperColumnListImpl<C>(row.getColumns(), colSer));
