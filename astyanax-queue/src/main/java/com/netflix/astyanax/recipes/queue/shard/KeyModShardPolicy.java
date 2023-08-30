@@ -24,7 +24,7 @@ import com.netflix.astyanax.recipes.queue.MessageQueueMetadata;
  *
  */
 public class KeyModShardPolicy extends TimeModShardPolicy {
-    private static KeyModShardPolicy instance = new KeyModShardPolicy();
+    private static final KeyModShardPolicy instance = new KeyModShardPolicy();
 
     public static KeyModShardPolicy getInstance() {
         return instance;
@@ -32,9 +32,11 @@ public class KeyModShardPolicy extends TimeModShardPolicy {
     
     @Override
     public int getMessageShard(Message message, MessageQueueMetadata settings) {
-        if (message.hasKey())
+        if (message.hasKey()) {
             return message.getKey().hashCode() % settings.getShardCount();
-        else
+        }
+        else {
             return super.getMessageShard(message, settings);
+        }
     }
 }

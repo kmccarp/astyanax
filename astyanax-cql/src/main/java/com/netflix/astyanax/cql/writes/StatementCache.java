@@ -20,9 +20,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.datastax.driver.core.PreparedStatement;
 
-public class StatementCache {
+public final class StatementCache {
 
-	private final ConcurrentHashMap<Integer, PreparedStatement> statementCache = new ConcurrentHashMap<Integer, PreparedStatement>();
+	private final ConcurrentHashMap<Integer, PreparedStatement> statementCache = new ConcurrentHashMap<>();
 	
 	private StatementCache() {
 		

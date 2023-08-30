@@ -24,7 +24,7 @@ import com.netflix.astyanax.model.Rows;
 import com.netflix.astyanax.thrift.model.ThriftCqlRowsImpl;
 
 public class ThriftCqlStatementResult implements CqlStatementResult {
-    private CqlResult result;
+    private final CqlResult result;
     
     public ThriftCqlStatementResult(CqlResult result) {
         this.result = result;
@@ -37,10 +37,11 @@ public class ThriftCqlStatementResult implements CqlStatementResult {
     
     @Override
     public <K, C> Rows<K, C> getRows(ColumnFamily<K, C> columnFamily) {
-        if (!result.isSetRows()) 
+        if (!result.isSetRows()) {
             throw new RuntimeException("CQL reponse doesn't contain rows");
+        }
         
-        return new ThriftCqlRowsImpl<K, C>(result.getRows(), columnFamily.getKeySerializer(), columnFamily.getColumnSerializer());
+        return new ThriftCqlRowsImpl<>(result.getRows(), columnFamily.getKeySerializer(), columnFamily.getColumnSerializer());
     }
     
     @Override

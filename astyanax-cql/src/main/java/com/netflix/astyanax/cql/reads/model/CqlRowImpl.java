@@ -43,13 +43,13 @@ public class CqlRowImpl<K, C> implements Row<K, C> {
 	
 	public CqlRowImpl(com.datastax.driver.core.Row resultRow, ColumnFamily<K, C> cf) {
 		this.rowKey = (K) getRowKey(resultRow, cf);
-		this.cqlColumnList = new CqlColumnListImpl<C>(resultRow, cf);
+		this.cqlColumnList = new CqlColumnListImpl<>(resultRow, cf);
 		this.cf = cf;
 	}
 	
 	public CqlRowImpl(List<com.datastax.driver.core.Row> rows, ColumnFamily<K, C> cf) {
 		this.rowKey = (K) getRowKey(rows.get(0), cf);
-		this.cqlColumnList = new CqlColumnListImpl<C>(rows, cf);
+		this.cqlColumnList = new CqlColumnListImpl<>(rows, cf);
 		this.cf = cf;
 	}
 	

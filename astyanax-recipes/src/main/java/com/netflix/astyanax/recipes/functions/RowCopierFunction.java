@@ -42,7 +42,7 @@ import com.netflix.astyanax.model.Row;
  * @param <K>
  * @param <C>
  */
-public class RowCopierFunction<K,C> implements Function<Row<K,C>, Boolean>, Flushable {
+public final class RowCopierFunction<K, C> implements Function<Row<K,C>, Boolean>, Flushable {
     private static final Logger LOG = LoggerFactory.getLogger(RowCopierFunction.class);
     
     private static final int DEFAULT_BATCH_SIZE = 100;
@@ -63,23 +63,23 @@ public class RowCopierFunction<K,C> implements Function<Row<K,C>, Boolean>, Flus
         }
         
         public RowCopierFunction<K,C> build() {
-            return new RowCopierFunction<K,C>(this);
+            return new RowCopierFunction<>(this);
         }
     }
 
     public static <K, C> Builder<K,C> builder(Keyspace keyspace, ColumnFamily<K,C> columnFamily) {
-        return new Builder<K,C>(keyspace, columnFamily);
+        return new Builder<>(keyspace, columnFamily);
     }
     
     private final ColumnFamily<K,C> columnFamily;
     private final Keyspace          keyspace;
     private final int               batchSize;
-    private final ThreadLocal<ThreadContext> context = new ThreadLocal<ThreadContext>();
+    private final ThreadLocal<ThreadContext> context = new ThreadLocal<>();
     private final Set<ThreadContext> contexts = Sets.newIdentityHashSet();
     
     private static class ThreadContext {
         MutationBatch mb;
-        int counter = 0;
+        int counter;
     }
     
     private RowCopierFunction(Builder<K,C> builder) {

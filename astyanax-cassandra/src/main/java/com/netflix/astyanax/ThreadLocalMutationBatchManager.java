@@ -27,7 +27,7 @@ import com.netflix.astyanax.retry.RetryPolicy;
  *
  */
 public class ThreadLocalMutationBatchManager implements MutationBatchManager {
-    private ThreadLocal<MutationBatch> batches = new ThreadLocal<MutationBatch>();
+    private ThreadLocal<MutationBatch> batches = new ThreadLocal<>();
     
     private final Keyspace          keyspace;
     private final ConsistencyLevel  cl;
@@ -48,8 +48,9 @@ public class ThreadLocalMutationBatchManager implements MutationBatchManager {
         MutationBatch mb = batches.get();
         if (mb == null) {
             mb = keyspace.prepareMutationBatch().setConsistencyLevel(cl);
-            if (retryPolicy != null) 
+            if (retryPolicy != null) {
                 mb.withRetryPolicy(retryPolicy);
+            }
             batches.set(mb);
         }
         return mb;

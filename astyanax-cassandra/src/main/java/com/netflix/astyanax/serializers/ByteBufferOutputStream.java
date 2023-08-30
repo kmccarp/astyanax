@@ -100,7 +100,7 @@ public class ByteBufferOutputStream extends OutputStream {
     }
 
     public void reset() {
-        buffers = new LinkedList<ByteBuffer>();
+        buffers = new LinkedList<>();
         bufferSize = INIT_BUFFER_SIZE;
         buffers.add(ByteBuffer.allocate(bufferSize));
     }
@@ -160,8 +160,9 @@ public class ByteBufferOutputStream extends OutputStream {
             off += remaining;
             
             bufferSize *= 2;
-            if (bufferSize > MAX_BUFFER_SIZE)
+            if (bufferSize > MAX_BUFFER_SIZE) {
                 bufferSize = MAX_BUFFER_SIZE;
+            }
             
             buffer = ByteBuffer.allocate(bufferSize);
             buffers.add(buffer);

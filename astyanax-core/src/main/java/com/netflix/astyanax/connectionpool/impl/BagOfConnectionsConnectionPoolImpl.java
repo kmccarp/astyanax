@@ -52,7 +52,7 @@ import com.netflix.astyanax.connectionpool.exceptions.PoolTimeoutException;
  */
 public class BagOfConnectionsConnectionPoolImpl<CL> extends AbstractHostPartitionConnectionPool<CL> {
 
-    private final LinkedBlockingQueue<Connection<CL>> idleConnections = new LinkedBlockingQueue<Connection<CL>>();
+    private final LinkedBlockingQueue<Connection<CL>> idleConnections = new LinkedBlockingQueue<>();
     private final AtomicInteger activeConnectionCount = new AtomicInteger(0);
     private final Random randomIndex = new Random();
 
@@ -102,7 +102,7 @@ public class BagOfConnectionsConnectionPoolImpl<CL> extends AbstractHostPartitio
                 // then try the next one in array order until a connection can
                 // be created
                 List<HostConnectionPool<CL>> pools = topology.getAllPools().getPools();
-                if (pools != null && pools.size() > 0) {
+                if (pools != null && !pools.isEmpty()) {
                     int index = randomIndex.nextInt(pools.size());
                     for (int i = 0; i < pools.size(); ++i, ++index) {
                         HostConnectionPool<CL> pool = pools.get(index % pools.size());
@@ -121,14 +121,16 @@ public class BagOfConnectionsConnectionPoolImpl<CL> extends AbstractHostPartitio
                 }
             }
             finally {
-                if (connection == null)
+                if (connection == null) {
                     activeConnectionCount.decrementAndGet();
+                }
             }
         }
         finally {
-            if (connection != null && newConnection == false)
+            if (connection != null && newConnection == false) {
                 monitor.incConnectionBorrowed(connection.getHostConnectionPool().getHost(), System.currentTimeMillis()
-                        - startTime);
+                    - startTime);
+            }
         }
     }
 
@@ -162,16 +164,17 @@ public class BagOfConnectionsConnectionPoolImpl<CL> extends AbstractHostPartitio
 
     class BagExecuteWithFailover<R> extends AbstractExecuteWithFailoverImpl<CL, R> {
         private int retryCountdown;
-        private HostConnectionPool<CL> pool = null;
-        private int size = 0;
+        private HostConnectionPool<CL> pool;
+        private int size;
 
         public BagExecuteWithFailover(ConnectionPoolConfiguration config) throws ConnectionException {
             super(config, monitor);
 
             size = topology.getAllPools().getPools().size();
             retryCountdown = Math.min(config.getMaxFailoverCount(), size);
-            if (retryCountdown < 0)
+            if (retryCountdown < 0) {
                 retryCountdown = size;
+            }
         }
 
         @Override

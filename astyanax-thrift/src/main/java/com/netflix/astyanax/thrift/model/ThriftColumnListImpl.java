@@ -63,7 +63,7 @@ public class ThriftColumnListImpl<C> extends AbstractColumnList<C> {
             @Override
             public Column<C> next() {
                 org.apache.cassandra.thrift.Column c = base.next();
-                return new ThriftColumnImpl<C>(colSer.fromBytes(c.getName()), c);
+                return new ThriftColumnImpl<>(colSer.fromBytes(c.getName()), c);
             }
 
             @Override
@@ -81,13 +81,12 @@ public class ThriftColumnListImpl<C> extends AbstractColumnList<C> {
         if (c == null) {
             return null;
         }
-        return new ThriftColumnImpl<C>(colSer.fromBytes(c.getName()), c);
+        return new ThriftColumnImpl<>(colSer.fromBytes(c.getName()), c);
     }
     
     private void constructColumnMap() {
         if (lookup == null) {
-            lookup = Maps.newHashMap();;
-            for (org.apache.cassandra.thrift.Column column : columns) {
+            lookup = Maps.newHashMap();for (org.apache.cassandra.thrift.Column column : columns) {
                 lookup.put(colSer.fromBytes(column.getName()), column);
             }
         }
@@ -96,7 +95,7 @@ public class ThriftColumnListImpl<C> extends AbstractColumnList<C> {
     @Override
     public Column<C> getColumnByIndex(int idx) {
         org.apache.cassandra.thrift.Column c = columns.get(idx);
-        return new ThriftColumnImpl<C>(colSer.fromBytes(c.getName()), c);
+        return new ThriftColumnImpl<>(colSer.fromBytes(c.getName()), c);
     }
 
     public C getNameByIndex(int idx) {

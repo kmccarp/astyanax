@@ -32,8 +32,8 @@ public abstract class AbstractRowQueryImpl<K, C> implements RowQuery<K, C> {
     protected final SlicePredicate predicate = new SlicePredicate().setSlice_range(ThriftUtils.createAllInclusiveSliceRange());
     
     protected final Serializer<C> serializer;
-    protected boolean isPaginating = false;
-    protected boolean paginateNoMore = false;
+    protected boolean isPaginating;
+    protected boolean paginateNoMore;
 
     public AbstractRowQueryImpl(Serializer<C> serializer) {
         this.serializer = serializer;
@@ -41,15 +41,17 @@ public abstract class AbstractRowQueryImpl<K, C> implements RowQuery<K, C> {
 
     @Override
     public RowQuery<K, C> withColumnSlice(C... columns) {
-        if (columns != null)
+        if (columns != null) {
             predicate.setColumn_names(serializer.toBytesList(Arrays.asList(columns))).setSlice_rangeIsSet(false);
+        }
         return this;
     }
 
     @Override
     public RowQuery<K, C> withColumnSlice(Collection<C> columns) {
-        if (columns != null)
+        if (columns != null) {
             predicate.setColumn_names(serializer.toBytesList(columns)).setSlice_rangeIsSet(false);
+        }
         return this;
     }
 

@@ -44,8 +44,7 @@ public class ByteSerializer extends AbstractSerializer<Byte> {
             return null;
         }
         ByteBuffer dup = byteBuffer.duplicate();
-        byte in = dup.get();
-        return in;
+        return dup.get();
     }
 
     @Override

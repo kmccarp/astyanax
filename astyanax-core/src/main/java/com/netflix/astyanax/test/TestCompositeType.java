@@ -92,9 +92,6 @@ public class TestCompositeType {
     }
 
     public String toString() {
-        return new StringBuilder().append("MockCompositeType[")
-                .append(stringPart).append(',').append(intPart).append(',')
-                .append(intPart2).append(',').append(boolPart).append(',')
-                .append(utf8StringPart).append(']').toString();
+        return "MockCompositeType[" + stringPart + ',' + intPart + ',' + intPart2 + ',' + boolPart + ',' + utf8StringPart + ']';
     }
 }

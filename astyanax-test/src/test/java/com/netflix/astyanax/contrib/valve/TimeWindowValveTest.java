@@ -29,7 +29,7 @@ public class TimeWindowValveTest {
     
     private void testSingleThread(final TimeWindowValve window, int numRequests, int expectedSuccesses) {
         
-        Map<RequestStatus, Long> status = new HashMap<RequestStatus, Long>();
+        Map<RequestStatus, Long> status = new HashMap<>();
         
         for (int i=0; i<numRequests; i++) {
             RequestStatus ret = window.decrementAndCheckQuota();

@@ -38,10 +38,10 @@ import org.junit.Test;
 import com.netflix.astyanax.connectionpool.ConnectionContext;
 
 public class RoundRobinConnectionPoolImplTest extends BaseConnectionPoolTest {
-    private static Logger LOG = Logger
-            .getLogger(RoundRobinConnectionPoolImplTest.class);
+    private static final Logger LOG = Logger
+        .getLogger(RoundRobinConnectionPoolImplTest.class);
 
-    private static Operation<TestClient, String> dummyOperation = new TestOperation();
+    private static final Operation<TestClient, String> dummyOperation = new TestOperation();
 
     protected ConnectionPool<TestClient> createPool() {
         CountingConnectionPoolMonitor monitor = new CountingConnectionPoolMonitor();
@@ -50,10 +50,8 @@ public class RoundRobinConnectionPoolImplTest extends BaseConnectionPoolTest {
                 TestConstants.CLUSTER_NAME + "_" + TestConstants.KEYSPACE_NAME);
         config.initialize();
 
-        ConnectionPool<TestClient> pool = new RoundRobinConnectionPoolImpl<TestClient>(
+        return new RoundRobinConnectionPoolImpl<>(
                 config, new TestConnectionFactory(config, monitor), monitor);
-
-        return pool;
     }
 
     @Test
@@ -64,7 +62,7 @@ public class RoundRobinConnectionPoolImplTest extends BaseConnectionPoolTest {
                 TestConstants.CLUSTER_NAME + "_" + TestConstants.KEYSPACE_NAME);
         config.initialize();
 
-        ConnectionPool<TestClient> pool = new RoundRobinConnectionPoolImpl<TestClient>(
+        ConnectionPool<TestClient> pool = new RoundRobinConnectionPoolImpl<>(
                 config, new TestConnectionFactory(config, monitor), monitor);
 
         pool.addHost(
@@ -98,7 +96,7 @@ public class RoundRobinConnectionPoolImplTest extends BaseConnectionPoolTest {
         config.initialize();
 
         config.setInitConnsPerHost(0);
-        ConnectionPool<TestClient> pool = new RoundRobinConnectionPoolImpl<TestClient>(
+        ConnectionPool<TestClient> pool = new RoundRobinConnectionPoolImpl<>(
                 config, new TestConnectionFactory(config, monitor), monitor);
 
         pool.addHost(new Host("127.0.0.1",
@@ -137,7 +135,7 @@ public class RoundRobinConnectionPoolImplTest extends BaseConnectionPoolTest {
         config.setMaxPendingConnectionsPerHost(2);
         config.initialize();
 
-        ConnectionPool<TestClient> cp = new RoundRobinConnectionPoolImpl<TestClient>(
+        ConnectionPool<TestClient> cp = new RoundRobinConnectionPoolImpl<>(
                 config, new TestConnectionFactory(config, monitor), monitor);
 
         Host host = new Host("127.0.0.1", TestHostType.GOOD_IMMEDIATE.ordinal());
@@ -190,7 +188,7 @@ public class RoundRobinConnectionPoolImplTest extends BaseConnectionPoolTest {
             .setInitConnsPerHost(0);
         config.initialize();
 
-        ConnectionPool<TestClient> cp = new RoundRobinConnectionPoolImpl<TestClient>(
+        ConnectionPool<TestClient> cp = new RoundRobinConnectionPoolImpl<>(
                 config, new TestConnectionFactory(config, monitor), monitor);
 
         Host host = new Host("127.0.0.1",

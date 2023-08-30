@@ -51,17 +51,17 @@ public class CqlRowListImpl<K, C> implements Rows<K, C> {
 	private final CqlColumnFamilyDefinitionImpl cfDef; 
 	
 	public CqlRowListImpl() {
-		this.rows = new ArrayList<Row<K, C>>();
-		this.lookup = new HashMap<K, Row<K,C>>();
+		this.rows = new ArrayList<>();
+		this.lookup = new HashMap<>();
 		
 		this.cf = null;
 		this.cfDef = null;
 	}
 	
 	public CqlRowListImpl(List<Row<K,C>> newRows) {
-		this.rows = new ArrayList<Row<K, C>>();
+		this.rows = new ArrayList<>();
 		this.rows.addAll(newRows);
-		this.lookup = new HashMap<K, Row<K,C>>();
+		this.lookup = new HashMap<>();
 		for (Row<K,C> row : this.rows) {
 			this.lookup.put(row.getKey(), row);
 		}
@@ -71,15 +71,15 @@ public class CqlRowListImpl<K, C> implements Rows<K, C> {
 
 	public CqlRowListImpl(List<com.datastax.driver.core.Row> resultRows, ColumnFamily<K,C> cf) {
 		
-		this.rows = new ArrayList<Row<K, C>>();
-		this.lookup = new HashMap<K, Row<K,C>>();
+		this.rows = new ArrayList<>();
+		this.lookup = new HashMap<>();
 		
 		this.cf = cf;
 		this.cfDef = (CqlColumnFamilyDefinitionImpl) cf.getColumnFamilyDefinition();
 		
 		Serializer<?> keySerializer = cf.getKeySerializer();
 		K prevKey = null; 
-		List<com.datastax.driver.core.Row> tempList = new ArrayList<com.datastax.driver.core.Row>();
+		List<com.datastax.driver.core.Row> tempList = new ArrayList<>();
 		
 		for (com.datastax.driver.core.Row row : resultRows) {
 			
@@ -91,13 +91,13 @@ public class CqlRowListImpl<K, C> implements Rows<K, C> {
 			
 				// we found a set of contiguous rows that match with the same row key
 				addToResultRows(tempList);
-				tempList = new ArrayList<com.datastax.driver.core.Row>();
+				tempList = new ArrayList<>();
 				tempList.add(row);
 			}
 			prevKey = rowKey;
 		}
 		// flush the final list
-		if (tempList.size() > 0) {
+		if (!tempList.isEmpty()) {
 			addToResultRows(tempList);
 		}
 		
@@ -108,7 +108,7 @@ public class CqlRowListImpl<K, C> implements Rows<K, C> {
 
 	private void addToResultRows(List<com.datastax.driver.core.Row> rowList) {
 
-		if (cfDef.getClusteringKeyColumnDefinitionList().size() == 0 || cfDef.getRegularColumnDefinitionList().size() > 1) {
+		if (cfDef.getClusteringKeyColumnDefinitionList().isEmpty() || cfDef.getRegularColumnDefinitionList().size() > 1) {
 			for (com.datastax.driver.core.Row row : rowList) {
 				this.rows.add(new CqlRowImpl<K, C>(row, cf));
 			}

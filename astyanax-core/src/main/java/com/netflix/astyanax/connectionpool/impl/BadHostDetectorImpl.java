@@ -33,17 +33,12 @@ public class BadHostDetectorImpl implements BadHostDetector {
 	private final ConnectionPoolConfiguration config;
 	
 	public BadHostDetectorImpl(ConnectionPoolConfiguration config) {
-		this.timeouts = new LinkedBlockingQueue<Long>();
+		this.timeouts = new LinkedBlockingQueue<>();
 		this.config = config;
 	}
 	
 	public String toString() {
-        return new StringBuilder()
-             .append("BadHostDetectorImpl[")
-             .append("count=").append(config.getMaxTimeoutCount())
-             .append(",window=").append(config.getTimeoutWindow())
-             .append("]")
-             .toString();
+        return "BadHostDetectorImpl[" + "count=" + config.getMaxTimeoutCount() + ",window=" + config.getTimeoutWindow() + "]";
 	}
 	
 	@Override

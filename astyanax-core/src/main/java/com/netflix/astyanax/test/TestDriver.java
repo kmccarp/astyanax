@@ -35,16 +35,16 @@ public class TestDriver {
     private ScheduledExecutorService    executor;
     private Function<TestDriver, Void>  callback;
     private volatile int                delta;
-    private AtomicLong                  callbackCounter = new AtomicLong();
+    private final AtomicLong                  callbackCounter = new AtomicLong();
     private long                        iterationCount = 100;
-    private long                        futuresTimeout = 0;
+    private long                        futuresTimeout;
     private TimeUnit                    futuresUnits = TimeUnit.MILLISECONDS;
     private ExecutorService             futuresExecutor;
-    private ArrayList<Event>            events = Lists.newArrayList();              
+    private final ArrayList<Event>            events = Lists.newArrayList();              
     private long                        startTime;
-    private AtomicLong                  operationCounter = new AtomicLong(0);
+    private final AtomicLong                  operationCounter = new AtomicLong(0);
     
-    public static abstract class Event {
+    public abstract static class Event {
         protected Function<TestDriver, Void> function;
         
         public Event(Function<TestDriver, Void> function) {
@@ -111,8 +111,9 @@ public class TestDriver {
         
         public TestDriver build() {
             driver.executor = Executors.newScheduledThreadPool(driver.nThreads + 10);
-            if (driver.futuresTimeout != 0)
+            if (driver.futuresTimeout != 0) {
                 driver.futuresExecutor = Executors.newScheduledThreadPool(driver.nThreads);
+            }
             return driver;
         }
     }
@@ -138,8 +139,9 @@ public class TestDriver {
                         operationCounter.incrementAndGet();
                         try {
                             if (iterationCount != 0) {
-                                if (callbackCounter.incrementAndGet() > iterationCount) 
+                                if (callbackCounter.incrementAndGet() > iterationCount) {
                                     return;
+                                }
                             }
                             
                             if (futuresTimeout == 0) {

@@ -52,7 +52,7 @@ public class AstCQLClient {
   
   private AstyanaxContext<Keyspace> keyspaceContext;
   private Keyspace keyspace;
-  private ColumnFamily<Integer, String> EMP_CF;
+  private ColumnFamily<Integer, String> empCf;
   private static final String KEYSPACE_NAME = "test1";
   private static final String EMP_CF_NAME = "employees1";
   private static final String INSERT_STATEMENT =
@@ -91,7 +91,7 @@ public class AstCQLClient {
 
     keyspace = keyspaceContext.getEntity();
     
-    EMP_CF = ColumnFamily.newColumnFamily(
+    empCf = ColumnFamily.newColumnFamily(
         EMP_CF_NAME, 
         IntegerSerializer.get(), 
         StringSerializer.get());
@@ -124,7 +124,7 @@ public class AstCQLClient {
     try {
       @SuppressWarnings("unused")
       OperationResult<CqlResult<Integer, String>> result = keyspace
-          .prepareQuery(EMP_CF)
+          .prepareQuery(empCf)
               .withCql(INSERT_STATEMENT)
           .asPreparedStatement()
               .withIntegerValue(empId)
@@ -142,7 +142,7 @@ public class AstCQLClient {
   public void insertDynamicProperties(int id, String[] ... entries) {
     MutationBatch m = keyspace.prepareMutationBatch();
 
-    ColumnListMutation<String> clm = m.withRow(EMP_CF, id);
+    ColumnListMutation<String> clm = m.withRow(empCf, id);
     for(String[] kv : entries) {
       clm.putColumn(kv[0], kv[1], null);
     }
@@ -164,7 +164,7 @@ public class AstCQLClient {
     try {
       @SuppressWarnings("unused")
       OperationResult<CqlResult<Integer, String>> result = keyspace
-          .prepareQuery(EMP_CF)
+          .prepareQuery(empCf)
           .withCql(CREATE_STATEMENT)
           .execute();
     } catch (Exception e) {
@@ -176,7 +176,7 @@ public class AstCQLClient {
     logger.debug("read()");
     try {
       OperationResult<CqlResult<Integer, String>> result
-        = keyspace.prepareQuery(EMP_CF)
+        = keyspace.prepareQuery(empCf)
           .withCql(String.format("SELECT * FROM %s WHERE %s=%d;", EMP_CF_NAME, COL_NAME_EMPID, empId))
           .execute();
       for (Row<Integer, String> row : result.getResult().getRows()) {

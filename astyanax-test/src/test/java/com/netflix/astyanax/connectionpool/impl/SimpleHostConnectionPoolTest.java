@@ -23,10 +23,10 @@ import com.netflix.astyanax.test.TestOperation;
 import com.netflix.astyanax.connectionpool.ConnectionContext;
 
 public class SimpleHostConnectionPoolTest {
-    private static Logger LOG = LoggerFactory
-            .getLogger(SimpleHostConnectionPoolTest.class);
+    private static final Logger LOG = LoggerFactory
+        .getLogger(SimpleHostConnectionPoolTest.class);
 
-    private static int WAIT_TIMEOUT = 50;
+    private static final int WAIT_TIMEOUT = 50;
 
     public static class NoOpListener implements
             SimpleHostConnectionPool.Listener<TestClient> {
@@ -47,7 +47,7 @@ public class SimpleHostConnectionPoolTest {
         CountingConnectionPoolMonitor monitor = new CountingConnectionPoolMonitor();
 
         ConnectionPoolConfiguration config = createConfig();
-        SimpleHostConnectionPool<TestClient> pool = new SimpleHostConnectionPool<TestClient>(
+        SimpleHostConnectionPool<TestClient> pool = new SimpleHostConnectionPool<>(
                 host, new TestConnectionFactory(config, monitor), monitor,
                 config, new NoOpListener());
         Assert.assertEquals(0,      pool.getActiveConnectionCount());
@@ -75,7 +75,7 @@ public class SimpleHostConnectionPoolTest {
 
         ConnectionPoolConfiguration config = createConfig();
         CountingConnectionPoolMonitor monitor = new CountingConnectionPoolMonitor();
-        SimpleHostConnectionPool<TestClient> pool = new SimpleHostConnectionPool<TestClient>(
+        SimpleHostConnectionPool<TestClient> pool = new SimpleHostConnectionPool<>(
                 host, new TestConnectionFactory(config, monitor), monitor,
                 config, new NoOpListener());
 
@@ -99,7 +99,7 @@ public class SimpleHostConnectionPoolTest {
 
         ConnectionPoolConfiguration config = createConfig();
         CountingConnectionPoolMonitor monitor = new CountingConnectionPoolMonitor();
-        SimpleHostConnectionPool<TestClient> pool = new SimpleHostConnectionPool<TestClient>(
+        SimpleHostConnectionPool<TestClient> pool = new SimpleHostConnectionPool<>(
                 host, new TestConnectionFactory(config, monitor), monitor,
                 config, new NoOpListener());
 
@@ -130,7 +130,7 @@ public class SimpleHostConnectionPoolTest {
 
         ConnectionPoolConfiguration config = createConfig();
         CountingConnectionPoolMonitor monitor = new CountingConnectionPoolMonitor();
-        SimpleHostConnectionPool<TestClient> pool = new SimpleHostConnectionPool<TestClient>(
+        SimpleHostConnectionPool<TestClient> pool = new SimpleHostConnectionPool<>(
                 host, new TestConnectionFactory(config, monitor), monitor,
                 config, new NoOpListener());
 
@@ -164,7 +164,7 @@ public class SimpleHostConnectionPoolTest {
         ConnectionPoolConfigurationImpl config = createConfig();
         config.setRetryBackoffStrategy(new FixedRetryBackoffStrategy(100, 100));
         CountingConnectionPoolMonitor monitor = new CountingConnectionPoolMonitor();
-        SimpleHostConnectionPool<TestClient> pool = new SimpleHostConnectionPool<TestClient>(
+        SimpleHostConnectionPool<TestClient> pool = new SimpleHostConnectionPool<>(
                 host, new TestConnectionFactory(config, monitor), monitor,
                 config, new NoOpListener());
 
@@ -196,7 +196,7 @@ public class SimpleHostConnectionPoolTest {
         config.setMaxConnsPerHost(3);
         config.setMaxPendingConnectionsPerHost(2);
         CountingConnectionPoolMonitor monitor = new CountingConnectionPoolMonitor();
-        SimpleHostConnectionPool<TestClient> pool = new SimpleHostConnectionPool<TestClient>(
+        SimpleHostConnectionPool<TestClient> pool = new SimpleHostConnectionPool<>(
                 host, new TestConnectionFactory(config, monitor), monitor,
                 config, new NoOpListener());
 
@@ -261,7 +261,7 @@ public class SimpleHostConnectionPoolTest {
 
         ConnectionPoolConfiguration config = createConfig();
         CountingConnectionPoolMonitor monitor = new CountingConnectionPoolMonitor();
-        SimpleHostConnectionPool<TestClient> pool = new SimpleHostConnectionPool<TestClient>(
+        SimpleHostConnectionPool<TestClient> pool = new SimpleHostConnectionPool<>(
                 host, new TestConnectionFactory(config, monitor), monitor,
                 config, new NoOpListener());
 
@@ -308,7 +308,7 @@ public class SimpleHostConnectionPoolTest {
 
         // Open the first connection
         CountingConnectionPoolMonitor monitor = new CountingConnectionPoolMonitor();
-        SimpleHostConnectionPool<TestClient> pool = new SimpleHostConnectionPool<TestClient>(
+        SimpleHostConnectionPool<TestClient> pool = new SimpleHostConnectionPool<>(
                 host, new TestConnectionFactory(config, monitor), monitor,
                 config, new NoOpListener());
 
@@ -348,7 +348,7 @@ public class SimpleHostConnectionPoolTest {
 
         // Open the first connection
         CountingConnectionPoolMonitor monitor = new CountingConnectionPoolMonitor();
-        SimpleHostConnectionPool<TestClient> pool = new SimpleHostConnectionPool<TestClient>(
+        SimpleHostConnectionPool<TestClient> pool = new SimpleHostConnectionPool<>(
                 host, new TestConnectionFactory(config, monitor), monitor,
                 config, new NoOpListener());
 
@@ -399,7 +399,7 @@ public class SimpleHostConnectionPoolTest {
 
         // Open the first connection
         CountingConnectionPoolMonitor monitor = new CountingConnectionPoolMonitor();
-        SimpleHostConnectionPool<TestClient> pool = new SimpleHostConnectionPool<TestClient>(
+        SimpleHostConnectionPool<TestClient> pool = new SimpleHostConnectionPool<>(
                 host, new TestConnectionFactory(config, monitor), monitor,
                 config, new NoOpListener());
 
@@ -430,7 +430,7 @@ public class SimpleHostConnectionPoolTest {
 
         // Open the first connection
         CountingConnectionPoolMonitor monitor = new CountingConnectionPoolMonitor();
-        SimpleHostConnectionPool<TestClient> pool = new SimpleHostConnectionPool<TestClient>(
+        SimpleHostConnectionPool<TestClient> pool = new SimpleHostConnectionPool<>(
                 host, new TestConnectionFactory(config, monitor), monitor,
                 config, new NoOpListener());
 
@@ -456,7 +456,7 @@ public class SimpleHostConnectionPoolTest {
 
         // Open the first connection
         CountingConnectionPoolMonitor monitor = new CountingConnectionPoolMonitor();
-        SimpleHostConnectionPool<TestClient> pool = new SimpleHostConnectionPool<TestClient>(
+        SimpleHostConnectionPool<TestClient> pool = new SimpleHostConnectionPool<>(
                 host, new TestConnectionFactory(config, monitor), monitor,
                 config, new NoOpListener());
 

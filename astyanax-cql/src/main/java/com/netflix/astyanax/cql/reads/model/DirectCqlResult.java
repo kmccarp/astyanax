@@ -40,17 +40,17 @@ import com.netflix.astyanax.model.Rows;
  */
 public class DirectCqlResult<K, C> implements CqlResult<K, C> {
 
-	private Long number = null;
+	private Long number;
 	private CqlRowListImpl<K, C> rows; 
 	
 	public DirectCqlResult(List<Row> rows, ColumnFamily<K,C> cf) {
 		
-		List<com.netflix.astyanax.model.Row<K,C>> rowList = new ArrayList<com.netflix.astyanax.model.Row<K,C>>();
+		List<com.netflix.astyanax.model.Row<K,C>> rowList = new ArrayList<>();
 		
 		for (Row row : rows) {
 			rowList.add(getAstyanaxRow(row, cf));
 		}
-		this.rows = new CqlRowListImpl<K, C>(rowList);
+		this.rows = new CqlRowListImpl<>(rowList);
 	}
 
 	public DirectCqlResult(Long number) {
@@ -78,8 +78,7 @@ public class DirectCqlResult<K, C> implements CqlResult<K, C> {
 	}
 
 	private com.netflix.astyanax.model.Row<K, C> getAstyanaxRow(Row row, ColumnFamily<K,C> cf) {
-		CqlRowImpl<K,C> rowImpl = new CqlRowImpl<K,C>(getAstyanaxRowKey(row, cf), getAstyanaxColumnList(row), cf);
-		return rowImpl;
+		return new CqlRowImpl<>(getAstyanaxRowKey(row, cf), getAstyanaxColumnList(row), cf);
 	}
 	
 	private K getAstyanaxRowKey(Row row, ColumnFamily<K,C> cf) {
@@ -90,7 +89,7 @@ public class DirectCqlResult<K, C> implements CqlResult<K, C> {
 	
 	private CqlColumnListImpl<C> getAstyanaxColumnList(Row row) {
 		
-		List<CqlColumnImpl<C>> list = new ArrayList<CqlColumnImpl<C>>();
+		List<CqlColumnImpl<C>> list = new ArrayList<>();
 
 		List<Definition> colDefs  = row.getColumnDefinitions().asList();
 		int index = 0;
@@ -101,6 +100,6 @@ public class DirectCqlResult<K, C> implements CqlResult<K, C> {
 			index++;
 		}
 		
-		return new CqlColumnListImpl<C>(list);
+		return new CqlColumnListImpl<>(list);
 	}
 }

@@ -71,12 +71,12 @@ public class ReverseIndexQuery<K, C, V> {
 
     public static <K, C, V> ReverseIndexQuery<K, C, V> newQuery(Keyspace ks, ColumnFamily<K, C> cf, String indexCf,
             Serializer<V> valSerializer) {
-        return new ReverseIndexQuery<K, C, V>(ks, cf, indexCf, valSerializer);
+        return new ReverseIndexQuery<>(ks, cf, indexCf, valSerializer);
     }
 
     public static <K, C, V> ReverseIndexQuery<K, C, V> newQuery(Keyspace ks, ColumnFamily<K, C> cf, ColumnFamily<ByteBuffer, ByteBuffer> indexCf,
             Serializer<V> valSerializer) {
-        return new ReverseIndexQuery<K, C, V>(ks, cf, indexCf, valSerializer);
+        return new ReverseIndexQuery<>(ks, cf, indexCf, valSerializer);
     }
 
     public static interface IndexEntryCallback<K, V> {
@@ -93,7 +93,7 @@ public class ReverseIndexQuery<K, C, V> {
     private V endValue;
     private int keyLimit = 100;
     private int columnLimit = 1000;
-    private int shardColumnLimit = 0;
+    private int shardColumnLimit;
     private final AtomicLong pendingTasks = new AtomicLong();
     private Function<Row<K, C>, Void> callback;
     private IndexEntryCallback<K, V> indexCallback;
@@ -206,16 +206,18 @@ public class ReverseIndexQuery<K, C, V> {
             catch (Throwable t) {
             }
 
-            if (pendingTasks.decrementAndGet() == 0)
+            if (pendingTasks.decrementAndGet() == 0) {
                 latch.countDown();
+            }
         }
 
         protected abstract void internalRun();
     }
 
     public void execute() {
-        if (executor == null)
+        if (executor == null) {
             executor = Executors.newFixedThreadPool(5, new ThreadFactoryBuilder().setDaemon(true).build());
+        }
 
         // Break up the shards into batches
         List<ByteBuffer> batch = Lists.newArrayListWithCapacity(keyLimit);
@@ -312,8 +314,9 @@ public class ReverseIndexQuery<K, C, V> {
                 List<K> batch = Lists.newArrayListWithCapacity(keyLimit);
 
                 int pageSize = shardColumnLimit;
-                if (pageSize == 0)
+                if (pageSize == 0) {
                     pageSize = columnLimit;
+                }
 
                 do {
                     // Get the first range in the index

@@ -43,18 +43,20 @@ public class RepeatingTrigger extends AbstractTrigger {
         }
         
         public RepeatingTrigger build() {
-            if (trigger.delay != null)
+            if (trigger.delay != null) {
                 trigger.setTriggerTime(System.currentTimeMillis() + trigger.delay);
-            else 
+            }
+            else {
                 trigger.setTriggerTime(System.currentTimeMillis());
+            }
             return trigger;
         }
     }
 
     private Long delay             ;   // In millseconds
-    private long interval       = 0;   // In milliseconds
+    private long interval;   // In milliseconds
     private Long repeatCount       ;   // Repeat count
-    private long endTime        = 0;
+    private long endTime;
     
     @Override
     public Trigger nextTrigger() {
@@ -64,8 +66,9 @@ public class RepeatingTrigger extends AbstractTrigger {
         
         long currentTime = System.currentTimeMillis();
         long nextTime    = getTriggerTime() + interval;
-        if (endTime != 0 && (nextTime > endTime || currentTime > endTime))
+        if (endTime != 0 && (nextTime > endTime || currentTime > endTime)) {
             return null;
+        }
         
         RepeatingTrigger next = new RepeatingTrigger();
         next.delay        = delay;
@@ -114,13 +117,19 @@ public class RepeatingTrigger extends AbstractTrigger {
     @Override
     public String toString() {
     	StringBuilder sb = new StringBuilder();
-    	sb.append("RepeatingTrigger[interval=" + interval);
-    	if (delay != null)
-    		sb.append(", delay=" + delay);
-    	if (repeatCount != null) 
-    		sb.append(", repeatCount=" + repeatCount);
-    	if (endTime > 0) 
-    		sb.append(", endTime=" + endTime);
+    	sb.append("RepeatingTrigger[interval=").append(interval);
+        if (delay != null) {
+            
+                sb.append(", delay=").append(delay);
+        }
+        if (repeatCount != null) {
+            
+                sb.append(", repeatCount=").append(repeatCount);
+        }
+        if (endTime > 0) {
+            
+                sb.append(", endTime=").append(endTime);
+        }
     	sb.append("]");
     	return sb.toString();
     }
