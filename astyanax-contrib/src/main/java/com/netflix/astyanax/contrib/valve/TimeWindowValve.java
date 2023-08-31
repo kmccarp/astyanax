@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class TimeWindowValve {
 
-    public static enum RequestStatus { 
+    public enum RequestStatus { 
         OverQuota, PastWindow, Permitted 
     };
     

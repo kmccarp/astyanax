@@ -44,12 +44,12 @@ public class NodeDiscoveryImpl implements NodeDiscovery {
 
 	private final ConnectionPool<?> connectionPool;
     private final ScheduledExecutorService executor;
-    private boolean bOwnedExecutor = false;
+    private boolean bOwnedExecutor;
     private final int interval;
     private final String name;
     private final Supplier<List<Host>> hostSupplier;
-    private final AtomicReference<DateTime> lastUpdateTime = new AtomicReference<DateTime>();
-    private final AtomicReference<Exception> lastException = new AtomicReference<Exception>();
+    private final AtomicReference<DateTime> lastUpdateTime = new AtomicReference<>();
+    private final AtomicReference<Exception> lastException = new AtomicReference<>();
     private final AtomicLong refreshCounter = new AtomicLong();
     private final AtomicLong errorCounter = new AtomicLong();
 
@@ -97,8 +97,9 @@ public class NodeDiscoveryImpl implements NodeDiscovery {
 
     @Override
     public void shutdown() {
-        if (bOwnedExecutor)
+        if (bOwnedExecutor) {
             executor.shutdown();
+        }
         NodeDiscoveryMonitorManager.getInstance().unregisterMonitor(name, this);
     }
 

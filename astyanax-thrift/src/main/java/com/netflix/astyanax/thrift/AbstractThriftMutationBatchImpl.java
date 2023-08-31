@@ -61,14 +61,14 @@ public abstract class AbstractThriftMutationBatchImpl implements MutationBatch {
     
     protected long              timestamp;
     private ConsistencyLevel    consistencyLevel;
-    private Clock               clock;
+    private final Clock               clock;
     private Host                pinnedHost;
     private RetryPolicy         retry;
     private WriteAheadLog       wal;
-    private boolean             useAtomicBatch = false;
+    private boolean             useAtomicBatch;
 
     private Map<ByteBuffer, Map<String, List<Mutation>>> mutationMap = Maps.newLinkedHashMap();
-    private Map<KeyAndColumnFamily, ColumnListMutation<?>> rowLookup = Maps.newHashMap();
+    private final Map<KeyAndColumnFamily, ColumnListMutation<?>> rowLookup = Maps.newHashMap();
     
     private static class KeyAndColumnFamily {
         private final String      columnFamily;
@@ -102,23 +102,30 @@ public abstract class AbstractThriftMutationBatchImpl implements MutationBatch {
 
         @Override
         public boolean equals(Object obj) {
-            if (this == obj)
+            if (this == obj) {
                 return true;
-            if (obj == null)
+            }
+            if (obj == null) {
                 return false;
-            if (getClass() != obj.getClass())
+            }
+            if (getClass() != obj.getClass()) {
                 return false;
+            }
             KeyAndColumnFamily other = (KeyAndColumnFamily) obj;
             if (columnFamily == null) {
-                if (other.columnFamily != null)
+                if (other.columnFamily != null) {
                     return false;
-            } else if (!columnFamily.equals(other.columnFamily))
+                }
+            } else if (!columnFamily.equals(other.columnFamily)) {
                 return false;
+            }
             if (key == null) {
-                if (other.key != null)
+                if (other.key != null) {
                     return false;
-            } else if (!key.equals(other.key))
+                }
+            } else if (!key.equals(other.key)) {
                 return false;
+            }
             return true;
         }
     }
@@ -134,10 +141,11 @@ public abstract class AbstractThriftMutationBatchImpl implements MutationBatch {
     public <K, C> ColumnListMutation<C> withRow(ColumnFamily<K, C> columnFamily, K rowKey) {
         Preconditions.checkNotNull(columnFamily, "columnFamily cannot be null");
         Preconditions.checkNotNull(rowKey, "Row key cannot be null");
-        
+
         // Upon adding the first row into the mutation get the latest time from the clock
-        if (timestamp == UNSET_TIMESTAMP)
+        if (timestamp == UNSET_TIMESTAMP) {
             timestamp = clock.getCurrentTime();
+        }
 
         ByteBuffer bbKey = columnFamily.getKeySerializer().toByteBuffer(rowKey);
         if (!bbKey.hasRemaining()) {
@@ -159,7 +167,7 @@ public abstract class AbstractThriftMutationBatchImpl implements MutationBatch {
                 innerMutationMap.put(columnFamily.getName(), innerMutationList);
             }
             
-            clm = new ThriftColumnFamilyMutationImpl<C>(timestamp, innerMutationList, columnFamily.getColumnSerializer());
+            clm = new ThriftColumnFamilyMutationImpl<>(timestamp, innerMutationList, columnFamily.getColumnSerializer());
             rowLookup.put(kacf, clm);
         }
         return clm;
@@ -201,13 +209,15 @@ public abstract class AbstractThriftMutationBatchImpl implements MutationBatch {
         sb.append("ThriftMutationBatch[");
         boolean first = true;
         for (Entry<ByteBuffer, Map<String, List<Mutation>>> row : mutationMap.entrySet()) {
-            if (!first)
+            if (!first) {
                 sb.append(",");
+            }
             sb.append(Hex.encodeHex(row.getKey().array())).append("(");
             boolean first2 = true;
             for (Entry<String, List<Mutation>> cf : row.getValue().entrySet()) {
-                if (!first2)
+                if (!first2) {
                     sb.append(",");
+                }
                 sb.append(cf.getKey()).append(":").append(cf.getValue().size());
                 first2 = false;
             }

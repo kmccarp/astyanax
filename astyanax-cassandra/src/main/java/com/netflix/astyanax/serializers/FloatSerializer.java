@@ -41,8 +41,9 @@ public class FloatSerializer extends AbstractSerializer<Float> {
 
     @Override
     public Float fromByteBuffer(ByteBuffer bytes) {
-        if (bytes == null)
+        if (bytes == null) {
             return null;
+        }
         ByteBuffer dup = bytes.duplicate();
         return Float
                 .intBitsToFloat(IntegerSerializer.get().fromByteBuffer(dup));

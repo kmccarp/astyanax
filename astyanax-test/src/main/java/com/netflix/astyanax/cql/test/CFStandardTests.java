@@ -71,10 +71,10 @@ public class CFStandardTests extends KeyspaceTests {
                     StringSerializer.get(),
                     StringSerializer.get());
 
-    private static ColumnFamily<String, String> CF_USER_INFO = ColumnFamily.newColumnFamily(
-            "UserInfo", // Column Family Name
-            StringSerializer.get(), // Key Serializer
-            StringSerializer.get()); // Column Serializer
+    private static final ColumnFamily<String, String> CF_USER_INFO = ColumnFamily.newColumnFamily(
+        "UserInfo", // Column Family Name
+        StringSerializer.get(), // Key Serializer
+        StringSerializer.get()); // Column Serializer
 
     @BeforeClass
 	public static void init() throws Exception {
@@ -466,10 +466,10 @@ public class CFStandardTests extends KeyspaceTests {
         Assert.assertEquals(5, r2.getResult().size());
         Assert.assertEquals("a", r2.getResult().getColumnByIndex(0).getName());
 
-        ByteBuffer EMPTY_BUFFER = ByteBuffer.wrap(new byte[0]);
+        ByteBuffer emptyBuffer = ByteBuffer.wrap(new byte[0]);
         OperationResult<ColumnList<String>> r3 = keyspace
                 .prepareQuery(CF_STANDARD1).getKey("A")
-                .withColumnRange(EMPTY_BUFFER, EMPTY_BUFFER, true, 5).execute();
+                .withColumnRange(emptyBuffer, emptyBuffer, true, 5).execute();
         Assert.assertEquals(5, r3.getResult().size());
         Assert.assertEquals("z", r3.getResult().getColumnByIndex(0).getName());
     }
@@ -495,8 +495,9 @@ public class CFStandardTests extends KeyspaceTests {
             LOG.info(e.getMessage());
             Assert.fail();
         } catch (ExecutionException e) {
-            if (e.getCause() instanceof NotFoundException)
+            if (e.getCause() instanceof NotFoundException) {
                 LOG.info(e.getCause().getMessage());
+            }
             else {
                 Assert.fail(e.getMessage());
             }
@@ -529,7 +530,7 @@ public class CFStandardTests extends KeyspaceTests {
     public void testGetAllKeysRoot() throws ConnectionException {
     	LOG.info("Starting testGetAllKeysRoot...");
 
-    	List<String> keys = new ArrayList<String>();
+    	List<String> keys = new ArrayList<>();
     	for (char key = 'A'; key <= 'Z'; key++) {
     		String keyName = Character.toString(key);
     		keys.add(keyName);
@@ -596,7 +597,7 @@ public class CFStandardTests extends KeyspaceTests {
     public void testGetAllKeysPath() throws ConnectionException {
     	LOG.info("Starting testGetAllKeysPath...");
 
-    	List<String> keys = new ArrayList<String>();
+    	List<String> keys = new ArrayList<>();
     	for (char key = 'A'; key <= 'Z'; key++) {
     		String keyName = Character.toString(key);
     		keys.add(keyName);
@@ -620,7 +621,7 @@ public class CFStandardTests extends KeyspaceTests {
     	Assert.assertEquals(26, counts.getResult().size());
 
     	for (Entry<String, Integer> count : counts.getResult().entrySet()) {
-    		Assert.assertEquals(new Integer(26), count.getValue());
+    		Assert.assertEquals(Integer.valueOf(26), count.getValue());
     	}
 
     	LOG.info("Starting testGetAllKeysPath...");

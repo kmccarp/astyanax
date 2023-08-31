@@ -38,7 +38,7 @@ import com.netflix.astyanax.thrift.ThriftFamilyFactory;
 
 public class ReverseIndexQueryTest {
 
-    private static Logger LOG = LoggerFactory.getLogger(ReverseIndexQueryTest.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ReverseIndexQueryTest.class);
 
     private static AstyanaxContext<Cluster> clusterContext;
 
@@ -53,9 +53,9 @@ public class ReverseIndexQueryTest {
 
     public static final String SEEDS = "localhost:7102";
 
-    private static ColumnFamily<Long, String> CF_DATA = ColumnFamily
-            .newColumnFamily(TEST_DATA_CF, LongSerializer.get(),
-                    StringSerializer.get());
+    private static final ColumnFamily<Long, String> CF_DATA = ColumnFamily
+        .newColumnFamily(TEST_DATA_CF, LongSerializer.get(),
+            StringSerializer.get());
 
     private static class IndexEntry {
         @Component(ordinal = 0)
@@ -69,12 +69,12 @@ public class ReverseIndexQueryTest {
         }
     }
 
-    private static Serializer<IndexEntry> indexEntitySerializer = new AnnotatedCompositeSerializer<IndexEntry>(
-            IndexEntry.class);
+    private static final Serializer<IndexEntry> indexEntitySerializer = new AnnotatedCompositeSerializer<>(
+        IndexEntry.class);
 
-    private static ColumnFamily<String, IndexEntry> CF_INDEX = ColumnFamily
-            .newColumnFamily(TEST_INDEX_CF, StringSerializer.get(),
-                    indexEntitySerializer);
+    private static final ColumnFamily<String, IndexEntry> CF_INDEX = ColumnFamily
+        .newColumnFamily(TEST_INDEX_CF, StringSerializer.get(),
+            indexEntitySerializer);
 
     @BeforeClass
     public static void setup() throws Exception {
@@ -101,7 +101,7 @@ public class ReverseIndexQueryTest {
                 LOG.warn(e.getMessage());
             }
 
-            Map<String, String> stratOptions = new HashMap<String, String>();
+            Map<String, String> stratOptions = new HashMap<>();
             stratOptions.put("replication_factor", "3");
 
             try {
@@ -136,8 +136,9 @@ public class ReverseIndexQueryTest {
 
     @AfterClass
     public static void teardown() {
-        if (clusterContext != null)
+        if (clusterContext != null) {
             clusterContext.shutdown();
+        }
     }
 
     public static void populateKeyspace() throws Exception {
@@ -210,9 +211,7 @@ public class ReverseIndexQueryTest {
                         LOG.info("Row : " + key + " IndexValue: " + value
                                 + " Meta: "
                                 + LongSerializer.get().fromByteBuffer(meta));
-                        if (key % 2 == 1)
-                            return false;
-                        return true;
+                        return key % 2 != 1;
                     }
                 }).execute();
 

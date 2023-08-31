@@ -44,7 +44,7 @@ public class AstyanaxCheckpointManager implements CheckpointManager {
 	private final ColumnFamily<ByteBuffer, String> columnFamily;
 	
     @SuppressWarnings("rawtypes")
-    private final static Comparator tokenComparator = new Comparator() {
+    private static final Comparator tokenComparator = new Comparator() {
         @Override
         public int compare(Object arg0, Object arg1) {
         	return new BigInteger((String)arg0).compareTo(new BigInteger((String)arg1));

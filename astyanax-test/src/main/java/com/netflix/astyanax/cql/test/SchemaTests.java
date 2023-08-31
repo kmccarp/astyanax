@@ -267,7 +267,7 @@ public class SchemaTests extends KeyspaceTests {
 		
 		keyspace.createKeyspace(ksOptions);
 		
-		ColumnFamily<String, String> cf1 = new ColumnFamily<String, String>("testcf1", StringSerializer.get(), StringSerializer.get());
+		ColumnFamily<String, String> cf1 = new ColumnFamily<>("testcf1", StringSerializer.get(), StringSerializer.get());
 		Map<String, Object> options1 = ImmutableMap.<String, Object>builder()
 				.put("read_repair_chance", 0.2)
 				.put("bloom_filter_fp_chance", 0.01)
@@ -275,7 +275,7 @@ public class SchemaTests extends KeyspaceTests {
 		
 		keyspace.createColumnFamily(cf1, options1);
 
-		Map<String, Object> options2 = new HashMap<String, Object>();
+		Map<String, Object> options2 = new HashMap<>();
 		options2.put("name", "testcf2");
 		options2.put("read_repair_chance", 0.4);
 		options2.put("bloom_filter_fp_chance", 0.01);
@@ -356,9 +356,9 @@ public class SchemaTests extends KeyspaceTests {
 		  }
 		}
 
-		AnnotatedCompositeSerializer<Population> compSerializer = new AnnotatedCompositeSerializer<Population>(Population.class);
-		ColumnFamily<String, Population> CF_POPULATION = 
-				new ColumnFamily<String, Population>("population", StringSerializer.get(), compSerializer);
+		AnnotatedCompositeSerializer<Population> compSerializer = new AnnotatedCompositeSerializer<>(Population.class);
+		ColumnFamily<String, Population> cfPopulation = 
+				new ColumnFamily<>("population", StringSerializer.get(), compSerializer);
 		
 		String keyspaceName = "AstyanaxTestKeyspaceCompositeCFs".toLowerCase();
 		
@@ -379,7 +379,7 @@ public class SchemaTests extends KeyspaceTests {
 		KeyspaceDefinition ksDef = keyspace.describeKeyspace();
 		Assert.assertEquals(keyspaceName, ksDef.getName());
 
-		keyspace.createColumnFamily(CF_POPULATION, ImmutableMap.<String, Object>builder()
+		keyspace.createColumnFamily(cfPopulation, ImmutableMap.<String, Object>builder()
         .put("default_validation_class", "UTF8Type")
         .put("key_validation_class",     "UTF8Type")
         .put("comparator_type",          "CompositeType(UTF8Type, UTF8Type, UTF8Type, Int32Type, DateType)")
@@ -514,7 +514,7 @@ public class SchemaTests extends KeyspaceTests {
 		keyspace.createKeyspace(options);
 		Thread.sleep(1000);
 		
-		ColumnFamily<String, String> cf = new ColumnFamily<String, String>("testaltercf1", StringSerializer.get(), StringSerializer.get());
+		ColumnFamily<String, String> cf = new ColumnFamily<>("testaltercf1", StringSerializer.get(), StringSerializer.get());
 		keyspace.createColumnFamily(cf, null);
 		
 		Assert.assertEquals(0.1, keyspace.getColumnFamilyProperties("testaltercf1").get("read_repair_chance"));
@@ -546,7 +546,7 @@ public class SchemaTests extends KeyspaceTests {
 		keyspace.createKeyspace(options);
 		Thread.sleep(1000);
 		
-		ColumnFamily<String, String> cf = new ColumnFamily<String, String>("testcreatedeletecf1", StringSerializer.get(), StringSerializer.get());
+		ColumnFamily<String, String> cf = new ColumnFamily<>("testcreatedeletecf1", StringSerializer.get(), StringSerializer.get());
 		keyspace.createColumnFamily(cf, null);
 		Assert.assertEquals(0.1, keyspace.getColumnFamilyProperties("testcreatedeletecf1").get("read_repair_chance"));
 		

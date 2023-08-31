@@ -60,7 +60,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class ThriftSyncConnectionFactoryImpl implements ConnectionFactory<Cassandra.Client> {
     private static final String NAME_FORMAT = "ThriftConnection<%s-%d>";
     private static final Logger LOG = LoggerFactory.getLogger(ThriftSyncConnectionFactoryImpl.class);
-    private final static ExecutorService executor = Executors.newCachedThreadPool(new ThreadFactoryBuilder().setDaemon(true)
+    private static final ExecutorService executor = Executors.newCachedThreadPool(new ThreadFactoryBuilder().setDaemon(true)
             .build());
     
     private final AtomicLong idCounter = new AtomicLong(0);
@@ -94,12 +94,12 @@ public class ThriftSyncConnectionFactoryImpl implements ConnectionFactory<Cassan
         private Cassandra.Client cassandraClient;
         private TFramedTransport transport;
         private TSocket socket;
-        private int timeout = 0;
-        private int maxThriftSize = 0;
+        private int timeout;
+        private int maxThriftSize;
         private AtomicLong operationCounter = new AtomicLong();
         private AtomicBoolean closed = new AtomicBoolean(false);
 
-        private volatile ConnectionException lastException = null;
+        private volatile ConnectionException lastException;
         private volatile String keyspaceName;
 
         private final HostConnectionPool<Cassandra.Client> pool;
@@ -125,8 +125,9 @@ public class ThriftSyncConnectionFactoryImpl implements ConnectionFactory<Cassan
                         .start();
                 try {
                     cassandraClient.set_keyspace(op.getKeyspace());
-                    if (asConfig.getCqlVersion() != null)
+                    if (asConfig.getCqlVersion() != null) {
                         cassandraClient.set_cql_version(asConfig.getCqlVersion());
+                    }
                     keyspaceName = op.getKeyspace();
                     long now = System.nanoTime();
                     latency = now - startTime;
@@ -154,7 +155,7 @@ public class ThriftSyncConnectionFactoryImpl implements ConnectionFactory<Cassan
                 long now = System.nanoTime();
                 latency = now - startTime;
                 pool.addLatencySample(latency, now);
-                return new OperationResultImpl<R>(getHost(), result, latency);
+                return new OperationResultImpl<>(getHost(), result, latency);
             }
             catch (Exception e) {
                 long now = System.nanoTime();
@@ -191,8 +192,9 @@ public class ThriftSyncConnectionFactoryImpl implements ConnectionFactory<Cassan
 
                 setTimeout(cpConfig.getSocketTimeout());
                 transport = new TFramedTransport(socket, maxThriftSize);
-                if(!transport.isOpen())
+                if (!transport.isOpen()) {
                     transport.open();
+                }
 
                 cassandraClient = new Cassandra.Client(new TBinaryProtocol.Factory().getProtocol(transport));
                 monitor.incConnectionCreated(getHost());

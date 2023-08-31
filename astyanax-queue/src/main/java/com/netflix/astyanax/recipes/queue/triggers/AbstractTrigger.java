@@ -17,8 +17,8 @@ package com.netflix.astyanax.recipes.queue.triggers;
 
 
 public abstract class AbstractTrigger implements Trigger {
-    private long triggerTime    = 0;   // In milliseconds
-    private long executeCount   = 0;
+    private long triggerTime;   // In milliseconds
+    private long executeCount;
     
     @Override
     public long getTriggerTime() {

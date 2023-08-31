@@ -58,7 +58,7 @@ import com.netflix.astyanax.test.TestHostType;
 import com.netflix.astyanax.test.TestOperation;
 
 public class Stress {
-    private static Logger LOG = LoggerFactory.getLogger(Stress.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Stress.class);
 
     /**
      * @param args
@@ -81,7 +81,7 @@ public class Stress {
 
         final ConnectionPoolMonitor monitor   = new CountingConnectionPoolMonitor();
         TestConnectionFactory factory         = new TestConnectionFactory(config, monitor);
-        final ConnectionPool<TestClient> pool = new RoundRobinConnectionPoolImpl<TestClient>(config, factory, monitor);
+        final ConnectionPool<TestClient> pool = new RoundRobinConnectionPoolImpl<>(config, factory, monitor);
         pool.start();
 
         final List<Host> hosts = Lists.newArrayList(
@@ -104,7 +104,7 @@ public class Stress {
             pool.addHost(host, true);
         }
                 
-        final Map<Host, AtomicLong> counts = new TreeMap<Host, AtomicLong>();
+        final Map<Host, AtomicLong> counts = new TreeMap<>();
         for (HostConnectionPool<TestClient> p : pool.getActivePools()) {
             counts.put(p.getHost(), new AtomicLong());
         }
@@ -200,8 +200,9 @@ public class Stress {
                                     return null;
                                 }
                                 catch (RuntimeException e) {
-                                    if (e.getCause() instanceof ConnectionException)
-                                        throw (ConnectionException)e.getCause();
+                                    if (e.getCause() instanceof ConnectionException) {
+                                        throw (ConnectionException) e.getCause();
+                                    }
                                     throw e;
                                 }
                             }

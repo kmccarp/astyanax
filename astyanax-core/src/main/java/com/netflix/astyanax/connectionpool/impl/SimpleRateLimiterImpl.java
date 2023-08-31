@@ -21,7 +21,7 @@ import com.netflix.astyanax.connectionpool.ConnectionPoolConfiguration;
 import com.netflix.astyanax.connectionpool.RateLimiter;
 
 public class SimpleRateLimiterImpl implements RateLimiter {
-    private final LinkedBlockingDeque<Long> queue = new LinkedBlockingDeque<Long>();
+    private final LinkedBlockingDeque<Long> queue = new LinkedBlockingDeque<>();
     private final ConnectionPoolConfiguration config;
 
     public SimpleRateLimiterImpl(ConnectionPoolConfiguration config) {
@@ -36,8 +36,9 @@ public class SimpleRateLimiterImpl implements RateLimiter {
     @Override
     public boolean check(long currentTimeMillis) {
         int maxCount = config.getConnectionLimiterMaxPendingCount();
-        if (maxCount == 0)
+        if (maxCount == 0) {
             return true;
+        }
 
         // Haven't reached the count limit yet
         if (queue.size() < maxCount) {

@@ -79,24 +79,24 @@ public class TokenPartitionedTopology<CL> implements Topology<CL> {
      * Sorted list of partitions.  A binary search is performed on this list to determine
      * the list of hosts that own the token range.
      */
-    private AtomicReference<List<TokenHostConnectionPoolPartition<CL>>> sortedRing
-    	= new AtomicReference<List<TokenHostConnectionPoolPartition<CL>>>(new ArrayList<TokenHostConnectionPoolPartition<CL>>());
+    private final AtomicReference<List<TokenHostConnectionPoolPartition<CL>>> sortedRing
+        = new AtomicReference<>(new ArrayList<TokenHostConnectionPoolPartition<CL>>());
 
     /**
      * Lookup of end token to partition 
      */
-    private NonBlockingHashMap<BigInteger, TokenHostConnectionPoolPartition<CL>> tokenToPartitionMap
-    	= new NonBlockingHashMap<BigInteger, TokenHostConnectionPoolPartition<CL>>();
+    private final NonBlockingHashMap<BigInteger, TokenHostConnectionPoolPartition<CL>> tokenToPartitionMap
+        = new NonBlockingHashMap<>();
 
     /**
      * Partition which contains all hosts.  This is the fallback partition when no tokens are provided.
      */
-    private TokenHostConnectionPoolPartition<CL> allPools;
+    private final TokenHostConnectionPoolPartition<CL> allPools;
 
     /**
      * Strategy used to score hosts within a partition.
      */
-    private LatencyScoreStrategy strategy;
+    private final LatencyScoreStrategy strategy;
 
     /**
      * Assume random partitioner, for now
@@ -134,11 +134,11 @@ public class TokenPartitionedTopology<CL> implements Topology<CL> {
     public TokenPartitionedTopology(Partitioner partitioner, LatencyScoreStrategy strategy) {
         this.strategy    = strategy;
         this.partitioner = partitioner;
-        this.allPools    = new TokenHostConnectionPoolPartition<CL>(null, this.strategy);
+        this.allPools    = new TokenHostConnectionPoolPartition<>(null, this.strategy);
     }
 
     protected TokenHostConnectionPoolPartition<CL> makePartition(BigInteger partition) {
-        return new TokenHostConnectionPoolPartition<CL>(partition, strategy);
+        return new TokenHostConnectionPoolPartition<>(partition, strategy);
     }
 
     @SuppressWarnings("unchecked")
@@ -156,8 +156,9 @@ public class TokenPartitionedTopology<CL> implements Topology<CL> {
         Map<BigInteger, List<HostConnectionPool<CL>>> tokenHostMap = Maps.newHashMap();
         for (HostConnectionPool<CL> pool : ring) {
             allPools.add(pool);
-            if (!this.allPools.hasPool(pool))
+            if (!this.allPools.hasPool(pool)) {
                 didChange = true;
+            }
           
             for (TokenRange range : pool.getHost().getTokenRanges()) {
                 BigInteger endToken = new BigInteger(range.getEndToken());
@@ -185,8 +186,9 @@ public class TokenPartitionedTopology<CL> implements Topology<CL> {
                 tokenToPartitionMap.put(token, partition);
                 didChange = true;
             }
-            if (partition.setPools(entry.getValue()))
+            if (partition.setPools(entry.getValue())) {
                 didChange = true;
+            }
         }
 
         // Remove the tokens that are no longer in the ring
@@ -233,8 +235,9 @@ public class TokenPartitionedTopology<CL> implements Topology<CL> {
     
     @Override
     public TokenHostConnectionPoolPartition<CL> getPartition(ByteBuffer rowkey) {
-        if (rowkey == null)
+        if (rowkey == null) {
             return getAllPools();
+        }
         
         BigInteger token = new BigInteger(partitioner.getTokenForKey(rowkey));
         

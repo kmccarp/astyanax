@@ -55,13 +55,15 @@ public class FilteringHostSupplier implements Supplier<List<Host>> {
             filterList = filterSupplier.get();
         }
         catch (RuntimeException e) {
-            if (sourceList != null)
+            if (sourceList != null) {
                 return sourceList;
+            }
             throw e;
         }
-        
-        if (filterList.isEmpty())
+
+        if (filterList.isEmpty()) {
             return sourceList;
+        }
         
         // Generate a lookup of all alternate IP addresses for the hosts in the
         // filter list
@@ -94,9 +96,10 @@ public class FilteringHostSupplier implements Supplier<List<Host>> {
                 return false;
             }
         }));
-        
-        if (result.isEmpty()) 
+
+        if (result.isEmpty()) {
             return sourceList;
+        }
         return result;
     }
 

@@ -33,7 +33,7 @@ import com.netflix.astyanax.model.ConsistencyLevel;
 public class CqlColumnListMutationImpl<K, C> extends AbstractColumnListMutationImpl<C> {
 
 	public enum ColListMutationType {
-		RowDelete, ColumnsUpdate, CounterColumnsUpdate;
+		RowDelete, ColumnsUpdate, CounterColumnsUpdate
 	}
 	
 	private ColListMutationType type = ColListMutationType.ColumnsUpdate;
@@ -43,14 +43,14 @@ public class CqlColumnListMutationImpl<K, C> extends AbstractColumnListMutationI
 	
 	private final CqlColumnFamilyDefinitionImpl cfDef;
 	
-	private final List<CqlColumnMutationImpl<K, C>> mutationList = new ArrayList<CqlColumnMutationImpl<K,C>>();
-	private AtomicReference<Boolean> deleteRow = new AtomicReference<Boolean>(false); 
+	private final List<CqlColumnMutationImpl<K, C>> mutationList = new ArrayList<>();
+	private AtomicReference<Boolean> deleteRow = new AtomicReference<>(false); 
 	
 	public CqlColumnListMutationImpl(KeyspaceContext ksCtx, ColumnFamily<K,C> cf, K rowKey, ConsistencyLevel level, Long timestamp) {
 		
 		super(timestamp);
 		this.ksContext = ksCtx;
-		this.cfContext = new CFQueryContext<K,C>(cf, rowKey, null, level);
+		this.cfContext = new CFQueryContext<>(cf, rowKey, null, level);
 		this.cfDef = (CqlColumnFamilyDefinitionImpl) cf.getColumnFamilyDefinition();
 	}
 	
@@ -59,7 +59,7 @@ public class CqlColumnListMutationImpl<K, C> extends AbstractColumnListMutationI
 		
 		checkColumnName(columnName);
 		
-		CqlColumnMutationImpl<K,C> mutation = new CqlColumnMutationImpl<K,C>(ksContext, cfContext, columnName);
+		CqlColumnMutationImpl<K,C> mutation = new CqlColumnMutationImpl<>(ksContext, cfContext, columnName);
 		mutation.putValue(value, valueSerializer, getActualTTL(ttl));
 		if (this.getTimestamp() != null) {
 			mutation.withTimestamp(this.getTimestamp());
@@ -84,7 +84,7 @@ public class CqlColumnListMutationImpl<K, C> extends AbstractColumnListMutationI
 			theTTL = ttl;
 		}
 
-		CqlColumnMutationImpl<K,C> mutation = new CqlColumnMutationImpl<K,C>(ksContext, cfContext, columnName);
+		CqlColumnMutationImpl<K,C> mutation = new CqlColumnMutationImpl<>(ksContext, cfContext, columnName);
 		mutation.putEmptyColumn(theTTL);
 		if (this.getTimestamp() != null) {
 			mutation.withTimestamp(this.getTimestamp());
@@ -100,7 +100,7 @@ public class CqlColumnListMutationImpl<K, C> extends AbstractColumnListMutationI
 		checkColumnName(columnName);
 
 		type = ColListMutationType.CounterColumnsUpdate;
-		CqlColumnMutationImpl<K,C> mutation = new CqlColumnMutationImpl<K,C>(ksContext, cfContext, columnName);
+		CqlColumnMutationImpl<K,C> mutation = new CqlColumnMutationImpl<>(ksContext, cfContext, columnName);
 		mutation.incrementCounterColumn(amount);
 		mutationList.add(mutation);
 		
@@ -112,7 +112,7 @@ public class CqlColumnListMutationImpl<K, C> extends AbstractColumnListMutationI
 		
 		checkColumnName(columnName);
 
-		CqlColumnMutationImpl<K,C> mutation = new CqlColumnMutationImpl<K,C>(ksContext, cfContext, columnName);
+		CqlColumnMutationImpl<K,C> mutation = new CqlColumnMutationImpl<>(ksContext, cfContext, columnName);
 		mutation.deleteColumn();
 		if (this.getTimestamp() != null) {
 			mutation.withTimestamp(this.getTimestamp());
@@ -158,7 +158,7 @@ public class CqlColumnListMutationImpl<K, C> extends AbstractColumnListMutationI
 		
 		Preconditions.checkArgument(columnName != null, "Column Name must not be null");
 		
-		CqlColumnMutationImpl<K,C> mutation = new CqlColumnMutationImpl<K,C>(ksContext, cfContext, columnName);
+		CqlColumnMutationImpl<K,C> mutation = new CqlColumnMutationImpl<>(ksContext, cfContext, columnName);
 		mutation.putGenericValue(value, getActualTTL(ttl));
 		
 		mutationList.add(mutation);

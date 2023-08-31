@@ -65,19 +65,19 @@ public class CqlRowSliceQueryImpl<K, C> implements RowSliceQuery<K, C> {
 	private final CFQueryContext<K,C> cfContext;
 
 	private final CqlRowSlice<K> rowSlice;
-	private CqlColumnSlice<C> columnSlice = new CqlColumnSlice<C>();
+	private CqlColumnSlice<C> columnSlice = new CqlColumnSlice<>();
 	
-	private CompositeByteBufferRange compositeRange = null;
+	private CompositeByteBufferRange compositeRange;
 
 	private final boolean isPaginating; 
-	private boolean useCaching = false;
+	private boolean useCaching;
 	
 	public enum RowSliceQueryType {
 		RowKeys, RowRange
 	}
 
 	public enum ColumnSliceQueryType {
-		AllColumns, ColumnSet, ColumnRange; 
+		AllColumns, ColumnSet, ColumnRange 
 	}
 	
 	private final RowSliceQueryType rowQueryType;
@@ -115,21 +115,21 @@ public class CqlRowSliceQueryImpl<K, C> implements RowSliceQuery<K, C> {
 	@Override
 	public RowSliceQuery<K, C> withColumnSlice(Collection<C> columns) {
 		colQueryType = ColumnSliceQueryType.ColumnSet;
-		this.columnSlice = new CqlColumnSlice<C>(columns);
+		this.columnSlice = new CqlColumnSlice<>(columns);
 		return this;
 	}
 
 	@Override
 	public RowSliceQuery<K, C> withColumnSlice(ColumnSlice<C> columns) {
 		colQueryType = ColumnSliceQueryType.ColumnSet;
-		this.columnSlice = new CqlColumnSlice<C>(columns);
+		this.columnSlice = new CqlColumnSlice<>(columns);
 		return this;
 	}
 
 	@Override
 	public RowSliceQuery<K, C> withColumnRange(C startColumn, C endColumn, boolean reversed, int count) {
 		colQueryType = ColumnSliceQueryType.ColumnRange;
-		this.columnSlice = new CqlColumnSlice<C>(new CqlRangeBuilder<C>()
+		this.columnSlice = new CqlColumnSlice<>(new CqlRangeBuilder<C>()
 				.setColumn("column1")
 				.setStart(startColumn)
 				.setEnd(endColumn)
@@ -171,7 +171,7 @@ public class CqlRowSliceQueryImpl<K, C> implements RowSliceQuery<K, C> {
 	@Override
 	public RowSliceColumnCountQuery<K> getColumnCounts() {
 		Statement query = new InternalRowQueryExecutionImpl(this).getQuery();
-		return new CqlRowSliceColumnCountQueryImpl<K>(ksContext, cfContext, query);
+		return new CqlRowSliceColumnCountQueryImpl<>(ksContext, cfContext, query);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -200,14 +200,14 @@ public class CqlRowSliceQueryImpl<K, C> implements RowSliceQuery<K, C> {
 			if (!isPaginating) {
 				List<com.datastax.driver.core.Row> rows = rs.all();
 				if (rows == null || rows.isEmpty()) {
-					return new CqlRowListImpl<K, C>();
+					return new CqlRowListImpl<>();
 				}
-				return new CqlRowListImpl<K, C>(rows, (ColumnFamily<K, C>) cf);
+				return new CqlRowListImpl<>(rows, (ColumnFamily<K, C>) cf);
 			} else {
 				if (rs == null) {
-					return new CqlRowListImpl<K, C>();
+					return new CqlRowListImpl<>();
 				}
-				return new CqlRowListIterator<K, C>(rs, (ColumnFamily<K, C>) cf);
+				return new CqlRowListIterator<>(rs, (ColumnFamily<K, C>) cf);
 			}
 		}
 

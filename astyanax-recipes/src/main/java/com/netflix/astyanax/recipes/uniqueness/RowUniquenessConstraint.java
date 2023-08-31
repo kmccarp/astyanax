@@ -44,8 +44,8 @@ public class RowUniquenessConstraint<K, C> implements UniquenessConstraint {
     private final C          uniqueColumn;
     private final K          key;
     private ConsistencyLevel consistencyLevel = ConsistencyLevel.CL_LOCAL_QUORUM;
-    private ByteBuffer       data             = null;
-    private Integer          ttl              = null;
+    private ByteBuffer       data;
+    private Integer          ttl;
 
     public RowUniquenessConstraint(Keyspace keyspace, ColumnFamily<K, C> columnFamily, K key,
             Supplier<C> uniqueColumnSupplier) {
@@ -94,8 +94,9 @@ public class RowUniquenessConstraint<K, C> implements UniquenessConstraint {
         acquireAndApplyMutation(new Function<MutationBatch, Boolean>() {
             @Override
             public Boolean apply(MutationBatch input) {
-                if (mutation != null)
+                if (mutation != null) {
                     input.mergeShallow(mutation);
+                }
                 return true;
             }
         });
@@ -124,8 +125,9 @@ public class RowUniquenessConstraint<K, C> implements UniquenessConstraint {
 
             // Phase 3: Persist the uniqueness with 
             m = keyspace.prepareMutationBatch().setConsistencyLevel(consistencyLevel);
-            if (callback != null)
+            if (callback != null) {
                 callback.apply(m);
+            }
             
             if (data == null) {
                 m.withRow(columnFamily, key).putEmptyColumn(uniqueColumn, null);

@@ -51,11 +51,11 @@ public class CompositeKeyTests extends KeyspaceTests {
 		keyspace.dropColumnFamily(CF_COMPOSITE_KEY);
 	}
 
-	private static AnnotatedCompositeSerializer<MockCompositeType> M_SERIALIZER 
-    	= new AnnotatedCompositeSerializer<MockCompositeType>(MockCompositeType.class);
+    private static final AnnotatedCompositeSerializer<MockCompositeType> M_SERIALIZER
+        = new AnnotatedCompositeSerializer<>(MockCompositeType.class);
 
-    private static ColumnFamily<MockCompositeType, String> CF_COMPOSITE_KEY 
-    	= ColumnFamily.newColumnFamily("compositekey", M_SERIALIZER, StringSerializer.get());
+    private static final ColumnFamily<MockCompositeType, String> CF_COMPOSITE_KEY
+        = ColumnFamily.newColumnFamily("compositekey", M_SERIALIZER, StringSerializer.get());
 	
     @Test
     public void testCompositeKey() {

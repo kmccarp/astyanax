@@ -21,10 +21,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class BagConnectionPoolImplTest extends BaseConnectionPoolTest {
-    private static Logger LOG = LoggerFactory
-            .getLogger(BagConnectionPoolImplTest.class);
+    private static final Logger LOG = LoggerFactory
+        .getLogger(BagConnectionPoolImplTest.class);
 
-    private static Operation<TestClient, String> dummyOperation = new TestOperation();
+    private static final Operation<TestClient, String> dummyOperation = new TestOperation();
 
     protected ConnectionPool<TestClient> createPool() {
         ConnectionPoolConfiguration config = new ConnectionPoolConfigurationImpl(
@@ -32,10 +32,8 @@ public class BagConnectionPoolImplTest extends BaseConnectionPoolTest {
         config.initialize();
 
         CountingConnectionPoolMonitor monitor = new CountingConnectionPoolMonitor();
-        ConnectionPool<TestClient> pool = new BagOfConnectionsConnectionPoolImpl<TestClient>(
+        return new BagOfConnectionsConnectionPoolImpl<>(
                 config, new TestConnectionFactory(config, monitor), monitor);
-
-        return pool;
     }
 
     public void testAll() {
@@ -50,7 +48,7 @@ public class BagConnectionPoolImplTest extends BaseConnectionPoolTest {
                 TestConstants.CLUSTER_NAME + "_" + TestConstants.KEYSPACE_NAME);
         config.initialize();
 
-        ConnectionPool<TestClient> pool = new BagOfConnectionsConnectionPoolImpl<TestClient>(
+        ConnectionPool<TestClient> pool = new BagOfConnectionsConnectionPoolImpl<>(
                 config, new TestConnectionFactory(config, monitor), monitor);
 
         pool.addHost(
@@ -87,7 +85,7 @@ public class BagConnectionPoolImplTest extends BaseConnectionPoolTest {
         config.initialize();
 
         
-        ConnectionPool<TestClient> pool = new BagOfConnectionsConnectionPoolImpl<TestClient>(
+        ConnectionPool<TestClient> pool = new BagOfConnectionsConnectionPoolImpl<>(
                 config, new TestConnectionFactory(config, monitor), monitor);
 
         pool.addHost(new Host("127.0.0.1",
@@ -124,7 +122,7 @@ public class BagConnectionPoolImplTest extends BaseConnectionPoolTest {
         config.setInitConnsPerHost(0);
         config.initialize();
 
-        ConnectionPool<TestClient> pool = new BagOfConnectionsConnectionPoolImpl<TestClient>(
+        ConnectionPool<TestClient> pool = new BagOfConnectionsConnectionPoolImpl<>(
                 config, new TestConnectionFactory(config, monitor), monitor);
 
         pool.addHost(
