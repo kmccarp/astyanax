@@ -81,17 +81,17 @@ public class CassBasedFailedWritesLogger implements FailedWritesLogger {
         }
         String cfName = failedWrite.getPrimaryCluster() + "-" + failedWrite.getPrimaryKeyspace();
         
-        ColumnFamily<String, Long> CF_FAILED_WRITES = 
+        ColumnFamily<String, Long> cfFailedWrites = 
                 ColumnFamily.newColumnFamily(cfName, StringSerializer.get(), LongSerializer.get(), StringSerializer.get());
         
         String rowKey = failedWrite.getCFName() + "_" + counter.getNext();
         Long column = failedWrite.getUuid();
         String value = failedWrite.getRowKey();
         
-        batch.withRow(CF_FAILED_WRITES, rowKey).putColumn(column, value);
+        batch.withRow(cfFailedWrites, rowKey).putColumn(column, value);
     }
 
-    private class CircularCounter { 
+    private final class CircularCounter { 
         
         private final int maxLimit;
         private final AtomicInteger counter = new AtomicInteger(0);
@@ -102,7 +102,7 @@ public class CassBasedFailedWritesLogger implements FailedWritesLogger {
         
         private int getNext() {
             int count = counter.incrementAndGet();
-            return (count % maxLimit);
+            return count % maxLimit;
         }
     }
 

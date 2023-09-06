@@ -31,7 +31,7 @@ public class KeySlice<K> {
     private K endKey;
     private String startToken;
     private String endToken;
-    private int size = 0;
+    private int size;
 
     public KeySlice(Collection<K> keys) {
         this.keys = keys;

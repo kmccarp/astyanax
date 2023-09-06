@@ -64,8 +64,9 @@ public class UniquenessConstraint<K, C> {
             return unique;
         }
 
-        if (this.monitor != null)
+        if (this.monitor != null) {
             this.monitor.onViolation(key, unique);
+        }
 
         // Rollback
         m = keyspace.prepareMutationBatch().setConsistencyLevel(consistencyLevel);

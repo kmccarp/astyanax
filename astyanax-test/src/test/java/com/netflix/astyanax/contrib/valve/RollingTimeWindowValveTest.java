@@ -16,7 +16,7 @@ public class RollingTimeWindowValveTest {
      
         final RollingTimeWindowValve valve = new RollingTimeWindowValve(10000, 1);
         
-        Long counter = new Long(0L);
+        Long counter = Long.valueOf(0L);
         
         for (int i=0; i<100000; i++) {
             boolean success = valve.decrementAndCheckQuota();
@@ -96,7 +96,7 @@ public class RollingTimeWindowValveTest {
         
         final RollingTimeWindowValve valve = new RollingTimeWindowValve(10000, 10);
         
-        final AtomicReference<PauseTest> pause = new AtomicReference<PauseTest>(new PauseTest(8)); 
+        final AtomicReference<PauseTest> pause = new AtomicReference<>(new PauseTest(8)); 
         
         final AtomicLong successCount = new AtomicLong(0L);
         final MultiThreadTestControl testControl = new MultiThreadTestControl(8);
@@ -142,8 +142,8 @@ public class RollingTimeWindowValveTest {
         //Assert.assertTrue("Success: " + successCount.get() + ", expected: " + expectedSuccesses + ", percentageDiff: " + percentageDiff, percentageDiff < 10);
         //System.out.println("Success: " + successCount.get() + ", expected: " + expectedSuccesses + ", percentageDiff: " + percentageDiff);
     }
-    
-    private class PauseTest {
+
+    private final class PauseTest {
         
         private final CountDownLatch waitLatch = new CountDownLatch(1);
         

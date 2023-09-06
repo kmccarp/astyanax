@@ -25,7 +25,7 @@ import com.netflix.astyanax.connectionpool.exceptions.ConnectionException;
 public class TestHostConnectionPool implements HostConnectionPool<TestClient> {
 
     private final Host host;
-    private AtomicBoolean isShutDown = new AtomicBoolean();
+    private final AtomicBoolean isShutDown = new AtomicBoolean();
 
     public TestHostConnectionPool(Host host) {
         this.host = host;

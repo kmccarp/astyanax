@@ -68,6 +68,6 @@ public class EmptyColumnList<C> extends AbstractColumnList<C> {
 
     @Override
     public Collection<C> getColumnNames() {
-        return new HashSet<C>();
+        return new HashSet<>();
     }
 }

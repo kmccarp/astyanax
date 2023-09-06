@@ -53,10 +53,12 @@ public class ThriftSuperColumnMutationImpl<C> extends AbstractColumnListMutation
         column.setName(path.getSerializer().toByteBuffer(columnName));
         column.setValue(valueSerializer.toByteBuffer(value));
         column.setTimestamp(timestamp);
-        if (ttl != null)
+        if (ttl != null) {
             column.setTtl(ttl);
-        else if (defaultTtl != null)
+        }
+        else if (defaultTtl != null) {
             column.setTtl(defaultTtl);
+        }
 
         addMutation(column);
         return this;
@@ -81,10 +83,12 @@ public class ThriftSuperColumnMutationImpl<C> extends AbstractColumnListMutation
         column.setName(path.getSerializer().toByteBuffer(columnName));
         column.setValue(ThriftUtils.EMPTY_BYTE_BUFFER);
         column.setTimestamp(timestamp);
-        if (ttl != null)
+        if (ttl != null) {
             column.setTtl(ttl);
-        else if (defaultTtl != null)
+        }
+        else if (defaultTtl != null) {
             column.setTtl(defaultTtl);
+        }
 
         addMutation(column);
         return this;

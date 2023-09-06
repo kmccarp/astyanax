@@ -15,7 +15,7 @@ public class EntityMapperTest {
 
 	@Test
 	public void basic() {
-		EntityMapper<SampleEntity, String> entityMapper = new EntityMapper<SampleEntity, String>(SampleEntity.class, null);
+		EntityMapper<SampleEntity, String> entityMapper = new EntityMapper<>(SampleEntity.class, null);
 
 		// test id field
 		Field idField = entityMapper.getId();
@@ -32,10 +32,12 @@ public class EntityMapperTest {
 		boolean foundUUID = false;
 		boolean founduuid = false;
 		for(ColumnMapper mapper: cols) {
-			if(mapper.getColumnName().equals("UUID"))
-				foundUUID = true;
-			if(mapper.getColumnName().equals("uuid"))
-				founduuid = true;
+            if ("UUID".equals(mapper.getColumnName())) {
+                foundUUID = true;
+            }
+            if ("uuid".equals(mapper.getColumnName())) {
+                founduuid = true;
+            }
 		}
 		Assert.assertFalse(foundUUID);
 		Assert.assertTrue(founduuid);
@@ -64,7 +66,7 @@ public class EntityMapperTest {
 
 	@Test
 	public void doubleIdColumnAnnotation() {
-		EntityMapper<DoubleIdColumnEntity, String> entityMapper = new EntityMapper<DoubleIdColumnEntity, String>(DoubleIdColumnEntity.class, null);
+		EntityMapper<DoubleIdColumnEntity, String> entityMapper = new EntityMapper<>(DoubleIdColumnEntity.class, null);
 
 		// test id field
 		Field idField = entityMapper.getId();

@@ -41,7 +41,7 @@ import com.netflix.astyanax.query.RowQuery;
  */
 public class CqlRowCopier<K,C> implements RowCopier<K,C> {
 
-	private boolean useOriginalTimestamp = false;
+	private boolean useOriginalTimestamp;
 	
 	private final RowQuery<K,C> rowQuery;
 	private final ColumnFamily<K,C> cf;

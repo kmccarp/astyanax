@@ -153,11 +153,11 @@ public class CqlClusterImpl implements com.netflix.astyanax.Cluster, SeedHostLis
 		
 		Statement query = QueryBuilder.select().all().from("system", "schema_keyspaces");
 
-		List<KeyspaceDefinition> ksDefs = new ArrayList<KeyspaceDefinition>();
+		List<KeyspaceDefinition> ksDefs = new ArrayList<>();
 		try {
 			for(Row row : session.execute(query).all()) {
 				String keyspaceName = row.getString("keyspace_name");
-				if (keyspaceName.equals("system") || keyspaceName.startsWith("system_")) {
+				if ("system".equals(keyspaceName) || keyspaceName.startsWith("system_")) {
 					continue;
 				}
 				ksDefs.add(new CqlKeyspaceDefinitionImpl(session, row));
@@ -323,9 +323,10 @@ public class CqlClusterImpl implements com.netflix.astyanax.Cluster, SeedHostLis
 			builder.withoutJMXReporting();
 		}
 				
-		this.cluster = builder.build(); 
-		if (!(this.cpMonitor instanceof JavaDriverConnectionPoolMonitorImpl))
-			this.cluster.getMetrics().getRegistry().addListener((MetricRegistryListener) this.metricsRegListener);
+		this.cluster = builder.build();
+        if (!(this.cpMonitor instanceof JavaDriverConnectionPoolMonitorImpl)) {
+            this.cluster.getMetrics().getRegistry().addListener((MetricRegistryListener)this.metricsRegListener);
+        }
 		this.session = cluster.connect();
 	}
 }

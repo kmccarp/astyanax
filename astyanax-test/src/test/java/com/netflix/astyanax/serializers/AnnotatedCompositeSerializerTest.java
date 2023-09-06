@@ -19,7 +19,7 @@ public class AnnotatedCompositeSerializerTest {
     @Test
     public void testOverflow() {
 
-        AnnotatedCompositeSerializer<Foo> serializer = new AnnotatedCompositeSerializer<Foo>(Foo.class);
+        AnnotatedCompositeSerializer<Foo> serializer = new AnnotatedCompositeSerializer<>(Foo.class);
 
         Foo foo = new Foo();
         foo.bar = Strings.repeat("b", 2000);
@@ -31,7 +31,7 @@ public class AnnotatedCompositeSerializerTest {
 
     @Test
     public void testOverflow2() {
-        AnnotatedCompositeSerializer<Foo2> serializer = new AnnotatedCompositeSerializer<Foo2>(
+        AnnotatedCompositeSerializer<Foo2> serializer = new AnnotatedCompositeSerializer<>(
                 Foo2.class);
 
         Foo2 foo = new Foo2();

@@ -71,7 +71,7 @@ public class DirectCqlStatement implements CqlStatement {
 		ResultSet resultSet = session.execute(q);
 		
 		CqlStatementResult result = new DirectCqlStatementResultImpl(resultSet);
-		return new CqlOperationResultImpl<CqlStatementResult>(resultSet, result);
+		return new CqlOperationResultImpl<>(resultSet, result);
 	}
 
 	@Override
@@ -86,7 +86,7 @@ public class DirectCqlStatement implements CqlStatement {
 			@Override
 			public OperationResult<CqlStatementResult> getOperationResult(ResultSet rs) {
 				CqlStatementResult result = new DirectCqlStatementResultImpl(rs);
-				return new CqlOperationResultImpl<CqlStatementResult>(rs, result);			}
+				return new CqlOperationResultImpl<>(rs, result);			}
 		};
 	}
 
