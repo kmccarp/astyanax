@@ -103,31 +103,31 @@ import com.netflix.astyanax.util.TimeUUIDUtils;
 
 public class ThriftKeyspaceImplTest {
 
-    private static Logger LOG = LoggerFactory.getLogger(ThriftKeyspaceImplTest.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ThriftKeyspaceImplTest.class);
 
     private static Keyspace                  keyspace;
     private static AstyanaxContext<Keyspace> keyspaceContext;
 
-    private static ColumnFamily<String, String> CF_USER_INFO = ColumnFamily.newColumnFamily(
+    private static final ColumnFamily<String, String> CF_USER_INFO = ColumnFamily.newColumnFamily(
             "UserInfo", // Column Family Name
             StringSerializer.get(), // Key Serializer
             StringSerializer.get()); // Column Serializer
 
-    private static ColumnFamily<Long, Long> CF_DELETE = ColumnFamily
+    private static final ColumnFamily<Long, Long> CF_DELETE = ColumnFamily
             .newColumnFamily(
-                    "delete", 
+                    "delete",
                     LongSerializer.get(),
                     LongSerializer.get());
-    
-    private static ColumnFamily<Long, String> CF_USERS = ColumnFamily
+
+    private static final ColumnFamily<Long, String> CF_USERS = ColumnFamily
             .newColumnFamily(
-                    "users", 
+                    "users",
                     LongSerializer.get(),
                     StringSerializer.get());
 
-    private static ColumnFamily<String, String> CF_TTL = ColumnFamily
+    private static final ColumnFamily<String, String> CF_TTL = ColumnFamily
             .newColumnFamily(
-                    "ttl", 
+                    "ttl",
                     StringSerializer.get(),
                     StringSerializer.get());
 
@@ -191,7 +191,7 @@ public class ThriftKeyspaceImplTest {
                     LongSerializer.get(),
                     LongSerializer.get());
 
-    public static AnnotatedCompositeSerializer<MockCompositeType> M_SERIALIZER = new AnnotatedCompositeSerializer<MockCompositeType>(
+    public static AnnotatedCompositeSerializer<MockCompositeType> M_SERIALIZER = new AnnotatedCompositeSerializer<>(
             MockCompositeType.class);
     
     public static ColumnFamily<String, MockCompositeType> CF_COMPOSITE = ColumnFamily
@@ -218,7 +218,7 @@ public class ThriftKeyspaceImplTest {
                     StringSerializer.get(),
                     TimeUUIDSerializer.get());
 
-    public static AnnotatedCompositeSerializer<SessionEvent> SE_SERIALIZER = new AnnotatedCompositeSerializer<SessionEvent>(
+    public static AnnotatedCompositeSerializer<SessionEvent> SE_SERIALIZER = new AnnotatedCompositeSerializer<>(
             SessionEvent.class);
 
     public static ColumnFamily<String, SessionEvent> CF_CLICK_STREAM = ColumnFamily
@@ -227,8 +227,8 @@ public class ThriftKeyspaceImplTest {
 
     private static final String SEEDS = "localhost:9160";
     private static final long   CASSANDRA_WAIT_TIME = 3000;
-    private static String TEST_CLUSTER_NAME  = "cass_sandbox";
-    private static String TEST_KEYSPACE_NAME = "AstyanaxUnitTests";
+    private static final String TEST_CLUSTER_NAME = "cass_sandbox";
+    private static final String TEST_KEYSPACE_NAME = "AstyanaxUnitTests";
 
     
     @BeforeClass
@@ -245,8 +245,9 @@ public class ThriftKeyspaceImplTest {
 
     @AfterClass
     public static void teardown() throws Exception {
-        if (keyspaceContext != null)
+        if (keyspaceContext != null) {
             keyspaceContext.shutdown();
+        }
         
         Thread.sleep(CASSANDRA_WAIT_TIME);
     }
@@ -290,7 +291,7 @@ public class ThriftKeyspaceImplTest {
                 .put("strategy_class",     "SimpleStrategy")
                 .build();
         
-        ImmutableMap<String, Object> NO_OPTIONS = ImmutableMap.of();
+        ImmutableMap<String, Object> noOptions = ImmutableMap.of();
         
         Map<ColumnFamily, Map<String, Object>> cfs = ImmutableMap.<ColumnFamily, Map<String, Object>>builder()
                 .put(CF_STANDARD1, 
@@ -306,7 +307,7 @@ public class ThriftKeyspaceImplTest {
                                  .build())
                              .build())
                          .build())
-                .put(CF_TTL,        NO_OPTIONS)
+                .put(CF_TTL,        noOptions)
                 .build();
         keyspace.createKeyspace(ksOptions, cfs);
         
@@ -1563,7 +1564,7 @@ public class ThriftKeyspaceImplTest {
 
     @Test
     public void testCompositeSlice() throws ConnectionException {
-        AnnotatedCompositeSerializer<MockCompositeType> ser = new AnnotatedCompositeSerializer<MockCompositeType>(
+        AnnotatedCompositeSerializer<MockCompositeType> ser = new AnnotatedCompositeSerializer<>(
                 MockCompositeType.class);
 
         keyspace.prepareQuery(CF_COMPOSITE)
@@ -1687,7 +1688,8 @@ public class ThriftKeyspaceImplTest {
 
     @Test
     public void testIncrementCounter() {
-        long baseAmount, incrAmount = 100;
+        long baseAmount;
+        long incrAmount = 100;
         Column<String> column;
 
         try {
@@ -1904,7 +1906,7 @@ public class ThriftKeyspaceImplTest {
 
     @Test
     public void testColumnFamilyDoesntExist() {
-        ColumnFamily<String, String> cf = new ColumnFamily<String, String>(
+        ColumnFamily<String, String> cf = new ColumnFamily<>(
                 "DoesntExist", StringSerializer.get(), StringSerializer.get());
         OperationResult<Void> result;
         try {
@@ -2031,8 +2033,9 @@ public class ThriftKeyspaceImplTest {
             LOG.info(e.getMessage());
             Assert.fail();
         } catch (ExecutionException e) {
-            if (e.getCause() instanceof NotFoundException)
+            if (e.getCause() instanceof NotFoundException) {
                 LOG.info(e.getCause().getMessage());
+            }
             else {
                 Assert.fail(e.getMessage());
             }
@@ -2101,10 +2104,10 @@ public class ThriftKeyspaceImplTest {
         Assert.assertEquals(5, r2.getResult().size());
         Assert.assertEquals("a", r2.getResult().getColumnByIndex(0).getName());
 
-        ByteBuffer EMPTY_BUFFER = ByteBuffer.wrap(new byte[0]);
+        ByteBuffer emptyBuffer = ByteBuffer.wrap(new byte[0]);
         OperationResult<ColumnList<String>> r3 = keyspace
                 .prepareQuery(CF_STANDARD1).getKey("A")
-                .withColumnRange(EMPTY_BUFFER, EMPTY_BUFFER, true, 5).execute();
+                .withColumnRange(emptyBuffer, emptyBuffer, true, 5).execute();
         Assert.assertEquals(5, r3.getResult().size());
         Assert.assertEquals("z", r3.getResult().getColumnByIndex(0).getName());
     }
@@ -2194,7 +2197,7 @@ public class ThriftKeyspaceImplTest {
         LOG.info("Starting testGetAllKeysRoot...");
 
         try {
-            List<String> keys = new ArrayList<String>();
+            List<String> keys = new ArrayList<>();
             for (char key = 'A'; key <= 'Z'; key++) {
                 String keyName = Character.toString(key);
                 keys.add(keyName);
@@ -2265,7 +2268,7 @@ public class ThriftKeyspaceImplTest {
         LOG.info("Starting testGetAllKeysPath...");
 
         try {
-            List<String> keys = new ArrayList<String>();
+            List<String> keys = new ArrayList<>();
             for (char key = 'A'; key <= 'Z'; key++) {
                 String keyName = Character.toString(key);
                 keys.add(keyName);
@@ -2296,7 +2299,7 @@ public class ThriftKeyspaceImplTest {
             Assert.assertEquals(26, counts.getResult().size());
             
             for (Entry<String, Integer> count : counts.getResult().entrySet()) {
-                Assert.assertEquals(new Integer(28), count.getValue());
+                Assert.assertEquals(Integer.valueOf(28), count.getValue());
             }
             
         } catch (ConnectionException e) {
@@ -2475,11 +2478,9 @@ public class ThriftKeyspaceImplTest {
 
     private <K, C> int getRowColumnCount(ColumnFamily<K, C> cf, K rowKey)
             throws ConnectionException {
-        int count = keyspace.prepareQuery(cf)
+        return keyspace.prepareQuery(cf)
                 .setConsistencyLevel(ConsistencyLevel.CL_QUORUM).getKey(rowKey)
                 .getCount().execute().getResult();
-
-        return count;
     }
 
     private <K, C> int getRowColumnCountWithPagination(ColumnFamily<K, C> cf,
@@ -2744,7 +2745,7 @@ public class ThriftKeyspaceImplTest {
                 LOG.info("Keyspace: " + keyspace.getName());
             }
             Assert.assertNotNull(keyspaces);
-            Assert.assertTrue(keyspaces.size() > 0);
+            Assert.assertTrue(!keyspaces.isEmpty());
         } catch (Exception e) {
             Assert.fail(e.getMessage());
         } finally {
@@ -2754,15 +2755,15 @@ public class ThriftKeyspaceImplTest {
 
     @Test
     public void testPrefixedSerializer() {
-        ColumnFamily<String, String> cf = new ColumnFamily<String, String>(
+        ColumnFamily<String, String> cf = new ColumnFamily<>(
                 "Standard1", StringSerializer.get(), StringSerializer.get());
 
-        ColumnFamily<String, String> cf1 = new ColumnFamily<String, String>(
+        ColumnFamily<String, String> cf1 = new ColumnFamily<>(
                 "Standard1", new PrefixedSerializer<String, String>("Prefix1_",
                         StringSerializer.get(), StringSerializer.get()),
                 StringSerializer.get());
 
-        ColumnFamily<String, String> cf2 = new ColumnFamily<String, String>(
+        ColumnFamily<String, String> cf2 = new ColumnFamily<>(
                 "Standard1", new PrefixedSerializer<String, String>("Prefix2_",
                         StringSerializer.get(), StringSerializer.get()),
                 StringSerializer.get());
@@ -2818,7 +2819,7 @@ public class ThriftKeyspaceImplTest {
                 .withConnectionPoolMonitor(new CountingConnectionPoolMonitor())
                 .buildKeyspace(ThriftFamilyFactory.getInstance());
 
-        ColumnFamily<String, String> cf = new ColumnFamily<String, String>(
+        ColumnFamily<String, String> cf = new ColumnFamily<>(
                 "DoesntExist", StringSerializer.get(), StringSerializer.get());
         try {
             MutationBatch m = keyspaceContext.getEntity()

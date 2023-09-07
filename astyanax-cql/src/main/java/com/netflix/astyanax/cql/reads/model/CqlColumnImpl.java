@@ -59,7 +59,7 @@ public class CqlColumnImpl<C> implements Column<C> {
 
 	private ComparatorType cType;
 
-	private boolean isBlob = false;
+	private boolean isBlob;
 
 	public CqlColumnImpl() {
 	}
@@ -103,7 +103,7 @@ public class CqlColumnImpl<C> implements Column<C> {
 
 	@Override
 	public String getStringValue() {
-		return (isBlob) ? StringSerializer.get().fromByteBuffer(row.getBytes(index)) : row.getString(index);
+		return isBlob ? StringSerializer.get().fromByteBuffer(row.getBytes(index)) : row.getString(index);
 	}
 
 	@Override
@@ -118,28 +118,28 @@ public class CqlColumnImpl<C> implements Column<C> {
 
 	@Override
 	public short getShortValue() {
-		Integer i = (isBlob) ? ShortSerializer.get().fromByteBuffer(row.getBytes(index)) : row.getInt(index);
+		Integer i = isBlob ? ShortSerializer.get().fromByteBuffer(row.getBytes(index)) : row.getInt(index);
 		return i.shortValue();
 	}
 
 	@Override
 	public int getIntegerValue() {
-		return (isBlob) ? IntegerSerializer.get().fromByteBuffer(row.getBytes(index)) : row.getInt(index);
+		return isBlob ? IntegerSerializer.get().fromByteBuffer(row.getBytes(index)) : row.getInt(index);
 	}
 
 	@Override
 	public float getFloatValue() {
-		return (isBlob) ? FloatSerializer.get().fromByteBuffer(row.getBytes(index)) : row.getFloat(index);
+		return isBlob ? FloatSerializer.get().fromByteBuffer(row.getBytes(index)) : row.getFloat(index);
 	}
 
 	@Override
 	public double getDoubleValue() {
-		return (isBlob) ? DoubleSerializer.get().fromByteBuffer(row.getBytes(index)) : row.getDouble(index);
+		return isBlob ? DoubleSerializer.get().fromByteBuffer(row.getBytes(index)) : row.getDouble(index);
 	}
 
 	@Override
 	public long getLongValue() {
-		return (isBlob) ? LongSerializer.get().fromByteBuffer(row.getBytes(index)) : row.getLong(index);
+		return isBlob ? LongSerializer.get().fromByteBuffer(row.getBytes(index)) : row.getLong(index);
 	}
 
 	@Override
@@ -149,7 +149,7 @@ public class CqlColumnImpl<C> implements Column<C> {
 
 	@Override
 	public boolean getBooleanValue() {
-		return (isBlob) ? BooleanSerializer.get().fromByteBuffer(row.getBytes(index)) : row.getBool(index);
+		return isBlob ? BooleanSerializer.get().fromByteBuffer(row.getBytes(index)) : row.getBool(index);
 	}
 
 	@Override
@@ -163,12 +163,12 @@ public class CqlColumnImpl<C> implements Column<C> {
 	 */
 	@Override
 	public Date getDateValue() {
-		return (isBlob) ? DateSerializer.get().fromByteBuffer(row.getBytes(index)) : row.getTimestamp(index);
+		return isBlob ? DateSerializer.get().fromByteBuffer(row.getBytes(index)) : row.getTimestamp(index);
 	}
 
 	@Override
 	public UUID getUUIDValue() {
-		return (isBlob) ? UUIDSerializer.get().fromByteBuffer(row.getBytes(index)) : row.getUUID(index);
+		return isBlob ? UUIDSerializer.get().fromByteBuffer(row.getBytes(index)) : row.getUUID(index);
 	}
 
 	@Override

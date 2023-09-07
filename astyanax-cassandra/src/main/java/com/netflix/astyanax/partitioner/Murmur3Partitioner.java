@@ -26,7 +26,7 @@ import com.netflix.astyanax.Serializer;
 import com.netflix.astyanax.connectionpool.TokenRange;
 import com.netflix.astyanax.connectionpool.impl.TokenRangeImpl;
 
-public class Murmur3Partitioner implements Partitioner {
+public final class Murmur3Partitioner implements Partitioner {
     public static final BigInteger MINIMUM = new BigInteger(Long.toString(Long.MIN_VALUE));
     public static final BigInteger MAXIMUM = new BigInteger(Long.toString(Long.MAX_VALUE));
 
@@ -90,16 +90,18 @@ public class Murmur3Partitioner implements Partitioner {
     public String getTokenMinusOne(String token) {
         Long lToken = Long.parseLong(token);
         // if zero rotate to the Maximum else minus one.
-        if (lToken.equals(MINIMUM))
+        if (lToken.equals(MINIMUM)) {
             return MAXIMUM.toString();
-        else
+        }
+        else {
             return Long.toString(lToken - 1);
+        }
     }
 
     public static List<String> splitRange(BigInteger first, BigInteger last, int count) {
         List<String> tokens = Lists.newArrayList();
         tokens.add(first.toString());
-        BigInteger delta = (last.subtract(first).divide(BigInteger.valueOf((long)count)));
+        BigInteger delta = last.subtract(first).divide(BigInteger.valueOf((long)count));
         BigInteger current = first;
         for (int i = 0; i < count-1; i++) {
             current = current.add(delta);

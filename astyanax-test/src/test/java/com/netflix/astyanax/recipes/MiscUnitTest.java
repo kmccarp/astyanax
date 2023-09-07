@@ -46,7 +46,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class MiscUnitTest {
-    private static Logger LOG = LoggerFactory.getLogger(MiscUnitTest.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MiscUnitTest.class);
     
     /**
      * Constants
@@ -74,17 +74,17 @@ public class MiscUnitTest {
                     "EmailUniqueUUID", 
                     StringSerializer.get(),
                     TimeUUIDSerializer.get());
-    
-    private static ColumnFamily<String, String> LOCK_CF_LONG   = 
+
+    private static final ColumnFamily<String, String> LOCK_CF_LONG =
             ColumnFamily.newColumnFamily("LockCfLong", StringSerializer.get(), StringSerializer.get(), LongSerializer.get());
-    
-    private static ColumnFamily<String, String> LOCK_CF_STRING = 
+
+    private static final ColumnFamily<String, String> LOCK_CF_STRING =
             ColumnFamily.newColumnFamily("LockCfString", StringSerializer.get(), StringSerializer.get(), StringSerializer.get());
-    
-    private static ColumnFamily<String, String> UNIQUE_CF = ColumnFamily
+
+    private static final ColumnFamily<String, String> UNIQUE_CF = ColumnFamily
             .newColumnFamily(
-                    "UniqueCf", 
-                    StringSerializer.get(), 
+                    "UniqueCf",
+                    StringSerializer.get(),
                     StringSerializer.get());
 
     public static ColumnFamily<String, String> CF_STANDARD1 = ColumnFamily
@@ -130,8 +130,9 @@ public class MiscUnitTest {
 
     @AfterClass
     public static void teardown() throws Exception {
-        if (keyspaceContext != null)
+        if (keyspaceContext != null) {
             keyspaceContext.shutdown();
+        }
         
         Thread.sleep(CASSANDRA_WAIT_TIME);
     }
@@ -796,8 +797,6 @@ public class MiscUnitTest {
             LOG.error("", e);
             Assert.fail();
         }
-        finally {
-        }
         
         ColumnList<String> columns = keyspace.prepareQuery(UNIQUE_CF).getKey(row).execute().getResult();
         Assert.assertEquals(2, columns.size());
@@ -842,7 +841,7 @@ public class MiscUnitTest {
                     @Override
                     public Boolean apply(Row<String, String> row) {
                         counter.incrementAndGet();
-                        LOG.info("Got a row: " + row.getKey().toString());
+                        LOG.info("Got a row: " + row.getKey());
                         return true;
                     }
                 })
@@ -979,7 +978,7 @@ public class MiscUnitTest {
                             throw new RuntimeException(e);
                         }
                         counter.incrementAndGet();
-                        LOG.info("Got a row: " + row.getKey().toString());
+                        LOG.info("Got a row: " + row.getKey());
                         return true;
                     }
                 })

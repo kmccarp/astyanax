@@ -33,7 +33,7 @@ public class ColumnSlice<C> {
 
     private C startColumn;
     private C endColumn;
-    private boolean reversed = false;
+    private boolean reversed;
     private int limit = Integer.MAX_VALUE;
 
     public ColumnSlice(Collection<C> columns) {

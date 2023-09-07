@@ -57,7 +57,7 @@ public class StressSimpleHostConnectionPoolImpl {
         CountingConnectionPoolMonitor monitor = new CountingConnectionPoolMonitor();
 
         Host host = new Host("127.0.0.1", TestHostType.GOOD_IMMEDIATE.ordinal());
-        final SimpleHostConnectionPool<TestClient> pool = new SimpleHostConnectionPool<TestClient>(
+        final SimpleHostConnectionPool<TestClient> pool = new SimpleHostConnectionPool<>(
                 host, new TestConnectionFactory(null, monitor), monitor,
                 config, new NoOpListener());
 

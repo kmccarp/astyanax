@@ -29,7 +29,7 @@ import com.netflix.astyanax.model.Row;
 import com.netflix.astyanax.model.Rows;
 
 public class ThriftCqlRowsImpl<K, C> implements Rows<K, C> {
-    private List<Row<K, C>> rows;
+    private final List<Row<K, C>> rows;
     private Map<K, Row<K, C>> lookup;
 
     public ThriftCqlRowsImpl(final List<CqlRow> rows,

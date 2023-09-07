@@ -14,7 +14,7 @@ import com.netflix.astyanax.connectionpool.Host;
 public class FilteringHostSupplierTest {
     public static class TestHostSupplier implements Supplier<List<Host>> {
         private List<Host> hostList;
-        private boolean bThrowException = false;
+        private boolean bThrowException;
         
         @Override
         public List<Host> get() {

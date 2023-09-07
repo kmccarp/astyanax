@@ -52,10 +52,13 @@ public class SetColumnMapper extends AbstractColumnMapper {
     public boolean fillMutationBatch(Object entity, ColumnListMutation<String> clm, String prefix) throws Exception {
         Set<?> set = (Set<?>) field.get(entity);
         if(set == null) {
-            if(columnAnnotation.nullable())
-                return false; // skip
-            else
+            if (columnAnnotation.nullable()) {
+                return false;
+            }
+            // skip
+            else {
                 throw new IllegalArgumentException("cannot write non-nullable column with null value: " + columnName);
+            }
         }
         
         for (Object entry : set) {
@@ -73,8 +76,9 @@ public class SetColumnMapper extends AbstractColumnMapper {
         }
         
         String value = name.next();
-        if (name.hasNext())
+        if (name.hasNext()) {
             return false;
+        }
         set.add(serializer.fromByteBuffer(serializer.fromString(value)));
         return true;
     }

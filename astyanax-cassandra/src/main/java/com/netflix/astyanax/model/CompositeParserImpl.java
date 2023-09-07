@@ -28,7 +28,7 @@ import com.netflix.astyanax.serializers.UUIDSerializer;
 
 public class CompositeParserImpl implements CompositeParser {
     private final Composite composite;
-    private int position = 0;
+    private int position;
 
     public CompositeParserImpl(ByteBuffer bb) {
         this.composite = Composite.fromByteBuffer(bb);

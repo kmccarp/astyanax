@@ -46,23 +46,23 @@ import com.netflix.astyanax.serializers.StringSerializer;
  * Manager entities in a column famliy with any key type but columns that are
  * encoded as strings.
  */
-public class DefaultEntityManager<T, K> implements EntityManager<T, K> {
+public final class DefaultEntityManager<T, K> implements EntityManager<T, K> {
 
 	//////////////////////////////////////////////////////////////////
 	// Builder pattern
 
 	public static class Builder<T, K> {
 
-		private Class<T> clazz = null;
-		private EntityMapper<T,K> entityMapper = null;
-		private Keyspace keyspace = null;
-		private ColumnFamily<K, String> columnFamily = null;
-		private ConsistencyLevel readConsitency = null;
-		private ConsistencyLevel writeConsistency = null;
-		private Integer ttl = null;
-		private RetryPolicy retryPolicy = null;
-		private LifecycleEvents<T> lifecycleHandler = null;
-		private String columnFamilyName = null;
+		private Class<T> clazz;
+		private EntityMapper<T,K> entityMapper;
+		private Keyspace keyspace;
+		private ColumnFamily<K, String> columnFamily;
+		private ConsistencyLevel readConsitency;
+		private ConsistencyLevel writeConsistency;
+		private Integer ttl;
+		private RetryPolicy retryPolicy;
+		private LifecycleEvents<T> lifecycleHandler;
+		private String columnFamilyName;
 		private boolean autoCommit = true;
 		private Partitioner partitioner = DEFAULT_ENTITY_MANAGER_PARTITIONER;
 
@@ -191,24 +191,25 @@ public class DefaultEntityManager<T, K> implements EntityManager<T, K> {
 
 			// TODO: check @Id type compatibility
 			// TODO: do we need to require @Entity annotation
-			this.entityMapper = new EntityMapper<T, K>(clazz, ttl);
-			this.lifecycleHandler = new LifecycleEvents<T>(clazz);
+			this.entityMapper = new EntityMapper<>(clazz, ttl);
+			this.lifecycleHandler = new LifecycleEvents<>(clazz);
 
 			if (columnFamily == null) {
-				if (columnFamilyName == null)
-					columnFamilyName = entityMapper.getEntityName();
-				columnFamily = new ColumnFamily<K, String>(columnFamilyName,
+                if (columnFamilyName == null) {
+                    columnFamilyName = entityMapper.getEntityName();
+                }
+				columnFamily = new ColumnFamily<>(columnFamilyName,
 						(com.netflix.astyanax.Serializer<K>) MappingUtils
 								.getSerializerForField(this.entityMapper
 										.getId()), StringSerializer.get());
 			}
 			// build object
-			return new DefaultEntityManager<T, K>(this);
+			return new DefaultEntityManager<>(this);
 		}
 	}
 	
 	public static <T,K> Builder<T,K> builder() {
-	    return new Builder<T,K>();
+	    return new Builder<>();
 	}
 
 	//////////////////////////////////////////////////////////////////
@@ -222,7 +223,7 @@ public class DefaultEntityManager<T, K> implements EntityManager<T, K> {
 	private final RetryPolicy retryPolicy;
 	private final LifecycleEvents<T> lifecycleHandler;
 	private final boolean autoCommit;
-	private final ThreadLocal<MutationBatch> tlMutation = new ThreadLocal<MutationBatch>();
+	private final ThreadLocal<MutationBatch> tlMutation = new ThreadLocal<>();
 	private static final Partitioner DEFAULT_ENTITY_MANAGER_PARTITIONER = BigInteger127Partitioner
 			.get();
 	private final Partitioner partitioner;
@@ -249,9 +250,10 @@ public class DefaultEntityManager<T, K> implements EntityManager<T, K> {
 		try {
 		    lifecycleHandler.onPrePersist(entity);
             MutationBatch mb = newMutationBatch();
-			entityMapper.fillMutationBatch(mb, columnFamily, entity);			
-            if (autoCommit)
+			entityMapper.fillMutationBatch(mb, columnFamily, entity);
+            if (autoCommit) {
                 mb.execute();
+            }
             lifecycleHandler.onPostPersist(entity);
 		} catch(Exception e) {
 			throw new PersistenceException("failed to put entity ", e);
@@ -265,11 +267,12 @@ public class DefaultEntityManager<T, K> implements EntityManager<T, K> {
 		try {
 			ColumnFamilyQuery<K, String> cfq = newQuery();            
 			ColumnList<String> cl = cfq.getKey(id).execute().getResult();
-			// when a row is deleted in cassandra,
-			// the row key remains (without any columns) until the next compaction.
-			// simply return null (as non exist)
-			if(cl.isEmpty())
-				return null;
+            // when a row is deleted in cassandra,
+            // the row key remains (without any columns) until the next compaction.
+            // simply return null (as non exist)
+            if (cl.isEmpty()) {
+                return null;
+            }
 			T entity = entityMapper.constructEntity(id, cl);
 			lifecycleHandler.onPostLoad(entity);
 			return entity;
@@ -286,8 +289,9 @@ public class DefaultEntityManager<T, K> implements EntityManager<T, K> {
 		try {
 			MutationBatch mb = getMutationBatch();
 			mb.withRow(columnFamily, id).delete();
-            if (autoCommit)
+            if (autoCommit) {
                 mb.execute();
+            }
 		} catch(Exception e) {
 			throw new PersistenceException("failed to delete entity " + id, e);
 		}
@@ -301,8 +305,9 @@ public class DefaultEntityManager<T, K> implements EntityManager<T, K> {
             id = entityMapper.getEntityId(entity);
             MutationBatch mb = newMutationBatch();
             mb.withRow(columnFamily, id).delete();
-            if (autoCommit)
+            if (autoCommit) {
                 mb.execute();
+            }
             lifecycleHandler.onPostRemove(entity);
         } catch(Exception e) {
             throw new PersistenceException("failed to delete entity " + id, e);
@@ -358,8 +363,9 @@ public class DefaultEntityManager<T, K> implements EntityManager<T, K> {
             for (K id : ids) {
                 mb.withRow(columnFamily, id).delete();
             }
-            if (autoCommit)
+            if (autoCommit) {
                 mb.execute();
+            }
         } catch(Exception e) {
             throw new PersistenceException("failed to delete entities " + ids, e);
         }
@@ -394,8 +400,9 @@ public class DefaultEntityManager<T, K> implements EntityManager<T, K> {
                 lifecycleHandler.onPrePersist(entity);
                 entityMapper.fillMutationBatch(mb, columnFamily, entity);           
             }
-            if (autoCommit)
+            if (autoCommit) {
                 mb.execute();
+            }
             
             for (T entity : entities) {
                 lifecycleHandler.onPostPersist(entity);
@@ -418,8 +425,9 @@ public class DefaultEntityManager<T, K> implements EntityManager<T, K> {
                     .forEachRow(new Function<Row<K,String>, Boolean>() {
                         @Override
                         public Boolean apply(Row<K, String> row) {
-                            if (row.getColumns().isEmpty())
+                            if (row.getColumns().isEmpty()) {
                                 return true;
+                            }
                             T entity = entityMapper.constructEntity(row.getKey(), row.getColumns());
                             try {
                                 lifecycleHandler.onPostLoad(entity);
@@ -438,7 +446,7 @@ public class DefaultEntityManager<T, K> implements EntityManager<T, K> {
     
     @Override
     public List<T> find(String cql) throws PersistenceException {
-        Preconditions.checkArgument(StringUtils.left(cql, 6).equalsIgnoreCase("SELECT"), "CQL must be SELECT statement");
+        Preconditions.checkArgument("SELECT".equalsIgnoreCase(StringUtils.left(cql, 6)), "CQL must be SELECT statement");
         
         try {
             CqlResult<K, String> results = newQuery().withCql(cql).execute().getResult();
@@ -458,10 +466,12 @@ public class DefaultEntityManager<T, K> implements EntityManager<T, K> {
     
     private MutationBatch newMutationBatch() {
         MutationBatch mb = keyspace.prepareMutationBatch();
-        if(writeConsistency != null)
+        if (writeConsistency != null) {
             mb.withConsistencyLevel(writeConsistency);
-        if(retryPolicy != null)
+        }
+        if (retryPolicy != null) {
             mb.withRetryPolicy(retryPolicy);
+        }
         return mb;
     }
     
@@ -481,10 +491,12 @@ public class DefaultEntityManager<T, K> implements EntityManager<T, K> {
     
     private ColumnFamilyQuery<K, String> newQuery() {
         ColumnFamilyQuery<K, String> cfq = keyspace.prepareQuery(columnFamily);
-        if(readConsitency != null)
+        if (readConsitency != null) {
             cfq.setConsistencyLevel(readConsitency);
-        if(retryPolicy != null)
+        }
+        if (retryPolicy != null) {
             cfq.withRetryPolicy(retryPolicy);
+        }
         return cfq;
     }
 
@@ -493,8 +505,9 @@ public class DefaultEntityManager<T, K> implements EntityManager<T, K> {
         try {
             keyspace.createColumnFamily(this.columnFamily, options);
         } catch (ConnectionException e) {
-            if (e.getMessage().contains("already exist")) 
+            if (e.getMessage().contains("already exist")) {
                 return;
+            }
             throw new PersistenceException("Unable to create column family " + this.columnFamily.getName(), e);
         }
     }

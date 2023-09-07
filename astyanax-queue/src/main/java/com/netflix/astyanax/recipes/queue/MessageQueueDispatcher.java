@@ -39,16 +39,16 @@ import com.netflix.astyanax.recipes.locks.BusyLockException;
  * @author elandau
  *
  */
-public class MessageQueueDispatcher {
+public final class MessageQueueDispatcher {
     private static final Logger LOG = LoggerFactory.getLogger(MessageQueueDispatcher.class);
     
-    public final static int   DEFAULT_BATCH_SIZE            = 5;
-    public final static int   DEFAULT_POLLING_INTERVAL     = 1000;
-    public final static int   DEFAULT_THREAD_COUNT          = 1;
-    public final static int   DEFAULT_CONSUMER_COUNT        = 1;
-    public final static int   DEFAULT_ACK_SIZE              = 100;
-    public final static int   DEFAULT_ACK_INTERVAL          = 100;
-    public final static int   DEFAULT_BACKLOG_SIZE          = 1000;
+    public static final int   DEFAULT_BATCH_SIZE            = 5;
+    public static final int   DEFAULT_POLLING_INTERVAL     = 1000;
+    public static final int   DEFAULT_THREAD_COUNT          = 1;
+    public static final int   DEFAULT_CONSUMER_COUNT        = 1;
+    public static final int   DEFAULT_ACK_SIZE              = 100;
+    public static final int   DEFAULT_ACK_INTERVAL          = 100;
+    public static final int   DEFAULT_BACKLOG_SIZE          = 1000;
     
     public static class Builder {
         private final MessageQueueDispatcher dispatcher = new MessageQueueDispatcher();
@@ -166,17 +166,17 @@ public class MessageQueueDispatcher {
     private int             processorThreadCount   = DEFAULT_THREAD_COUNT;
     private int             batchSize     = DEFAULT_BATCH_SIZE;
     private int             consumerCount = DEFAULT_CONSUMER_COUNT;
-    private int             ackSize       = DEFAULT_ACK_SIZE;
+    private final int             ackSize = DEFAULT_ACK_SIZE;
     private long            ackInterval   = DEFAULT_ACK_INTERVAL;
     private int             backlogSize   = DEFAULT_BACKLOG_SIZE;
     private long            pollingInterval = DEFAULT_POLLING_INTERVAL;
-    private boolean         terminate     = false;
+    private boolean         terminate;
     private MessageQueue    messageQueue;
     private ExecutorService executor;
     private MessageConsumer ackConsumer;
     private Function<MessageContext, Boolean>   callback;
     private MessageHandlerFactory handlerFactory;
-    private LinkedBlockingQueue<MessageContext> toAck = Queues.newLinkedBlockingQueue();
+    private final LinkedBlockingQueue<MessageContext> toAck = Queues.newLinkedBlockingQueue();
     private LinkedBlockingQueue<MessageContext> toProcess = Queues.newLinkedBlockingQueue(500);
     
     private MessageQueueDispatcher() {
@@ -184,9 +184,10 @@ public class MessageQueueDispatcher {
     
     private void initialize() {
         Preconditions.checkNotNull(messageQueue, "Must specify message queue");
-        
-        if (this.handlerFactory == null)
+
+        if (this.handlerFactory == null) {
             this.handlerFactory = new SimpleMessageHandlerFactory();
+        }
         toProcess = Queues.newLinkedBlockingQueue(backlogSize);
     }
     
@@ -299,8 +300,9 @@ public class MessageQueueDispatcher {
                         final MessageContext context;
                         try {
                             context = toProcess.take();
-                            if (context == null)
+                            if (context == null) {
                                 continue;
+                            }
                         } catch (InterruptedException e) {
                             Thread.currentThread().interrupt();
                             return;

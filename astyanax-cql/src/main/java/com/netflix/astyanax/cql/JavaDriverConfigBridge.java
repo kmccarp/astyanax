@@ -100,7 +100,7 @@ public class JavaDriverConfigBridge {
 		return new ConfigBasedQueryOptions();
 	}
 
-	private class CpConfigBasedPoolingOptions extends PoolingOptions {
+    private final class CpConfigBasedPoolingOptions extends PoolingOptions {
 
 		private CpConfigBasedPoolingOptions() {
 			
@@ -117,7 +117,7 @@ public class JavaDriverConfigBridge {
 		}
 	}
 
-	private class CpConfigBasedSocketOptions extends SocketOptions {
+    private final class CpConfigBasedSocketOptions extends SocketOptions {
 
 		private CpConfigBasedSocketOptions() {
 			

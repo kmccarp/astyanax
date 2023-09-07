@@ -47,7 +47,7 @@ public class ColumnarRecordWriter implements RecordWriter {
 
     public ColumnarRecordWriter(Keyspace keyspace, String cfName) {
         this.keyspace = keyspace;
-        this.cf = new ColumnFamily<ByteBuffer, ByteBuffer>(cfName, ByteBufferSerializer.get(),
+        this.cf = new ColumnFamily<>(cfName, ByteBufferSerializer.get(),
                 ByteBufferSerializer.get());
         try {
             this.serializers = keyspace.getSerializerPackage(cfName, true);
@@ -63,7 +63,7 @@ public class ColumnarRecordWriter implements RecordWriter {
     public ColumnarRecordWriter(Keyspace keyspace, String cfName, SerializerPackage serializers) {
         this.keyspace = keyspace;
         this.serializers = serializers;
-        this.cf = new ColumnFamily<ByteBuffer, ByteBuffer>(cfName, ByteBufferSerializer.get(),
+        this.cf = new ColumnFamily<>(cfName, ByteBufferSerializer.get(),
                 ByteBufferSerializer.get());
     }
 
@@ -79,8 +79,9 @@ public class ColumnarRecordWriter implements RecordWriter {
 
     @Override
     public void write(List<Pair<String, String>> record) {
-        if (record.size() <= 1)
+        if (record.size() <= 1) {
             return;
+        }
 
         // Key is first field
         Iterator<Pair<String, String>> iter = record.iterator();

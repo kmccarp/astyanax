@@ -42,7 +42,7 @@ public class DedicatedMultiRowUniquenessConstraint<C> implements UniquenessConst
 
     private final Keyspace keyspace;
 
-    private Integer ttl = null;
+    private Integer ttl;
     private ConsistencyLevel consistencyLevel = ConsistencyLevel.CL_LOCAL_QUORUM;
     private final C uniqueColumnName;
     
@@ -79,8 +79,9 @@ public class DedicatedMultiRowUniquenessConstraint<C> implements UniquenessConst
             Column<C> foundColumn = null;
             for (Column<C> column : columns) {
                 if (column.getTtl() == 0) {
-                    if (foundColumn != null)
+                    if (foundColumn != null) {
                         throw new RuntimeException("Row has duplicate quite columns");
+                    }
                     foundColumn = column;
                 }
             }
@@ -184,9 +185,10 @@ public class DedicatedMultiRowUniquenessConstraint<C> implements UniquenessConst
             for (Row<?> lock : locks) {
                 lock.fillMutation(m, null);
             }
-            
-            if (callback != null)
+
+            if (callback != null) {
                 callback.apply(m);
+            }
             
             m.execute();
         }
@@ -219,8 +221,9 @@ public class DedicatedMultiRowUniquenessConstraint<C> implements UniquenessConst
      * @throws Exception
      */
     public Column<C> getUniqueColumn() throws Exception {
-        if (locks.size() == 0) 
+        if (locks.isEmpty()) {
             throw new IllegalStateException("Missing call to withRow to add rows to the uniqueness constraint");
+        }
         
         // Get the unique row from all columns
         List<Column<C>> columns = Lists.newArrayList();

@@ -32,7 +32,7 @@ public class PreparedQueryTests {
 			
 		};
 		assertTrue("New query object should contain no values",s.getValues().isEmpty());
-		List<ByteBuffer> expectedValues = new LinkedList<ByteBuffer>();
+		List<ByteBuffer> expectedValues = new LinkedList<>();
 		expectedValues.add(ByteBuffer.wrap("hello".getBytes()));
 		expectedValues.add(ByteBuffer.wrap("world".getBytes()));
 		s.withValues(expectedValues);
