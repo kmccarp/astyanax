@@ -23,9 +23,9 @@ import com.netflix.astyanax.annotations.Component;
 import com.netflix.astyanax.model.Composite;
 
 public class SerializersTest {
-    private static Logger LOG = LoggerFactory.getLogger(SerializersTest.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SerializersTest.class);
 
-    private static BytesArraySerializer hexSerializer = new BytesArraySerializer();
+    private static final BytesArraySerializer hexSerializer = new BytesArraySerializer();
 
     /**
      * @param ser
@@ -80,16 +80,17 @@ public class SerializersTest {
         }
         @Override
         public boolean equals(Object c2) {
-            if (!(c2 instanceof LongLong)) return false;
-            if (this.comp1 == ((LongLong)c2).comp1 && this.comp2 == ((LongLong)c2).comp2) return true;
-            return false;
+            if (!(c2 instanceof LongLong)) {
+                return false;
+            }
+            return this.comp1 == ((LongLong)c2).comp1 && this.comp2 == ((LongLong)c2).comp2;
         }
     };
     @Test
     public void testMultiLongsComposite() {
     try {
             
-            AnnotatedCompositeSerializer<LongLong> ser = new AnnotatedCompositeSerializer<LongLong>(LongLong.class);
+            AnnotatedCompositeSerializer<LongLong> ser = new AnnotatedCompositeSerializer<>(LongLong.class);
             LongLong comp = new LongLong(1L, 2L);
             ByteBuffer bb = ser.toByteBuffer(comp);
             LongLong comp2 = ser.fromByteBuffer(bb);
@@ -122,13 +123,13 @@ public class SerializersTest {
 
         BigInteger bi1 = new BigInteger("127");
         ByteBuffer bb1 = ser.toByteBuffer(bi1);
-        BigInteger bi1_verify = ser.fromByteBuffer(bb1);
-        ByteBuffer bb1_str = ser.fromString("127");
+        BigInteger bi1Verify = ser.fromByteBuffer(bb1);
+        ByteBuffer bb1Str = ser.fromString("127");
         ByteBuffer bb2 = ser.getNext(bb1);
         BigInteger bi2 = ser.fromByteBuffer(bb2);
 
-        Assert.assertEquals(bi1, bi1_verify);
-        Assert.assertEquals(bb1, bb1_str);
+        Assert.assertEquals(bi1, bi1Verify);
+        Assert.assertEquals(bb1, bb1Str);
         Assert.assertEquals(1, bi2.intValue() - bi1.intValue());
         Assert.assertEquals(bb2.capacity(), bb1.capacity() + 1);
     }
@@ -143,14 +144,14 @@ public class SerializersTest {
     @Test
     public void testBooleanSerializer() {
         BooleanSerializer ser = new BooleanSerializer();
-        Boolean value = new Boolean(true);
+        Boolean value = Boolean.valueOf(true);
         testSerializer(ser, value);
     }
     
     @Test
     public void testBooleanSerializerIdempotent() {
         BooleanSerializer ser = new BooleanSerializer();
-        Boolean value = new Boolean(true);
+        Boolean value = Boolean.valueOf(true);
         testSerializerIdempotent(ser, value);
     }
 
@@ -213,14 +214,14 @@ public class SerializersTest {
     @Test
     public void testCharSerializer() {
         CharSerializer ser = new CharSerializer();
-        Character value = new Character('A');
+        Character value = Character.valueOf('A');
         testSerializer(ser, value);
     }
     
     @Test
     public void testCharSerializerIdempotent() {
         CharSerializer ser = new CharSerializer();
-        Character value = new Character('A');
+        Character value = Character.valueOf('A');
         testSerializerIdempotent(ser, value);
     }
 
@@ -244,12 +245,12 @@ public class SerializersTest {
 
         Double d1 = 127.0;
         ByteBuffer bb1 = ser.toByteBuffer(d1);
-        Double d1_verify = ser.fromByteBuffer(bb1.duplicate());
+        Double d1Verify = ser.fromByteBuffer(bb1.duplicate());
         ByteBuffer bb1_str = ser.fromString("127");
         ByteBuffer bb2 = ser.getNext(bb1);
         Double d2 = ser.fromByteBuffer(bb2.duplicate());
 
-        Assert.assertEquals(d1, d1_verify);
+        Assert.assertEquals(d1, d1Verify);
         Assert.assertEquals(bb1, bb1_str);
         Assert.assertEquals(d1 + Double.MIN_VALUE, d2);
         Assert.assertEquals(bb2.capacity(), bb1.capacity());
@@ -276,12 +277,12 @@ public class SerializersTest {
 
         Float f1 = (float) 127.0;
         ByteBuffer bb1 = ser.toByteBuffer(f1);
-        Float f1_verify = ser.fromByteBuffer(bb1.duplicate());
+        Float f1Verify = ser.fromByteBuffer(bb1.duplicate());
         ByteBuffer bb1_str = ser.fromString("127");
         ByteBuffer bb2 = ser.getNext(bb1);
         Float f2 = ser.fromByteBuffer(bb2.duplicate());
 
-        Assert.assertEquals(f1, f1_verify);
+        Assert.assertEquals(f1, f1Verify);
         Assert.assertEquals(bb1, bb1_str);
         Assert.assertEquals(f1 + Float.MIN_VALUE, f2);
         Assert.assertEquals(bb2.capacity(), bb1.capacity());
@@ -340,12 +341,12 @@ public class SerializersTest {
 
         Long val1 = (long) 127;
         ByteBuffer bb1 = ser.toByteBuffer(val1);
-        Long val1_verify = ser.fromByteBuffer(bb1.duplicate());
+        Long val1Verify = ser.fromByteBuffer(bb1.duplicate());
         ByteBuffer bb1_str = ser.fromString("127");
         ByteBuffer bb2 = ser.getNext(bb1);
         Long val2 = ser.fromByteBuffer(bb2.duplicate());
 
-        Assert.assertEquals(val1, val1_verify);
+        Assert.assertEquals(val1, val1Verify);
         Assert.assertEquals(bb1, bb1_str);
         Assert.assertEquals(1, val2.intValue() - val1.intValue());
         Assert.assertEquals(bb2.capacity(), bb1.capacity());
@@ -500,9 +501,7 @@ public class SerializersTest {
         }
 
         public String toString() {
-            return new StringBuilder().append("(").append(firstName)
-                    .append(",").append(lastName).append(",").append(age)
-                    .append(")").toString();
+            return "(" + firstName + "," + lastName + "," + age + ")";
         }
 
         @Override
@@ -511,21 +510,21 @@ public class SerializersTest {
                 return false;
             }
             Composite1 other = (Composite1) arg0;
-            return (String.valueOf(firstName).equals(
+            return String.valueOf(firstName).equals(
                     String.valueOf(other.firstName))
                     && String.valueOf(lastName).equals(
                             String.valueOf(other.lastName))
                     && String.valueOf(decimal).equals(
                             String.valueOf(other.decimal))
                     && String.valueOf(integer).equals(
-                            String.valueOf(other.integer)) && age == other.age);
+                            String.valueOf(other.integer)) && age == other.age;
         }
     }
 
     @Test
     public void testAnnotatedCompositeSerializer() {
         try {
-            AnnotatedCompositeSerializer<Composite1> ser = new AnnotatedCompositeSerializer<Composite1>(
+            AnnotatedCompositeSerializer<Composite1> ser = new AnnotatedCompositeSerializer<>(
                     Composite1.class);
 
             Composite1 c1 = new Composite1("Arielle", "Landau", 6,
@@ -543,7 +542,7 @@ public class SerializersTest {
     @Test
     public void testAnnotatedCompositeSerializerIdempotent() {
         try {
-            AnnotatedCompositeSerializer<Composite1> ser = new AnnotatedCompositeSerializer<Composite1>(
+            AnnotatedCompositeSerializer<Composite1> ser = new AnnotatedCompositeSerializer<>(
                     Composite1.class);
 
             Composite1 c1 = new Composite1("Arielle", "Landau", 6,
@@ -558,7 +557,7 @@ public class SerializersTest {
 
     @Test
     public void testStressAnnotatedCompositeSerializer() throws Exception {
-        AnnotatedCompositeSerializer<Composite1> ser = new AnnotatedCompositeSerializer<Composite1>(
+        AnnotatedCompositeSerializer<Composite1> ser = new AnnotatedCompositeSerializer<>(
                 Composite1.class);
 
         int count = 10000;
@@ -566,7 +565,8 @@ public class SerializersTest {
         Composite1 c1 = new Composite1("Arielle", "Landau", 6, new BigInteger(
                 "1"), new BigDecimal(2));
 
-        long startTime, runTime;
+        long startTime;
+        long runTime;
 
         for (int j = 0; j < 3; j++) {
             System.out.println("-----");
@@ -638,7 +638,7 @@ public class SerializersTest {
     @Test
     public void testAnnotatedCompositeSerializerWithNulls() {
         try {
-            AnnotatedCompositeSerializer<Composite1> ser = new AnnotatedCompositeSerializer<Composite1>(
+            AnnotatedCompositeSerializer<Composite1> ser = new AnnotatedCompositeSerializer<>(
                     Composite1.class);
 
             Composite1 c1 = new Composite1("Arielle", null, null, null, null);
@@ -674,9 +674,7 @@ public class SerializersTest {
         }
 
         public String toString() {
-            return new StringBuilder().append("(").append(firstName)
-                    .append(",").append(lastName).append(",").append(age)
-                    .append(")").toString();
+            return "(" + firstName + "," + lastName + "," + age + ")";
         }
 
         @Override
@@ -685,14 +683,14 @@ public class SerializersTest {
                 return false;
             }
             Composite2 other = (Composite2) arg0;
-            return (firstName.equals(other.firstName)
-                    && lastName.equals(other.lastName) && age == other.age);
+            return firstName.equals(other.firstName)
+                    && lastName.equals(other.lastName) && age == other.age;
         }
     }
 
     @Test
     public void testAnnotatedCompositeSerializerWithOrdinal() {
-        AnnotatedCompositeSerializer<Composite2> ser = new AnnotatedCompositeSerializer<Composite2>(
+        AnnotatedCompositeSerializer<Composite2> ser = new AnnotatedCompositeSerializer<>(
                 Composite2.class);
 
         try {

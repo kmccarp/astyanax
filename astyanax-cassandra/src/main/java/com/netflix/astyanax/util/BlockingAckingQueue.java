@@ -26,8 +26,8 @@ import com.netflix.astyanax.impl.AckingQueue;
 
 public class BlockingAckingQueue implements AckingQueue {
 
-    private LinkedBlockingQueue<MutationBatch> queue = Queues.newLinkedBlockingQueue();
-    private ConcurrentMap<MutationBatch, Boolean> busy = Maps.newConcurrentMap();
+    private final LinkedBlockingQueue<MutationBatch> queue = Queues.newLinkedBlockingQueue();
+    private final ConcurrentMap<MutationBatch, Boolean> busy = Maps.newConcurrentMap();
 
     @Override
     public MutationBatch getNextMutation(long timeout, TimeUnit unit) throws InterruptedException {

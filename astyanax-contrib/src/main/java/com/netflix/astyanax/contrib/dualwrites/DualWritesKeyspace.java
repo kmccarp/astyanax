@@ -63,7 +63,7 @@ public class DualWritesKeyspace implements Keyspace, DualWritesUpdateListener {
 
     private static final Logger Logger = LoggerFactory.getLogger(DualWritesKeyspace.class);
     
-	private final AtomicReference<KeyspacePair> ksPair = new AtomicReference<KeyspacePair>(null);
+	private final AtomicReference<KeyspacePair> ksPair = new AtomicReference<>(null);
     private final AtomicBoolean dualWritesEnabled = new AtomicBoolean(false);
 	
     private final DualWritesStrategy executionStrategy;
@@ -406,7 +406,7 @@ public class DualWritesKeyspace implements Keyspace, DualWritesUpdateListener {
 		return getPrimaryKS().getConnectionPool();
 	}
 
-	private class KeyspacePair {
+    private final class KeyspacePair {
 		
         private final DualKeyspaceMetadata dualKeyspaceMetadata;
 		private final Keyspace ksPrimary;
@@ -442,10 +442,16 @@ public class DualWritesKeyspace implements Keyspace, DualWritesUpdateListener {
 
         @Override
         public boolean equals(Object obj) {
-            
-            if (this == obj) return true;
-            if (obj == null) return false;
-            if (getClass() != obj.getClass()) return false;
+
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
             
             KeyspacePair other = (KeyspacePair) obj;
             boolean equals = true;

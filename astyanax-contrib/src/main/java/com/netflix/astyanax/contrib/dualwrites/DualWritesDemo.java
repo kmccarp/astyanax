@@ -50,7 +50,7 @@ public class DualWritesDemo {
     AstyanaxContext<Keyspace> ctx2;
     Keyspace keyspace2;
 
-    DualWritesKeyspace dualKeyspace = null;
+    DualWritesKeyspace dualKeyspace;
 
     FailedWritesLogger logger = new LogBasedFailedWritesLogger();
     BestEffortSecondaryWriteStrategy execStrategy = new BestEffortSecondaryWriteStrategy(logger);
@@ -165,8 +165,7 @@ public class DualWritesDemo {
     }
 
     private AstyanaxContext<Keyspace> getKeyspaceContext(final String ks, final String seedHost) {
-        AstyanaxContext<Keyspace> ctx = 
-                new AstyanaxContext.Builder()
+        return new AstyanaxContext.Builder()
         .forKeyspace(ks)
         .withConnectionPoolConfiguration(
                 new ConnectionPoolConfigurationImpl("myCPConfig-" + ks)
@@ -178,8 +177,6 @@ public class DualWritesDemo {
                         .setConnectionPoolType(ConnectionPoolType.TOKEN_AWARE)
                         .setDiscoveryType(NodeDiscoveryType.RING_DESCRIBE))
                         .buildKeyspace(ThriftFamilyFactory.getInstance());
-
-        return ctx;
     }
 
     private void verifyPresent(Keyspace ks, int rowKey) throws ConnectionException {

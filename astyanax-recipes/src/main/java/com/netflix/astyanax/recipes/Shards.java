@@ -29,7 +29,7 @@ public class Shards {
 
     public static class StringShardBuilder {
         private String prefix = "";
-        private int shardCount = 0;
+        private int shardCount;
 
         public StringShardBuilder setPrefix(String prefix) {
             this.prefix = prefix;

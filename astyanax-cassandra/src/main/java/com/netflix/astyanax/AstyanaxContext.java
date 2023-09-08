@@ -48,7 +48,7 @@ import com.netflix.astyanax.shallows.EmptyKeyspaceTracerFactory;
  * 
  * @param <T>
  */
-public class AstyanaxContext<T> {
+public final class AstyanaxContext<T> {
     private final ConnectionPool<?> cp;
     private final NodeDiscovery discovery;
     private final ConnectionPoolConfiguration cpConfig;
@@ -106,8 +106,9 @@ public class AstyanaxContext<T> {
 
         public NodeDiscoveryType getNodeDiscoveryType() {
             if (cpConfig.getSeeds() != null) {
-                if (asConfig.getConnectionPoolType() == ConnectionPoolType.TOKEN_AWARE)
+                if (asConfig.getConnectionPoolType() == ConnectionPoolType.TOKEN_AWARE) {
                     return NodeDiscoveryType.RING_DESCRIBE;
+                }
             }
             else {
                 if (asConfig.getConnectionPoolType() == ConnectionPoolType.TOKEN_AWARE) {
@@ -125,22 +126,22 @@ public class AstyanaxContext<T> {
             
             // HACK to get the CqlFamilyFactory working with AstyanaxContext
             if (connectionFactory.getClass().getName().contains("CqlFamilyFactory")) {
-            	return new ConnectionPoolProxy<T>(cpConfig, connectionFactory, monitor);
+            	return new ConnectionPoolProxy<>(cpConfig, connectionFactory, monitor);
             }
             
             switch (asConfig.getConnectionPoolType()) {
             	
             case TOKEN_AWARE:
-                connectionPool = new TokenAwareConnectionPoolImpl<T>(cpConfig, connectionFactory, monitor);
+                connectionPool = new TokenAwareConnectionPoolImpl<>(cpConfig, connectionFactory, monitor);
                 break;
 
             case BAG:
-                connectionPool = new BagOfConnectionsConnectionPoolImpl<T>(cpConfig, connectionFactory, monitor);
+                connectionPool = new BagOfConnectionsConnectionPoolImpl<>(cpConfig, connectionFactory, monitor);
                 break;
 
             case ROUND_ROBIN:
             default:
-                connectionPool = new RoundRobinConnectionPoolImpl<T>(cpConfig, connectionFactory, monitor);
+                connectionPool = new RoundRobinConnectionPoolImpl<>(cpConfig, connectionFactory, monitor);
                 break;
             }
 
@@ -192,7 +193,7 @@ public class AstyanaxContext<T> {
                         asConfig.getDiscoveryDelayInSeconds() * 1000, supplier, cp);
             }
 
-            return new AstyanaxContext<Keyspace>(this, keyspace);
+            return new AstyanaxContext<>(this, keyspace);
         }
 
         public <T> AstyanaxContext<Cluster> buildCluster(AstyanaxTypeFactory<T> factory) {
@@ -206,7 +207,7 @@ public class AstyanaxContext<T> {
                 discovery = new NodeDiscoveryImpl(clusterName, asConfig.getDiscoveryDelayInSeconds() * 1000,
                         hostSupplier, cp);
             }
-            return new AstyanaxContext<Cluster>(this, factory.createCluster(cp, asConfig, tracerFactory));
+            return new AstyanaxContext<>(this, factory.createCluster(cp, asConfig, tracerFactory));
         }
     }
 
@@ -255,13 +256,15 @@ public class AstyanaxContext<T> {
 
     public void start() {
         cp.start();
-        if (discovery != null)
+        if (discovery != null) {
             discovery.start();
+        }
     }
 
     public void shutdown() {
-        if (discovery != null)
+        if (discovery != null) {
             discovery.shutdown();
+        }
         cp.shutdown();
     }
 

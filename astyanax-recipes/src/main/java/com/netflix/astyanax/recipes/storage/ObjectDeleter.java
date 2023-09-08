@@ -25,7 +25,7 @@ public class ObjectDeleter implements Callable<Void> {
 
     private final ChunkedStorageProvider provider;
     private final String objectName;
-    private Integer chunkCount = null; // This will default to all being deleted
+    private Integer chunkCount; // This will default to all being deleted
 
     public ObjectDeleter(ChunkedStorageProvider provider, String objectName) {
         this.provider = provider;

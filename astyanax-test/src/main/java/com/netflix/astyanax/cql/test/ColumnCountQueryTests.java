@@ -38,7 +38,7 @@ import com.netflix.astyanax.model.ColumnFamily;
 
 public class ColumnCountQueryTests extends ReadTests {
 
-	private static ColumnFamily<String, String> CF_COLUMN_RANGE_TEST = TestUtils.CF_COLUMN_RANGE_TEST;
+    private static final ColumnFamily<String, String> CF_COLUMN_RANGE_TEST = TestUtils.CF_COLUMN_RANGE_TEST;
 
 	@BeforeClass
 	public static void init() throws Exception {
@@ -184,7 +184,7 @@ public class ColumnCountQueryTests extends ReadTests {
 				.getColumnCounts()
 				.execute().getResult();
 
-		Map<String, Integer> expected = new HashMap<String, Integer>();
+		Map<String, Integer> expected = new HashMap<>();
 		if (!rowDeleted) {
 			for (String key : rowKeys) {
 				expected.put(key, 26);
@@ -206,7 +206,7 @@ public class ColumnCountQueryTests extends ReadTests {
 				.getColumnCounts()
 				.execute().getResult();
 
-		Map<String, Integer> expected = new HashMap<String, Integer>();
+		Map<String, Integer> expected = new HashMap<>();
 		if (!rowDeleted) {
 			for (String key : rowKeys) {
 				expected.put(key, columns.size());
@@ -234,7 +234,7 @@ public class ColumnCountQueryTests extends ReadTests {
 		int charOffset = startCol.charAt(0) - 'a' + 1;
 		int expectedColCount = 26 - charOffset + 1;
 
-		Map<String, Integer> expected = new HashMap<String, Integer>();
+		Map<String, Integer> expected = new HashMap<>();
 		if (!rowDeleted) {
 			for (String key : rowKeys) {
 				expected.put(key, expectedColCount);
@@ -248,7 +248,7 @@ public class ColumnCountQueryTests extends ReadTests {
 		List<TestTokenRange> testRanges = TestUtils.getTestTokenRanges();
 		
 		Map<String, Integer> expectedRowCounts = rowDeleted ? new HashMap<String, Integer>() : getExpectedRowCountsForTokenRanges(testRanges, 26);
-		Map<String, Integer> resultRowCounts = new HashMap<String, Integer>();
+		Map<String, Integer> resultRowCounts = new HashMap<>();
 		
 		for (TestTokenRange testRange : testRanges) {
 			
@@ -270,7 +270,7 @@ public class ColumnCountQueryTests extends ReadTests {
 		List<TestTokenRange> testRanges = TestUtils.getTestTokenRanges();
 		
 		Map<String, Integer> expectedRowCounts = rowDeleted ? new HashMap<String, Integer>() : getExpectedRowCountsForTokenRanges(testRanges, columns.size());
-		Map<String, Integer> resultRowCounts = new HashMap<String, Integer>();
+		Map<String, Integer> resultRowCounts = new HashMap<>();
 		
 		for (TestTokenRange testRange : testRanges) {
 			
@@ -298,7 +298,7 @@ public class ColumnCountQueryTests extends ReadTests {
 		List<TestTokenRange> testRanges = TestUtils.getTestTokenRanges();
 		
 		Map<String, Integer> expectedRowCounts = rowDeleted ? new HashMap<String, Integer>() : getExpectedRowCountsForTokenRanges(testRanges, expectedColCount);
-		Map<String, Integer> resultRowCounts = new HashMap<String, Integer>();
+		Map<String, Integer> resultRowCounts = new HashMap<>();
 		
 		for (TestTokenRange testRange : testRanges) {
 			
@@ -347,7 +347,7 @@ public class ColumnCountQueryTests extends ReadTests {
 		
 		int numRowKeys = random.nextInt(26) + 1;
 		
-		Set<String> hashSet = new HashSet<String>();
+		Set<String> hashSet = new HashSet<>();
 
 		while(hashSet.size() < numRowKeys) {
 			int pick = random.nextInt(26);
@@ -359,7 +359,7 @@ public class ColumnCountQueryTests extends ReadTests {
 	
 	private Map<String, Integer> getExpectedRowCountsForTokenRanges(List<TestTokenRange> testRanges, int expectedColumnCountForEachRow) {
 		
-		Map<String, Integer> expectedRowCounts = new HashMap<String, Integer>();
+		Map<String, Integer> expectedRowCounts = new HashMap<>();
 
 		for (TestTokenRange range : testRanges) {
 			for (String rowKey : range.expectedRowKeys) {

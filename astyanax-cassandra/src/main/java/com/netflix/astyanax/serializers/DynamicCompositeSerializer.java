@@ -38,8 +38,9 @@ public class DynamicCompositeSerializer extends
 
     @Override
     public DynamicComposite fromByteBuffer(ByteBuffer byteBuffer) {
-        if (byteBuffer == null)
+        if (byteBuffer == null) {
             return null;
+        }
         ByteBuffer dup = byteBuffer.duplicate();
         DynamicComposite composite = new DynamicComposite();
         composite.deserialize(dup);

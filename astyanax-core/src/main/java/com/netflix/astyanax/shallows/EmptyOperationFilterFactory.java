@@ -19,7 +19,7 @@ import com.netflix.astyanax.connectionpool.Operation;
 import com.netflix.astyanax.connectionpool.OperationFilterFactory;
 
 public class EmptyOperationFilterFactory implements OperationFilterFactory {
-    private final static OperationFilterFactory instance = new EmptyOperationFilterFactory();
+    private static final OperationFilterFactory instance = new EmptyOperationFilterFactory();
     
     public static OperationFilterFactory getInstance() {
         return instance;

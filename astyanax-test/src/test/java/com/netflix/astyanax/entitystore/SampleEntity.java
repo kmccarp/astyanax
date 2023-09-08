@@ -43,17 +43,17 @@ public class SampleEntity {
 
 		@Override
 		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
-				return false;
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
 			Foo other = (Foo) obj;
-			if(i == other.i && s.equals(other.s))
-				return true;
-			else
-				return false;
+            return i == other.i && s.equals(other.s);
 		}
 
 		@Override
@@ -137,17 +137,17 @@ public class SampleEntity {
 		
 			@Override
 			public boolean equals(Object obj) {
-				if (this == obj)
-					return true;
-				if (obj == null)
-					return false;
-				if (getClass() != obj.getClass())
-					return false;
+                if (this == obj) {
+                    return true;
+                }
+                if (obj == null) {
+                    return false;
+                }
+                if (getClass() != obj.getClass()) {
+                    return false;
+                }
 				BarBar other = (BarBar) obj;
-				if(i == other.i && s.equals(other.s))
-					return true;
-				else
-					return false;
+                return i == other.i && s.equals(other.s);
 			}
 
 			@Override
@@ -174,17 +174,17 @@ public class SampleEntity {
 		
 		@Override
 		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
-				return false;
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
 			Bar other = (Bar) obj;
-			if(i == other.i && s.equals(other.s) && barbar.equals(other.barbar))
-				return true;
-			else
-				return false;
+            return i == other.i && s.equals(other.s) && barbar.equals(other.barbar);
 		}
 
 		@Override
@@ -473,14 +473,17 @@ public class SampleEntity {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
+        if (this == obj) {
+            return true;
+        }
 
-		if (obj == null)
-			return false;
+        if (obj == null) {
+            return false;
+        }
 
-		if (getClass() != obj.getClass())
-			return false;
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
 
 		return EqualsBuilder.reflectionEquals(this, obj);
 	}

@@ -152,7 +152,7 @@ public class DirectCqlQueryImpl<K, C> implements CqlQuery<K, C> {
 	
 	protected class InternalBoundStatement implements PreparedCqlQuery<K,C> {
 		
-		final List<Object> bindList = new ArrayList<Object>();
+		final List<Object> bindList = new ArrayList<>();
 		final BoundStatement boundStatement;
 		
 		protected InternalBoundStatement(PreparedStatement pStmt) {
@@ -268,9 +268,9 @@ public class DirectCqlQueryImpl<K, C> implements CqlQuery<K, C> {
 			
 			boolean isCountQuery = basicCqlQuery.contains(" count(");
 			if (isCountQuery) {
-				return new DirectCqlResult<K,C>(new Long(resultSet.one().getLong(0)));
+				return new DirectCqlResult<>(Long.valueOf(resultSet.one().getLong(0)));
 			} else {
-				return new DirectCqlResult<K,C>(resultSet.all(), (ColumnFamily<K, C>) cf);
+				return new DirectCqlResult<>(resultSet.all(), (ColumnFamily<K, C>) cf);
 			}
 		}
 	}

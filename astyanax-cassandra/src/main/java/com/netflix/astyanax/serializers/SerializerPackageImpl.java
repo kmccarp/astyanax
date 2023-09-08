@@ -44,15 +44,15 @@ import com.netflix.astyanax.ddl.ColumnFamilyDefinition;
  */
 public class SerializerPackageImpl implements SerializerPackage {
 
-    private final static Serializer<?> DEFAULT_SERIALIZER = BytesArraySerializer.get();
+    private static final Serializer<?> DEFAULT_SERIALIZER = BytesArraySerializer.get();
 
-    public final static SerializerPackage DEFAULT_SERIALIZER_PACKAGE = new SerializerPackageImpl();
+    public static final SerializerPackage DEFAULT_SERIALIZER_PACKAGE = new SerializerPackageImpl();
 
     private Serializer<?> keySerializer = DEFAULT_SERIALIZER;
     private Serializer<?> columnSerializer = DEFAULT_SERIALIZER;
     private Serializer<?> defaultValueSerializer = DEFAULT_SERIALIZER;
 
-    private final Map<ByteBuffer, Serializer<?>> valueSerializers = new HashMap<ByteBuffer, Serializer<?>>();;
+    private final Map<ByteBuffer, Serializer<?>> valueSerializers = new HashMap<>();;
 
     public SerializerPackageImpl() {
     }
@@ -72,24 +72,27 @@ public class SerializerPackageImpl implements SerializerPackage {
             setKeyType(cfDef.getKeyValidationClass());
         }
         catch (UnknownComparatorException e) {
-            if (!ignoreErrors)
+            if (!ignoreErrors) {
                 throw e;
+            }
         }
 
         try {
             setColumnType(cfDef.getComparatorType());
         }
         catch (UnknownComparatorException e) {
-            if (!ignoreErrors)
+            if (!ignoreErrors) {
                 throw e;
+            }
         }
 
         try {
             setDefaultValueType(cfDef.getDefaultValidationClass());
         }
         catch (UnknownComparatorException e) {
-            if (!ignoreErrors)
+            if (!ignoreErrors) {
                 throw e;
+            }
         }
 
         List<ColumnDefinition> colsDefs = cfDef.getColumnDefinitionList();
@@ -99,8 +102,9 @@ public class SerializerPackageImpl implements SerializerPackage {
                     this.setValueType(colDef.getRawName(), colDef.getValidationClass());
                 }
                 catch (UnknownComparatorException e) {
-                    if (!ignoreErrors)
+                    if (!ignoreErrors) {
                         throw e;
+                    }
                 }
             }
         }
@@ -289,7 +293,7 @@ public class SerializerPackageImpl implements SerializerPackage {
 
     @Override
     public Set<ByteBuffer> getColumnNames() {
-        Set<ByteBuffer> set = new HashSet<ByteBuffer>();
+        Set<ByteBuffer> set = new HashSet<>();
         if (valueSerializers != null) {
             for (Entry<ByteBuffer, Serializer<?>> entry : valueSerializers.entrySet()) {
                 set.add(entry.getKey().duplicate());

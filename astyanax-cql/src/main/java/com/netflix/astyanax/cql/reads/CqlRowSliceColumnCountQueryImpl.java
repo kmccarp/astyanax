@@ -88,13 +88,13 @@ public class CqlRowSliceColumnCountQueryImpl<K> implements RowSliceColumnCountQu
 		@Override
 		public Map<K, Integer> parseResultSet(ResultSet resultSet) {
 			
-			Map<K, Integer> columnCountPerRow = new HashMap<K, Integer>();
+			Map<K, Integer> columnCountPerRow = new HashMap<>();
 			
 			for (Row row : resultSet.all()) {
 				K key = (K) CqlTypeMapping.getDynamicColumn(row, cf.getKeySerializer(), 0, cf);
 				Integer colCount = columnCountPerRow.get(key);
 				if (colCount == null) {
-					colCount = new Integer(0);
+					colCount = Integer.valueOf(0);
 				}	
 				colCount = colCount.intValue() + 1;
 				columnCountPerRow.put(key, colCount);

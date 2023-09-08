@@ -103,19 +103,22 @@ public class ObjectReader implements Callable<ObjectMetadata> {
             do {
                 try {
                     attributes = provider.readMetadata(objectName);
-                    if (attributes.isValidForRead())
+                    if (attributes.isValidForRead()) {
                         break;
-                    if (!retry.allowRetry())
+                    }
+                    if (!retry.allowRetry()) {
                         throw new NotFoundException("File doesn't exists or isn't ready to be read: " + objectName);
+                    }
                 }
                 catch (Exception e) {
                     LOG.warn(e.getMessage());
-                    if (!retry.allowRetry())
+                    if (!retry.allowRetry()) {
                         throw e;
+                    }
                 }
             } while (true);
 
-            final AtomicReference<Exception> exception = new AtomicReference<Exception>();
+            final AtomicReference<Exception> exception = new AtomicReference<>();
             final AtomicLong totalBytesRead = new AtomicLong();
             final AtomicLong totalBytesRead2 = new AtomicLong();
 
@@ -132,7 +135,7 @@ public class ObjectReader implements Callable<ObjectMetadata> {
                     // Read blocks in random order
                     final int firstBlockId = idsToRead.get(0);
                     Collections.shuffle(idsToRead);
-                    final AtomicReferenceArray<ByteBuffer> chunks = new AtomicReferenceArray<ByteBuffer>(
+                    final AtomicReferenceArray<ByteBuffer> chunks = new AtomicReferenceArray<>(
                             idsToRead.size());
                     ExecutorService executor = Executors.newFixedThreadPool(
                             concurrencyLevel,
@@ -155,8 +158,9 @@ public class ObjectReader implements Callable<ObjectMetadata> {
                                         }
                                         catch (Exception e) {
                                             callback.onChunkException(chunkId, e);
-                                            if (retry.allowRetry())
+                                            if (retry.allowRetry()) {
                                                 continue;
+                                            }
                                             exception.compareAndSet(null, e);
                                         }
                                     }
@@ -171,8 +175,9 @@ public class ObjectReader implements Callable<ObjectMetadata> {
                         }
                     }
 
-                    if (exception.get() != null)
+                    if (exception.get() != null) {
                         throw exception.get();
+                    }
 
                     for (int i = 0; i < chunks.length(); i++) {
                     	

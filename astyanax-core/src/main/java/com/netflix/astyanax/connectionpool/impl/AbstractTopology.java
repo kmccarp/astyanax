@@ -32,16 +32,16 @@ public class AbstractTopology<CL> implements Topology<CL> {
     /**
      * Partition which contains all hosts.  This is the fallback partition when no tokens are provided.
      */
-    private TokenHostConnectionPoolPartition<CL> allPools;
+    private final TokenHostConnectionPoolPartition<CL> allPools;
 
     /**
      * Strategy used to score hosts within a partition.
      */
-    private LatencyScoreStrategy strategy;
+    private final LatencyScoreStrategy strategy;
 
     public AbstractTopology(LatencyScoreStrategy strategy) {
         this.strategy = strategy;
-        this.allPools = new TokenHostConnectionPoolPartition<CL>(null, this.strategy);
+        this.allPools = new TokenHostConnectionPoolPartition<>(null, this.strategy);
     }
 
     @SuppressWarnings("unchecked")
@@ -57,8 +57,9 @@ public class AbstractTopology<CL> implements Topology<CL> {
         // Create a mapping of end token to a list of hosts that own the token
         for (HostConnectionPool<CL> pool : ring) {
             allPools.add(pool);
-            if (!this.allPools.hasPool(pool))
+            if (!this.allPools.hasPool(pool)) {
                 didChange = true;
+            }
         }
 
         return didChange;

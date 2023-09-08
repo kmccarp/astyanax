@@ -32,7 +32,7 @@ public class TestUtils {
 		
 		public String startToken;
 		public String endToken;
-		public List<String> expectedRowKeys = new ArrayList<String>();
+		public List<String> expectedRowKeys = new ArrayList<>();
 		
 		public TestTokenRange(String start, String end, String ... expectedKeys) {
 			startToken = start;
@@ -57,7 +57,7 @@ public class TestUtils {
 		 *  8889191829175541774   = D,    9176724567785656400   = U
 		 * 
 		 */
-		List<TestTokenRange> tokenRanges = new ArrayList<TestTokenRange>();
+		List<TestTokenRange> tokenRanges = new ArrayList<>();
 		
 		tokenRanges.add(new TestTokenRange("-8692134701444027338", "-7912594386904524724","C", "T", "M"));
 		tokenRanges.add(new TestTokenRange("-7311855499978618814", "-4942250469937744623","X", "J", "W"));

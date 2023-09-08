@@ -58,8 +58,9 @@ public class ChunkedObjectRecipeTest {
 
 	@AfterClass
 	public static void teardown() throws Exception {
-		if (keyspaceContext != null)
-			keyspaceContext.shutdown();
+        if (keyspaceContext != null) {
+            keyspaceContext.shutdown();
+        }
 
 		Thread.sleep(CASSANDRA_WAIT_TIME);
 	}
@@ -178,12 +179,12 @@ public class ChunkedObjectRecipeTest {
 			Assert.assertEquals("callback.failedChunk: " + callback.failedChunk, callback.chunkNumToFailOn, callback.failedChunk);
 		}
 	}
-	
-	private class CallbackThatFails implements ObjectWriteCallback {
+
+    private final class CallbackThatFails implements ObjectWriteCallback {
 		
 		private int chunkNumToFailOn;
-		private boolean success = false;
-		private boolean chunkException = false;
+		private boolean success;
+		private boolean chunkException;
 		private int failedChunk = -1;
 		
 		private CallbackThatFails(int chunk) {

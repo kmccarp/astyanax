@@ -19,7 +19,7 @@ import org.joda.time.DateTime;
 
 import com.netflix.astyanax.connectionpool.NodeDiscovery;
 
-public class EmptyNodeDiscoveryImpl implements NodeDiscovery {
+public final class EmptyNodeDiscoveryImpl implements NodeDiscovery {
 
     private static final EmptyNodeDiscoveryImpl instance = new EmptyNodeDiscoveryImpl();
 
