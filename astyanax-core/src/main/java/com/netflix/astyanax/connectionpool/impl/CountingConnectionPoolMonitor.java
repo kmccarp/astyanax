@@ -49,33 +49,33 @@ import com.netflix.astyanax.connectionpool.exceptions.InterruptedOperationExcept
  * @author elandau
  */
 public class CountingConnectionPoolMonitor implements ConnectionPoolMonitor {
-    private static Logger LOG = LoggerFactory.getLogger(CountingConnectionPoolMonitor.class);
-    
-    private AtomicLong operationFailureCount  = new AtomicLong();
-    private AtomicLong operationSuccessCount  = new AtomicLong();
-    private AtomicLong connectionCreateCount  = new AtomicLong();
-    private AtomicLong connectionClosedCount  = new AtomicLong();
-    private AtomicLong connectionCreateFailureCount = new AtomicLong();
-    private AtomicLong connectionBorrowCount  = new AtomicLong();
-    private AtomicLong connectionReturnCount  = new AtomicLong();
-    
-    private AtomicLong operationFailoverCount = new AtomicLong();
-    
-    private AtomicLong hostAddedCount         = new AtomicLong();
-    private AtomicLong hostRemovedCount       = new AtomicLong();
-    private AtomicLong hostDownCount          = new AtomicLong();
-    private AtomicLong hostReactivatedCount   = new AtomicLong();
-    
-    private AtomicLong poolExhastedCount      = new AtomicLong();
-    private AtomicLong operationTimeoutCount  = new AtomicLong();
-    private AtomicLong socketTimeoutCount     = new AtomicLong();
-    private AtomicLong noHostsCount           = new AtomicLong();
-    private AtomicLong unknownErrorCount      = new AtomicLong();
-    private AtomicLong badRequestCount        = new AtomicLong();
-    private AtomicLong interruptedCount       = new AtomicLong();
-    private AtomicLong transportErrorCount    = new AtomicLong();
+    private static final Logger LOG = LoggerFactory.getLogger(CountingConnectionPoolMonitor.class);
 
-    private AtomicLong notFoundCounter        = new AtomicLong();
+    private final AtomicLong operationFailureCount = new AtomicLong();
+    private final AtomicLong operationSuccessCount = new AtomicLong();
+    private final AtomicLong connectionCreateCount = new AtomicLong();
+    private final AtomicLong connectionClosedCount = new AtomicLong();
+    private final AtomicLong connectionCreateFailureCount = new AtomicLong();
+    private final AtomicLong connectionBorrowCount = new AtomicLong();
+    private final AtomicLong connectionReturnCount = new AtomicLong();
+
+    private final AtomicLong operationFailoverCount = new AtomicLong();
+
+    private final AtomicLong hostAddedCount = new AtomicLong();
+    private final AtomicLong hostRemovedCount = new AtomicLong();
+    private final AtomicLong hostDownCount = new AtomicLong();
+    private final AtomicLong hostReactivatedCount = new AtomicLong();
+
+    private final AtomicLong poolExhastedCount = new AtomicLong();
+    private final AtomicLong operationTimeoutCount = new AtomicLong();
+    private final AtomicLong socketTimeoutCount = new AtomicLong();
+    private final AtomicLong noHostsCount = new AtomicLong();
+    private final AtomicLong unknownErrorCount = new AtomicLong();
+    private final AtomicLong badRequestCount = new AtomicLong();
+    private final AtomicLong interruptedCount = new AtomicLong();
+    private final AtomicLong transportErrorCount = new AtomicLong();
+
+    private final AtomicLong notFoundCounter = new AtomicLong();
     
     public CountingConnectionPoolMonitor() {
     }
@@ -296,34 +296,7 @@ public class CountingConnectionPoolMonitor implements ConnectionPoolMonitor {
 
     public String toString() {
         // Build the complete status string
-        return new StringBuilder()
-                .append("CountingConnectionPoolMonitor(")
-                .append("Connections[" )
-                    .append( "open="       ).append(getNumOpenConnections())
-                    .append(",busy="       ).append(getNumBusyConnections())
-                    .append(",create="     ).append(connectionCreateCount.get())
-                    .append(",close="      ).append(connectionClosedCount.get())
-                    .append(",failed="     ).append(connectionCreateFailureCount.get())
-                    .append(",borrow="     ).append(connectionBorrowCount.get())
-                    .append(",return="     ).append(connectionReturnCount.get())
-                .append("], Operations[")
-                    .append( "success="    ).append(operationSuccessCount.get())
-                    .append(",failure="    ).append(operationFailureCount.get())
-                    .append(",optimeout="  ).append(operationTimeoutCount.get())
-                    .append(",timeout="    ).append(socketTimeoutCount.get())
-                    .append(",failover="   ).append(operationFailoverCount.get())
-                    .append(",nohosts="    ).append(noHostsCount.get())
-                    .append(",unknown="    ).append(unknownErrorCount.get())
-                    .append(",interrupted=").append(interruptedCount.get())
-                    .append(",exhausted="  ).append(poolExhastedCount.get())
-                    .append(",transport="  ).append(transportErrorCount.get())
-                .append("], Hosts[")
-                    .append( "add="        ).append(hostAddedCount.get())
-                    .append(",remove="     ).append(hostRemovedCount.get())
-                    .append(",down="       ).append(hostDownCount.get())
-                    .append(",reactivate=" ).append(hostReactivatedCount.get())
-                    .append(",active="     ).append(getHostActiveCount())
-                .append("])").toString();
+        return "CountingConnectionPoolMonitor(" + "Connections[" +  "open=" + getNumOpenConnections() + ",busy=" + getNumBusyConnections() + ",create=" + connectionCreateCount.get() + ",close=" + connectionClosedCount.get() + ",failed=" + connectionCreateFailureCount.get() + ",borrow=" + connectionBorrowCount.get() + ",return=" + connectionReturnCount.get() + "], Operations[" +  "success=" + operationSuccessCount.get() + ",failure=" + operationFailureCount.get() + ",optimeout=" + operationTimeoutCount.get() + ",timeout=" + socketTimeoutCount.get() + ",failover=" + operationFailoverCount.get() + ",nohosts=" + noHostsCount.get() + ",unknown=" + unknownErrorCount.get() + ",interrupted=" + interruptedCount.get() + ",exhausted=" + poolExhastedCount.get() + ",transport=" + transportErrorCount.get() + "], Hosts[" +  "add=" + hostAddedCount.get() + ",remove=" + hostRemovedCount.get() + ",down=" + hostDownCount.get() + ",reactivate=" + hostReactivatedCount.get() + ",active=" + getHostActiveCount() + "])";
     }
 
     @Override

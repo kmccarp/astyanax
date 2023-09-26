@@ -32,8 +32,9 @@ public class MappingUtils {
         if(serializerAnnotation != null) {
             final Class<?> serializerClazz = serializerAnnotation.value();
             // check type
-            if(!(com.netflix.astyanax.Serializer.class.isAssignableFrom(serializerClazz)))
+            if (!(com.netflix.astyanax.Serializer.class.isAssignableFrom(serializerClazz))) {
                 throw new RuntimeException("annotated serializer class is not a subclass of com.netflix.astyanax.Serializer. " + serializerClazz.getCanonicalName());
+            }
             // invoke public static get() method
             try {
                 Method getInstanceMethod = serializerClazz.getMethod("get");
@@ -50,10 +51,11 @@ public class MappingUtils {
 
     static String getEntityName(Entity entityAnnotation, Class<?> clazz) {
         String name = entityAnnotation.name();
-        if (name == null || name.isEmpty()) 
+        if (name == null || name.isEmpty()) {
             return StringUtils.substringAfterLast(clazz.getName(), ".").toLowerCase();
-        else
+        } else {
             return name;
+        }
     }
 
 

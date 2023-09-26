@@ -51,10 +51,10 @@ import com.netflix.astyanax.connectionpool.exceptions.UnknownException;
  * 
  */
 public abstract class AbstractExecuteWithFailoverImpl<CL, R> implements ExecuteWithFailover<CL, R> {
-    protected Connection<CL> connection = null;
+    protected Connection<CL> connection;
     private long startTime;
     private long poolStartTime;
-    private int attemptCounter = 0;
+    private int attemptCounter;
     private final ConnectionPoolMonitor monitor;
     protected final ConnectionPoolConfiguration config;
     
@@ -74,30 +74,31 @@ public abstract class AbstractExecuteWithFailoverImpl<CL, R> implements ExecuteW
     /**
      * @return {@link Host}
      */
-	final public Host getCurrentHost() {
+	public final Host getCurrentHost() {
 		HostConnectionPool<CL> pool = getCurrentHostConnectionPool();
-		if (pool != null)
-			return pool.getHost();
-		else 
-			return Host.NO_HOST;
+        if (pool != null) {
+            return pool.getHost();
+        } else {
+            return Host.NO_HOST;
+        }
 	}
 	
 	/**
 	 * @return {@link HostConnectionPool}
 	 */
-	abstract public HostConnectionPool<CL> getCurrentHostConnectionPool();
+	public abstract HostConnectionPool<CL> getCurrentHostConnectionPool();
 
 	/**
 	 * @param operation
 	 * @return {@link Connection}
 	 * @throws ConnectionException
 	 */
-    abstract public Connection<CL> borrowConnection(Operation<CL, R> operation) throws ConnectionException;
+    public abstract Connection<CL> borrowConnection(Operation<CL, R> operation) throws ConnectionException;
 
     /**
      * @return boolean
      */
-	abstract public boolean canRetry();
+	public abstract boolean canRetry();
 	
 	/**
 	 * Basic impl that repeatedly borrows a conn and tries to execute the operation while maintaining metrics for 

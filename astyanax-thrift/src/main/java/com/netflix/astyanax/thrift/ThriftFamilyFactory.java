@@ -29,7 +29,7 @@ import com.netflix.astyanax.connectionpool.ConnectionPoolMonitor;
 
 public class ThriftFamilyFactory implements AstyanaxTypeFactory<Cassandra.Client> {
 
-    private final static ThriftFamilyFactory instance = new ThriftFamilyFactory();
+    private static final ThriftFamilyFactory instance = new ThriftFamilyFactory();
 
     public static ThriftFamilyFactory getInstance() {
         return instance;

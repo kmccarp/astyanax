@@ -35,7 +35,7 @@ import com.netflix.astyanax.serializers.StringSerializer;
 
 public class StaticColumnFamilyTests extends KeyspaceTests {
 
-	private static ColumnFamily<String, String> CF_ACCOUNTS = new ColumnFamily<String, String>("accounts", StringSerializer.get(), StringSerializer.get());
+    private static final ColumnFamily<String, String> CF_ACCOUNTS = new ColumnFamily<>("accounts", StringSerializer.get(), StringSerializer.get());
 
 	@BeforeClass
 	public static void init() throws Exception {
@@ -139,7 +139,7 @@ public class StaticColumnFamilyTests extends KeyspaceTests {
 			Assert.assertEquals("pswd" + expectedChar, col.getStringValue());
 		}
 
-		List<String> cols = new ArrayList<String>();
+		List<String> cols = new ArrayList<>();
 		cols.add("user"); cols.add("pswd");
 
 		result =  keyspace.prepareQuery(CF_ACCOUNTS).getRow(rowKey).withColumnSlice(cols).execute().getResult();
@@ -195,7 +195,7 @@ public class StaticColumnFamilyTests extends KeyspaceTests {
 
 	private void performRowSliceQueryWithAllColumns(boolean rowDeleted) throws Exception {
 
-		List<String> keys = new ArrayList<String>();
+		List<String> keys = new ArrayList<>();
 		for (char keyName = 'A'; keyName <= 'Z'; keyName++) {
 			keys.add(Character.toString(keyName));
 		}
@@ -224,7 +224,7 @@ public class StaticColumnFamilyTests extends KeyspaceTests {
 
 	private void performRowSliceQueryWithColumnSlice(boolean rowDeleted) throws Exception {
 
-		List<String> keys = new ArrayList<String>();
+		List<String> keys = new ArrayList<>();
 		for (char keyName = 'A'; keyName <= 'Z'; keyName++) {
 			keys.add(Character.toString(keyName));
 		}

@@ -49,16 +49,16 @@ public class OneStepDistributedRowLock<K, C> implements DistributedRowLock {
     private long             timeout          = LOCK_TIMEOUT;                   // Timeout after which the lock expires.  Units defined by timeoutUnits.
     private TimeUnit         timeoutUnits     = DEFAULT_OPERATION_TIMEOUT_UNITS;
     private ConsistencyLevel consistencyLevel = ConsistencyLevel.CL_LOCAL_QUORUM;
-    private boolean          failOnStaleLock  = false;           
-    private Set<C>           locksToDelete    = Sets.newHashSet();
+    private boolean          failOnStaleLock;
+    private final Set<C>           locksToDelete = Sets.newHashSet();
     private C                lockColumn       = null;
-    private ColumnMap<C>     columns          = null;
-    private Integer          ttl              = null;                           // Units in seconds
-    private boolean          readDataColumns  = false;
+    private ColumnMap<C>     columns;
+    private Integer          ttl;                           // Units in seconds
+    private boolean          readDataColumns;
     private RetryPolicy      backoffPolicy    = RunOnce.get();
-    private long             acquireTime      = 0;
-    private int              retryCount       = 0;
-    private LockColumnStrategy<C> columnStrategy = null;
+    private long             acquireTime;
+    private int              retryCount;
+    private LockColumnStrategy<C> columnStrategy;
     
     public OneStepDistributedRowLock(Keyspace keyspace, ColumnFamily<K, C> columnFamily, K key) {
         this.keyspace     = keyspace;
@@ -174,8 +174,9 @@ public class OneStepDistributedRowLock<K, C> implements DistributedRowLock {
             }
             catch (BusyLockException e) {
                 release();
-                if(!retry.allowRetry())
+                if (!retry.allowRetry()) {
                     throw e;
+                }
                 retryCount++;
             }
         }
@@ -203,8 +204,9 @@ public class OneStepDistributedRowLock<K, C> implements DistributedRowLock {
      * @throws BusyLockException
      */
     public void verifyLock(long curTimeInMicros) throws Exception, BusyLockException, StaleLockException {
-        if (getLockColumn() == null) 
+        if (getLockColumn() == null) {
             throw new IllegalStateException("verifyLock() called without attempting to take the lock");
+        }
         
         // Read back all columns. There should be only 1 if we got the lock
         Map<C, Long> lockResult = readLockColumns(readDataColumns);
@@ -285,7 +287,7 @@ public class OneStepDistributedRowLock<K, C> implements DistributedRowLock {
         Map<C, Long> result = Maps.newLinkedHashMap();
         // Read all the columns
         if (readDataColumns) {
-            columns = new OrderedColumnMap<C>();
+            columns = new OrderedColumnMap<>();
             ColumnList<C> lockResult = keyspace
                 .prepareQuery(columnFamily)
                     .setConsistencyLevel(consistencyLevel)
@@ -294,10 +296,11 @@ public class OneStepDistributedRowLock<K, C> implements DistributedRowLock {
                     .getResult();
     
             for (Column<C> c : lockResult) {
-                if (columnStrategy.isLockColumn(c.getName()))
+                if (columnStrategy.isLockColumn(c.getName())) {
                     result.put(c.getName(), readTimeoutValue(c));
-                else 
+                } else {
                     columns.add(c);
+                }
             }
         }
         // Read only the lock columns
@@ -386,8 +389,9 @@ public class OneStepDistributedRowLock<K, C> implements DistributedRowLock {
      */
     public C fillLockMutation(MutationBatch m, Long time, Integer ttl) {
         if (lockColumn != null) {
-            if (!lockColumn.equals(columnStrategy.generateLockColumn()))
+            if (!lockColumn.equals(columnStrategy.generateLockColumn())) {
                 throw new IllegalStateException("Can't change prefix or lockId after acquiring the lock");
+            }
         }
         else {
             lockColumn = columnStrategy.generateLockColumn();
@@ -395,7 +399,7 @@ public class OneStepDistributedRowLock<K, C> implements DistributedRowLock {
         
         Long timeoutValue 
               = (time == null)
-              ? new Long(0)
+              ? Long.valueOf(0)
               : time + TimeUnit.MICROSECONDS.convert(timeout, timeoutUnits);
               
         m.withRow(columnFamily, key).putColumn(lockColumn, generateTimeoutValue(timeoutValue), ttl);
@@ -444,8 +448,9 @@ public class OneStepDistributedRowLock<K, C> implements DistributedRowLock {
         for (C c : locksToDelete) {
             row.deleteColumn(c);
         }
-        if (!excludeCurrentLock && lockColumn != null) 
+        if (!excludeCurrentLock && lockColumn != null) {
             row.deleteColumn(lockColumn);
+        }
         locksToDelete.clear();
         lockColumn = null;
     }

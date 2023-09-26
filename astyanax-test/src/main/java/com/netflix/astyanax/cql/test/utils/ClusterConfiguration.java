@@ -32,10 +32,11 @@ public class ClusterConfiguration {
     public static String TEST_KEYSPACE_NAME = "astyanaxunittests";
     
     public static Driver TheDriver = Driver.JAVA_DRIVER;
+
     //public static Driver TheDriver = Driver.THRIFT;
     
-    public static enum Driver {
-    	THRIFT, JAVA_DRIVER; 
+    public enum Driver {
+    	THRIFT, JAVA_DRIVER 
     }
     
     public static void setDriver(Driver driver) {

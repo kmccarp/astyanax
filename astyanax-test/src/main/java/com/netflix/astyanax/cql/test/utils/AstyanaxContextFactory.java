@@ -41,7 +41,7 @@ import static com.netflix.astyanax.cql.test.utils.ClusterConfiguration.*;
 
 public class AstyanaxContextFactory {
 
-    private static final AtomicReference<Keyspace> keyspaceReference = new AtomicReference<Keyspace>(null);
+    private static final AtomicReference<Keyspace> keyspaceReference = new AtomicReference<>(null);
     
     static {
     	PropertyConfigurator.configure("./src/main/resources/test-log4j.properties");
@@ -67,7 +67,7 @@ public class AstyanaxContextFactory {
 
     	final String SEEDS = "localhost";
 
-		Supplier<List<Host>> HostSupplier = new Supplier<List<Host>>() {
+		Supplier<List<Host>> hostSupplier = new Supplier<List<Host>>() {
 
 			@Override
 			public List<Host> get() {
@@ -76,7 +76,7 @@ public class AstyanaxContextFactory {
 			}
     	};
     	
-    	AstyanaxContext<Cluster> context = new AstyanaxContext.Builder()
+    	return new AstyanaxContext.Builder()
                 .forCluster(clusterName)
                 .withAstyanaxConfiguration(
                         new AstyanaxConfigurationImpl()
@@ -92,11 +92,9 @@ public class AstyanaxContextFactory {
                                 .setSeeds(SEEDS)
                                 .setPort(9042)
                                 )
-                .withHostSupplier(HostSupplier)
+                .withHostSupplier(hostSupplier)
                 .withConnectionPoolMonitor(new CountingConnectionPoolMonitor())
                 .buildCluster(CqlFamilyFactory.getInstance());
-
-    	return context;
     }
     
     private static AstyanaxContext<Cluster> clusterWithThriftDriver(String clusterName) {
@@ -111,7 +109,7 @@ public class AstyanaxContextFactory {
 			}
     	};
     	
-    	AstyanaxContext<Cluster> context = new AstyanaxContext.Builder()
+    	return new AstyanaxContext.Builder()
     	.forCluster(clusterName)
     	.withAstyanaxConfiguration(
     			new AstyanaxConfigurationImpl()
@@ -131,8 +129,6 @@ public class AstyanaxContextFactory {
     					.withHostSupplier(HostSupplier)
     					.withConnectionPoolMonitor(new CountingConnectionPoolMonitor())
     					.buildCluster(ThriftFamilyFactory.getInstance());
-
-    	return context;
     }
 
     public static AstyanaxContext<Keyspace> getKeyspace() {
@@ -170,14 +166,12 @@ public class AstyanaxContextFactory {
 				.withProtocolOptions(protocolOptions)
 				.build();
 
-		AstyanaxContext<Keyspace> context = new AstyanaxContext.Builder()
+		return new AstyanaxContext.Builder()
 		.forKeyspace(keyspaceName)
 		.withHostSupplier(HostSupplier)
 		.withAstyanaxConfiguration(new AstyanaxConfigurationImpl())
 		.withConnectionPoolConfiguration(new JavaDriverConnectionPoolConfigurationImpl(jdConfig))
 		.buildKeyspace(CqlFamilyFactory.getInstance());
-
-    	return context;
     }
     
     private static AstyanaxContext<Keyspace> keyspaceWithThriftDriver(String keyspaceName) {
@@ -193,7 +187,7 @@ public class AstyanaxContextFactory {
 			}
     	};
     	
-    	AstyanaxContext<Keyspace> context = new AstyanaxContext.Builder()
+    	return new AstyanaxContext.Builder()
                 .forCluster(TEST_CLUSTER_NAME)
                 .forKeyspace(keyspaceName)
                 .withAstyanaxConfiguration(
@@ -216,8 +210,6 @@ public class AstyanaxContextFactory {
                 .withHostSupplier(HostSupplier)
                 .withConnectionPoolMonitor(new CountingConnectionPoolMonitor())
                 .buildKeyspace(ThriftFamilyFactory.getInstance());
-
-    	return context;
     }
 
     public static Keyspace getCachedKeyspace() {

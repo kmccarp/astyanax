@@ -106,10 +106,11 @@ public class WriteAheadMutationBatchExecutor {
                     if (e instanceof NoAvailableHostsException) {
                         Thread.sleep(waitOnNoHosts);
                     }
-                    if (retryablePredicate.apply(e))
+                    if (retryablePredicate.apply(e)) {
                         executor.submit(this);
-                    else
+                    } else {
                         wal.removeEntry(walEntry);
+                    }
                     throw e;
                 }
             }

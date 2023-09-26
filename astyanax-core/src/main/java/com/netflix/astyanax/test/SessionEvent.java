@@ -53,7 +53,6 @@ public class SessionEvent {
     }
 
     public String toString() {
-        return new StringBuilder().append(sessionId).append(':')
-                .append(TimeUUIDUtils.getTimeFromUUID(timestamp)).toString();
+        return sessionId + ':' + TimeUUIDUtils.getTimeFromUUID(timestamp);
     }
 }

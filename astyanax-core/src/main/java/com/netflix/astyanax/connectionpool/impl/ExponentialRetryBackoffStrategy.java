@@ -42,9 +42,7 @@ public class ExponentialRetryBackoffStrategy implements RetryBackoffStrategy {
      * @return String 
      */
     public String toString() {
-        return new StringBuilder().append("ExpRetry[").append("max=").append(config.getRetryMaxDelaySlice())
-                .append(",slot=").append(config.getRetryDelaySlice()).append(",suspend=")
-                .append(config.getRetrySuspendWindow()).append("]").toString();
+        return "ExpRetry[" + "max=" + config.getRetryMaxDelaySlice() + ",slot=" + config.getRetryDelaySlice() + ",suspend=" + config.getRetrySuspendWindow() + "]";
     }
 
     /**
@@ -73,8 +71,9 @@ public class ExponentialRetryBackoffStrategy implements RetryBackoffStrategy {
                 }
 
                 c *= 2;
-                if (c > config.getRetryMaxDelaySlice())
+                if (c > config.getRetryMaxDelaySlice()) {
                     c = config.getRetryMaxDelaySlice();
+                }
 
                 return (new Random().nextInt(c) + 1) * config.getRetryDelaySlice();
             }
@@ -85,8 +84,7 @@ public class ExponentialRetryBackoffStrategy implements RetryBackoffStrategy {
             }
 
             public String toString() {
-                return new StringBuilder().append("ExpRetry.Instance[").append(c).append(",").append(isSuspended)
-                        .append(",").append(attemptCount).append("]").toString();
+                return "ExpRetry.Instance[" + c + "," + isSuspended + "," + attemptCount + "]";
             }
 
             @Override

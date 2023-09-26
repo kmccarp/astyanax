@@ -117,16 +117,16 @@ public class ColumnPrefixDistributedRowLock<K> implements DistributedRowLock {
     private TimeUnit         timeoutUnits     = DEFAULT_OPERATION_TIMEOUT_UNITS;
     private String           prefix           = DEFAULT_LOCK_PREFIX;            // Prefix to identify the lock columns
     private ConsistencyLevel consistencyLevel = ConsistencyLevel.CL_LOCAL_QUORUM;
-    private boolean          failOnStaleLock  = false;           
-    private String           lockColumn       = null;
-    private String           lockId           = null;
-    private Set<String>      locksToDelete    = Sets.newHashSet();
-    private ColumnMap<String> columns         = null;
-    private Integer          ttl              = null;                           // Units in seconds
-    private boolean          readDataColumns  = false;
+    private boolean          failOnStaleLock;           
+    private String           lockColumn;
+    private String           lockId;
+    private final Set<String>      locksToDelete = Sets.newHashSet();
+    private ColumnMap<String> columns;
+    private Integer          ttl;                           // Units in seconds
+    private boolean          readDataColumns;
     private RetryPolicy      backoffPolicy    = RunOnce.get();
-    private long             acquireTime      = 0;
-    private int              retryCount       = 0;
+    private long             acquireTime;
+    private int              retryCount;
 
     public ColumnPrefixDistributedRowLock(Keyspace keyspace, ColumnFamily<K, String> columnFamily, K key) {
         this.keyspace     = keyspace;
@@ -253,8 +253,9 @@ public class ColumnPrefixDistributedRowLock<K> implements DistributedRowLock {
             }
             catch (BusyLockException e) {
                 release();
-                if(!retry.allowRetry())
+                if (!retry.allowRetry()) {
                     throw e;
+                }
                 retryCount++;
             }
         }
@@ -280,8 +281,9 @@ public class ColumnPrefixDistributedRowLock<K> implements DistributedRowLock {
      * @throws BusyLockException
      */
     public void verifyLock(long curTimeInMicros) throws Exception, BusyLockException, StaleLockException {
-        if (lockColumn == null) 
+        if (lockColumn == null) {
             throw new IllegalStateException("verifyLock() called without attempting to take the lock");
+        }
         
         // Read back all columns. There should be only 1 if we got the lock
         Map<String, Long> lockResult = readLockColumns(readDataColumns);
@@ -360,7 +362,7 @@ public class ColumnPrefixDistributedRowLock<K> implements DistributedRowLock {
         Map<String, Long> result = Maps.newLinkedHashMap();
         // Read all the columns
         if (readDataColumns) {
-            columns = new OrderedColumnMap<String>();
+            columns = new OrderedColumnMap<>();
             ColumnList<String> lockResult = keyspace
                 .prepareQuery(columnFamily)
                     .setConsistencyLevel(consistencyLevel)
@@ -369,10 +371,11 @@ public class ColumnPrefixDistributedRowLock<K> implements DistributedRowLock {
                     .getResult();
     
             for (Column<String> c : lockResult) {
-                if (c.getName().startsWith(prefix))
+                if (c.getName().startsWith(prefix)) {
                     result.put(c.getName(), readTimeoutValue(c));
-                else 
+                } else {
                     columns.add(c);
+                }
             }
         }
         // Read only the lock columns
@@ -459,8 +462,9 @@ public class ColumnPrefixDistributedRowLock<K> implements DistributedRowLock {
      */
     public String fillLockMutation(MutationBatch m, Long time, Integer ttl) {
         if (lockColumn != null) {
-            if (!lockColumn.equals(prefix+lockId))
+            if (!lockColumn.equals(prefix + lockId)) {
                 throw new IllegalStateException("Can't change prefix or lockId after acquiring the lock");
+            }
         }
         else {
             lockColumn = prefix + lockId;
@@ -468,7 +472,7 @@ public class ColumnPrefixDistributedRowLock<K> implements DistributedRowLock {
         
         Long timeoutValue 
               = (time == null)
-              ? new Long(0)
+              ? Long.valueOf(0)
               : time + TimeUnit.MICROSECONDS.convert(timeout, timeoutUnits);
               
         m.withRow(columnFamily, key).putColumn(lockColumn, generateTimeoutValue(timeoutValue), ttl);
@@ -515,8 +519,9 @@ public class ColumnPrefixDistributedRowLock<K> implements DistributedRowLock {
         for (String c : locksToDelete) {
             row.deleteColumn(c);
         }
-        if (!excludeCurrentLock && lockColumn != null) 
+        if (!excludeCurrentLock && lockColumn != null) {
             row.deleteColumn(lockColumn);
+        }
         locksToDelete.clear();
         lockColumn = null;
     }

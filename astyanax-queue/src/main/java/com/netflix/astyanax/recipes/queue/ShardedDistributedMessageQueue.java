@@ -135,7 +135,7 @@ import com.netflix.astyanax.util.TimeUUIDUtils;
  * @author elandau
  *
  */
-public class ShardedDistributedMessageQueue implements MessageQueue {
+public final class ShardedDistributedMessageQueue implements MessageQueue {
     private static final Logger LOG = LoggerFactory.getLogger(ShardedDistributedMessageQueue.class);
 
     public static final char             COMPOSITE_ID_DELIMITER          = ':';
@@ -157,10 +157,10 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
             .put("compaction_strategy",      "SizeTieredCompactionStrategy")
             .build();
 
-    final static AnnotatedCompositeSerializer<MessageQueueEntry> entrySerializer
-        = new AnnotatedCompositeSerializer<MessageQueueEntry>(MessageQueueEntry.class);
-    final static AnnotatedCompositeSerializer<MessageMetadataEntry>   metadataSerializer
-        = new AnnotatedCompositeSerializer<MessageMetadataEntry>(MessageMetadataEntry.class);
+    static final AnnotatedCompositeSerializer<MessageQueueEntry> entrySerializer
+        = new AnnotatedCompositeSerializer<>(MessageQueueEntry.class);
+    static final AnnotatedCompositeSerializer<MessageMetadataEntry>   metadataSerializer
+        = new AnnotatedCompositeSerializer<>(MessageMetadataEntry.class);
 
     static final ObjectMapper mapper = new ObjectMapper();
 
@@ -320,15 +320,18 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
                     TimeUnit.SECONDS.convert(lockTimeout, TimeUnit.MICROSECONDS) < lockTtl,
                     "Timeout " + lockTtl + " seconds must be less than TTL " + TimeUnit.SECONDS.convert(lockTtl, TimeUnit.MICROSECONDS) + " seconds");
             Preconditions.checkNotNull(keyspace, "Must specify keyspace");
-            
-            if (shardReaderPolicyFactory == null)
+
+            if (shardReaderPolicyFactory == null) {
                 shardReaderPolicyFactory = TimePartitionedShardReaderPolicy.Factory.builder().build();
+            }
 
-            if (modShardPolicy == null)
+            if (modShardPolicy == null) {
                 modShardPolicy = TimeModShardPolicy.getInstance();
+            }
 
-            if (stats == null)
+            if (stats == null) {
                 stats = new CountingQueueStats();
+            }
             
             return new ShardedDistributedMessageQueue(this);
         }
@@ -429,10 +432,11 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
      */
     private String getShardKey(long messageTime, int modShard) {
         long timePartition;
-        if (metadata.getPartitionDuration() != null)
+        if (metadata.getPartitionDuration() != null) {
             timePartition = (messageTime / metadata.getPartitionDuration()) % metadata.getPartitionCount();
-        else
+        } else {
             timePartition = 0;
+        }
         return getName() + ":" + timePartition + ":" + modShard;
     }
 
@@ -593,8 +597,9 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
                     .getResult();
 
             for (Column<MessageMetadataEntry> entry : columns) {
-                if (entry.getTtl() != 0)
+                if (entry.getTtl() != 0) {
                     continue;
+                }
 
                 Message message = peekMessage(entry.getName().getName());
                 if (message != null) {
@@ -627,8 +632,9 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
                     .getResult();
 
             for (Column<MessageMetadataEntry> entry : columns) {
-                if (entry.getTtl() != 0)
+                if (entry.getTtl() != 0) {
                     continue;
+                }
                 // Return the first one we get.  Hmmm... maybe we want to do some validation checks here
                 return peekMessage(entry.getName().getName());
             }
@@ -732,7 +738,7 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
                 }
                 return;
             } catch (Exception e) {
-                if (e.getClass().getSimpleName().equals("SchemaDisagreementException")){
+                if ("SchemaDisagreementException".equals(e.getClass().getSimpleName())){
                     // Check by class name since SchemaDisagreementException is defined in cassandra-thrift,
                     // but astayanx-cassandra should not have a Thrift-specific dependency.
                     try {
@@ -742,8 +748,9 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
                         throw new MessageQueueException("Interrupted while trying to create column family for queue " + getName(), ie);
                     }
                 }
-                if (e.getMessage().contains("already exist"))
+                if (e.getMessage().contains("already exist")) {
                     return;
+                }
                 throw new MessageQueueException("Failed to create column family for " + queueColumnFamily.getName(), e);
             }
         }
@@ -796,8 +803,9 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
             } catch (InterruptedException e) {
             }
         } catch (ConnectionException e) {
-            if (!e.getMessage().contains("already exist"))
+            if (!e.getMessage().contains("already exist")) {
                 throw new MessageQueueException("Failed to create column family for " + queueColumnFamily.getName(), e);
+            }
         }
 
         try {
@@ -807,8 +815,9 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
             } catch (InterruptedException e) {
             }
         } catch (ConnectionException e) {
-            if (!e.getMessage().contains("already exist"))
+            if (!e.getMessage().contains("already exist")) {
                 throw new MessageQueueException("Failed to create column family for " + queueColumnFamily.getName(), e);
+            }
             }
     }
 
@@ -840,8 +849,9 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
             @Override
             public String sendMessage(Message message) throws MessageQueueException {
                 SendMessageResponse response = sendMessages(Lists.newArrayList(message));
-                if (!response.getNotUnique().isEmpty())
+                if (!response.getNotUnique().isEmpty()) {
                     throw new KeyExistsException("Key already exists ." + message.getKey());
+                }
                 return Iterables.getFirst(response.getMessages().entrySet(), null).getKey();
             }
 
@@ -911,8 +921,9 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
                 // Commit the messages
                 Map<String, Message> success = Maps.newLinkedHashMap();
                 for (Message message : messages) {
-                    if (message.hasKey() && notUniqueKeys.contains(message.getKey()))
+                    if (message.hasKey() && notUniqueKeys.contains(message.getKey())) {
                         continue;
+                    }
 
                     String messageId = fillMessageMutation(mb, message);
                     success.put(messageId, message);
@@ -938,7 +949,7 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
         else {
             curTimeMicros = TimeUnit.MICROSECONDS.convert(message.getTrigger().getTriggerTime(),  TimeUnit.MILLISECONDS);
         }
-        curTimeMicros += (counter.incrementAndGet() % 1000);
+        curTimeMicros += counter.incrementAndGet() % 1000;
 
         // Update the message for the new token
         message.setToken(TimeUUIDUtils.getMicrosTimeUUID(curTimeMicros));
@@ -1024,8 +1035,9 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
         for (MessageQueueShard shard : shardReaderPolicy.listShards()) {
             messages.addAll(peekMessages(shard.getName(), itemsToPeek - messages.size()));
 
-            if (messages.size() == itemsToPeek)
+            if (messages.size() == itemsToPeek) {
                 return messages;
+            }
             }
 
         return messages;
@@ -1059,8 +1071,9 @@ public class ShardedDistributedMessageQueue implements MessageQueue {
             List<Message> messages = Lists.newArrayListWithCapacity(result.size());
             for (Column<MessageQueueEntry> column : result) {
                 Message message = extractMessageFromColumn(column);
-                if (message != null)
+                if (message != null) {
                     messages.add(message);
+                }
             }
             return messages;
         } catch (ConnectionException e) {

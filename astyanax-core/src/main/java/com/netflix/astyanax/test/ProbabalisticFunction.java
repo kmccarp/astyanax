@@ -23,7 +23,7 @@ import com.google.common.collect.Lists;
 
 public class ProbabalisticFunction<T, R> implements Function<T,R> {
     public static class Builder<T, R> {
-        private ProbabalisticFunction<T, R> function = new ProbabalisticFunction<T,R>();
+        private ProbabalisticFunction<T, R> function = new ProbabalisticFunction<>();
         private double counter = 0;
 
         public Builder<T, R> withProbability(double probability, Function<T, R> func) {
@@ -56,8 +56,8 @@ public class ProbabalisticFunction<T, R> implements Function<T,R> {
         double probability;
         Function<T,R> function;
     }
-    
-    private ArrayList<Entry<T, R>>  functions = Lists.newArrayList();
+
+    private final ArrayList<Entry<T, R>>  functions = Lists.newArrayList();
     private Function<T,R>           defaultFunction;
     private Runnable                always;
     

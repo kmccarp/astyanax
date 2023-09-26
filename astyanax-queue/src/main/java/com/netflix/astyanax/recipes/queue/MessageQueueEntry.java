@@ -60,8 +60,9 @@ public class MessageQueueEntry {
     
     public MessageQueueEntry(String id) {
         String[] parts = StringUtils.split(id, ID_DELIMITER);
-        if (parts.length != 5)
+        if (parts.length != 5) {
             throw new RuntimeException("Invalid message ID.  Expection <type>:<priority>:<timestamp>:<random>:<state> but got " + id);
+        }
         
         type      = Byte.parseByte(parts[0]);
         priority  = Byte.parseByte(parts[1]);
@@ -76,10 +77,11 @@ public class MessageQueueEntry {
         this.priority   = 0;
         this.timestamp  = timestamp;
         this.state      = (byte)state.ordinal();
-        if (random == null)
-            this.random     = TimeUUIDUtils.getUniqueTimeUUIDinMicros();
-        else 
-            this.random     = random;
+        if (random == null) {
+            this.random = TimeUUIDUtils.getUniqueTimeUUIDinMicros();
+        } else {
+            this.random = random;
+        }
     }
     
     public static MessageQueueEntry newLockEntry(MessageQueueEntryState state) {
@@ -103,7 +105,7 @@ public class MessageQueueEntry {
     }
     
     public static MessageQueueEntry fromMetadata(MessageMetadataEntry meta) {
-        String parts[] = StringUtils.split(meta.getName(), "$");
+        String[] parts = StringUtils.split(meta.getName(), "$");
         return new MessageQueueEntry(parts[1]);
     }
 
@@ -144,13 +146,7 @@ public class MessageQueueEntry {
     }
 
     public String getMessageId() {
-        return new StringBuilder()
-                .append(type)                .append(ID_DELIMITER)
-                .append(priority)            .append(ID_DELIMITER)
-                .append(timestamp.toString()).append(ID_DELIMITER)
-                .append(random.toString())   .append(ID_DELIMITER)
-                .append(state)            
-                .toString();
+        return String.valueOf(type) + ID_DELIMITER + priority + ID_DELIMITER + timestamp.toString() + ID_DELIMITER + random.toString() + ID_DELIMITER + state;
         
     }
     
@@ -167,10 +163,12 @@ public class MessageQueueEntry {
         StringBuilder sb = new StringBuilder();
         sb.append("MessageQueueEntry [");
         sb.append(  "type="      + MessageQueueEntryType.values()[type]);
-        sb.append(", priority="  + priority);
-        if (timestamp != null)
-            sb.append(", timestamp=" + timestamp + "(" + TimeUUIDUtils.getMicrosTimeFromUUID(timestamp) + ")");
-        sb.append(", random="    + random);
+        sb.append(", priority=").append(priority);
+        if (timestamp != null) {
+            
+                    sb.append(", timestamp=").append(timestamp).append("(").append(TimeUUIDUtils.getMicrosTimeFromUUID(timestamp)).append(")");
+        }
+        sb.append(", random=").append(random);
         sb.append(", state="     + MessageQueueEntryState.values()[state]);
         sb.append("]");
         return sb.toString();
