@@ -40,7 +40,7 @@ import com.google.common.collect.Maps;
 import com.netflix.astyanax.Serializer;
 
 public class ThriftUtils {
-    private final static Logger LOG = LoggerFactory.getLogger(ThriftUtils.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ThriftUtils.class);
     
     public static final ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.wrap(new byte[0]);
 //    private static final SliceRange RANGE_ALL = new SliceRange(EMPTY_BYTE_BUFFER, EMPTY_BYTE_BUFFER, false, Integer.MAX_VALUE);
@@ -52,8 +52,8 @@ public class ThriftUtils {
     
     public static <C> SliceRange createSliceRange(Serializer<C> serializer, C startColumn, C endColumn,
             boolean reversed, int limit) {
-        return new SliceRange((startColumn == null) ? EMPTY_BYTE_BUFFER : serializer.toByteBuffer(startColumn),
-                (endColumn == null) ? EMPTY_BYTE_BUFFER : serializer.toByteBuffer(endColumn), reversed, limit);
+        return new SliceRange(startColumn == null ? EMPTY_BYTE_BUFFER : serializer.toByteBuffer(startColumn),
+                endColumn == null ? EMPTY_BYTE_BUFFER : serializer.toByteBuffer(endColumn), reversed, limit);
 
     }
     
@@ -80,8 +80,9 @@ public class ThriftUtils {
         for (Entry<org.apache.thrift.TFieldIdEnum, FieldMetaData> f : fields.entrySet()) { 
             ThriftTypes type = ThriftTypes.values()[f.getValue().valueMetaData.type];
             Object value = entity.getFieldValue(f.getKey());
-            if (value == null)
+            if (value == null) {
                 continue;
+            }
             
             switch (type) {
             case VOID   : 

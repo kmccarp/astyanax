@@ -28,9 +28,9 @@ import com.datastax.driver.core.Session;
 public class BatchedStatements {
 
 	private static final Logger LOG = LoggerFactory.getLogger(BatchedStatements.class);
-	
-	private List<String> batchQueries = new ArrayList<String>(); 
-	private List<Object> batchValues = new ArrayList<Object>();
+
+    private final List<String> batchQueries = new ArrayList<>();
+    private final List<Object> batchValues = new ArrayList<>();
 	
 	public BatchedStatements() {
 	}

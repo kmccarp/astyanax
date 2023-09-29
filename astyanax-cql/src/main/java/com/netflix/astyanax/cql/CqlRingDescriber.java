@@ -38,11 +38,11 @@ import com.netflix.astyanax.partitioner.Murmur3Partitioner;
  *  
  * @author poberai
  */
-public class CqlRingDescriber {
+public final class CqlRingDescriber {
 
-	private final AtomicReference<List<TokenRange>>  cachedReference = new AtomicReference<List<TokenRange>>(null);
-	
-	private static CqlRingDescriber Instance = new CqlRingDescriber();
+	private final AtomicReference<List<TokenRange>>  cachedReference = new AtomicReference<>(null);
+
+    private static final CqlRingDescriber Instance = new CqlRingDescriber();
 	
 	private CqlRingDescriber() {
 	}
@@ -65,7 +65,7 @@ public class CqlRingDescriber {
 	
 	public List<TokenRange> getTokenRanges(Session session, String dc, String rack) {
 		
-		List<HostInfo> hosts = new ArrayList<HostInfo>();
+		List<HostInfo> hosts = new ArrayList<>();
 
 		Statement query = QueryBuilder.select().all().from("system", "local"); 
 		ResultSet resultSet = session.execute(query);
@@ -79,13 +79,13 @@ public class CqlRingDescriber {
 		
 		Collections.sort(hosts);
 
-		List<TokenRange> ranges = new ArrayList<TokenRange>();
+		List<TokenRange> ranges = new ArrayList<>();
 
 		for (int index = 0; index<hosts.size(); index++) {
 
 			HostInfo thisNode = hosts.get(index);
 
-			List<String> endpoints = new ArrayList<String>();
+			List<String> endpoints = new ArrayList<>();
 
 			if (matchNode(dc, rack, thisNode)) {
 				endpoints.add(thisNode.endpoint); // the primary range owner
@@ -132,12 +132,8 @@ public class CqlRingDescriber {
 		if (dc != null && !dc.equals(host.datacenter)) {
 			return false; // wrong dc 
 		}
-		
-		if (rack != null && !rack.equals(host.rack)) {
-			return false; // wrong rack
-		}
-		
-		return true; // match!
+
+        return !(rack != null && !rack.equals(host.rack)); // match!
 	}
 	
 	private int getNextIndex(int i, int n) {
@@ -160,7 +156,7 @@ public class CqlRingDescriber {
 		}
 	}
 
-	private class HostInfo implements Comparable<HostInfo> {
+    private final class HostInfo implements Comparable<HostInfo> {
 		
 		private final BigInteger token;
 		private final String endpoint; 
@@ -194,29 +190,35 @@ public class CqlRingDescriber {
 		public int hashCode() {
 			final int prime = 31;
 			int result = 1;
-			result = prime * result + ((token == null) ? 0 : token.hashCode());
-			result = prime * result + ((endpoint == null) ? 0 : endpoint.hashCode());
-			result = prime * result + ((hostId == null) ? 0 : hostId.hashCode());
-			result = prime * result + ((datacenter == null) ? 0 : datacenter.hashCode());
-			result = prime * result + ((rack == null) ? 0 : rack.hashCode());
+			result = prime * result + (token == null ? 0 : token.hashCode());
+			result = prime * result + (endpoint == null ? 0 : endpoint.hashCode());
+			result = prime * result + (hostId == null ? 0 : hostId.hashCode());
+			result = prime * result + (datacenter == null ? 0 : datacenter.hashCode());
+			result = prime * result + (rack == null ? 0 : rack.hashCode());
 			return result;
 		}
 
 		@Override
 		public boolean equals(Object obj) {
-			
-			if (this == obj) return true;
-			if (obj == null) return false;
-			if (getClass() != obj.getClass()) return false;
+
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
 			
 			HostInfo other = (HostInfo) obj;
 			boolean equal = true; 
 			
-			equal &= (token != null) ? token.equals(other.token) : (other.token == null);
-			equal &= (endpoint != null) ? endpoint.equals(other.endpoint) : (other.endpoint == null);
-			equal &= (hostId != null) ? hostId.equals(other.hostId) : (other.hostId == null);
-			equal &= (datacenter != null) ? datacenter.equals(other.datacenter) : (other.datacenter == null);
-			equal &= (rack != null) ? rack.equals(other.rack) : (other.rack == null);
+			equal &= token != null ? token.equals(other.token) : (other.token == null);
+			equal &= endpoint != null ? endpoint.equals(other.endpoint) : (other.endpoint == null);
+			equal &= hostId != null ? hostId.equals(other.hostId) : (other.hostId == null);
+			equal &= datacenter != null ? datacenter.equals(other.datacenter) : (other.datacenter == null);
+			equal &= rack != null ? rack.equals(other.rack) : (other.rack == null);
 			
 			return equal;
 		}

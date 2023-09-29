@@ -55,7 +55,7 @@ class MessageConsumerImpl implements MessageConsumer {
 
     @Override
     public List<MessageContext> readMessages(int itemsToPop, long timeout, TimeUnit units) throws MessageQueueException, BusyLockException, InterruptedException {
-        long timeoutTime = (timeout == 0) ? 0 : System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(timeout, units);
+        long timeoutTime = timeout == 0 ? 0 : System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(timeout, units);
         // Loop while trying to get messages.
         // TODO: Make it possible to cancel this loop
         // TODO: Read full itemsToPop instead of just stopping when we get the first successful set

@@ -53,7 +53,8 @@ public class CounterColumnTests extends KeyspaceTests {
 
     @Test
     public void testIncrementCounter() throws Exception {
-        long baseAmount, incrAmount = 100;
+        long baseAmount;
+        long incrAmount = 100;
         Column<String> column;
 
         column = keyspace.prepareQuery(CF_COUNTER1).getRow("CounterRow1").getColumn("MyCounter").execute().getResult();

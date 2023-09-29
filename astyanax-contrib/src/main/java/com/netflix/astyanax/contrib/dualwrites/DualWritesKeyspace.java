@@ -63,7 +63,7 @@ public class DualWritesKeyspace implements Keyspace, DualWritesUpdateListener {
 
     private static final Logger Logger = LoggerFactory.getLogger(DualWritesKeyspace.class);
     
-	private final AtomicReference<KeyspacePair> ksPair = new AtomicReference<KeyspacePair>(null);
+	private final AtomicReference<KeyspacePair> ksPair = new AtomicReference<>(null);
     private final AtomicBoolean dualWritesEnabled = new AtomicBoolean(false);
 	
     private final DualWritesStrategy executionStrategy;
@@ -406,7 +406,7 @@ public class DualWritesKeyspace implements Keyspace, DualWritesUpdateListener {
 		return getPrimaryKS().getConnectionPool();
 	}
 
-	private class KeyspacePair {
+    private final class KeyspacePair {
 		
         private final DualKeyspaceMetadata dualKeyspaceMetadata;
 		private final Keyspace ksPrimary;
@@ -434,25 +434,31 @@ public class DualWritesKeyspace implements Keyspace, DualWritesUpdateListener {
         public int hashCode() {
             final int prime = 31;
             int result = 1;
-            result = prime * result + ((ksPrimary == null) ? 0 : ksPrimary.hashCode());
-            result = prime * result + ((ksSecondary == null) ? 0 : ksSecondary.hashCode());
-            result = prime * result + ((dualKeyspaceMetadata == null) ? 0 : dualKeyspaceMetadata.hashCode());
+            result = prime * result + (ksPrimary == null ? 0 : ksPrimary.hashCode());
+            result = prime * result + (ksSecondary == null ? 0 : ksSecondary.hashCode());
+            result = prime * result + (dualKeyspaceMetadata == null ? 0 : dualKeyspaceMetadata.hashCode());
             return result;
         }
 
         @Override
         public boolean equals(Object obj) {
-            
-            if (this == obj) return true;
-            if (obj == null) return false;
-            if (getClass() != obj.getClass()) return false;
+
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
             
             KeyspacePair other = (KeyspacePair) obj;
             boolean equals = true;
             
-            equals &= (ksPrimary == null) ?  (other.ksPrimary == null) : (ksPrimary.equals(other.ksPrimary));
-            equals &= (ksSecondary == null) ?  (other.ksSecondary == null) : (ksSecondary.equals(other.ksSecondary));
-            equals &= (dualKeyspaceMetadata == null) ?  (other.dualKeyspaceMetadata == null) : (dualKeyspaceMetadata.equals(other.dualKeyspaceMetadata));
+            equals &= ksPrimary == null ?  (other.ksPrimary == null) : (ksPrimary.equals(other.ksPrimary));
+            equals &= ksSecondary == null ?  (other.ksSecondary == null) : (ksSecondary.equals(other.ksSecondary));
+            equals &= dualKeyspaceMetadata == null ?  (other.dualKeyspaceMetadata == null) : (dualKeyspaceMetadata.equals(other.dualKeyspaceMetadata));
             
             return equals;
         }

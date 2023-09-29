@@ -75,7 +75,7 @@ public class MappingUtil {
             AnnotationSet<?, ?> annotationSet) {
         this.keyspace = keyspace;
         this.cache = cache;
-        this.annotationSet = (annotationSet != null) ? annotationSet
+        this.annotationSet = annotationSet != null ? annotationSet
                 : new DefaultAnnotationSet();
     }
 
@@ -191,7 +191,7 @@ public class MappingUtil {
      * @return mapping instance (new or from cache)
      */
     public <T> Mapping<T> getMapping(Class<T> clazz) {
-        return (cache != null) ? cache.getMapping(clazz, annotationSet)
+        return cache != null ? cache.getMapping(clazz, annotationSet)
                 : new Mapping<T>(clazz, annotationSet);
     }
 }

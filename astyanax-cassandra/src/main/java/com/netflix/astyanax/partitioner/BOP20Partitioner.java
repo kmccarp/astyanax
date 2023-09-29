@@ -49,10 +49,11 @@ public class BOP20Partitioner implements Partitioner {
         for (int i = 0; i < count; i++) {
             String startToken = getTokenMinusOne(getSegmentToken(count, i, new BigInteger(first, 16), new BigInteger(last, 16)));
             String endToken;
-            if (i == count-1 && last.equals(getMaxToken())) 
+            if (i == count - 1 && last.equals(getMaxToken())) {
                 endToken = getMinToken();
-            else
-                endToken = getSegmentToken(count, i+1, new BigInteger(first, 16), new BigInteger(last, 16));
+            } else {
+                endToken = getSegmentToken(count, i + 1, new BigInteger(first, 16), new BigInteger(last, 16));
+            }
             tokens.add(new TokenRangeImpl(startToken, endToken, new ArrayList<String>()));
         }
         return tokens;
@@ -73,16 +74,18 @@ public class BOP20Partitioner implements Partitioner {
 
     @Override
     public String getTokenMinusOne(String token) {
-        if (token.equals("0") || token.equals(MINIMUM))
+        if ("0".equals(token) || token.equals(MINIMUM)) {
             return MAXIMUM;
+        }
         
         return new BigInteger(token, 16).subtract(ONE).toString(16);
     }
 
     public static String getSegmentToken(int size, int position, BigInteger minInitialToken, BigInteger maxInitialToken ) {
         BigInteger decValue = minInitialToken;
-        if (position != 0)
+        if (position != 0) {
             decValue = maxInitialToken.multiply(new BigInteger("" + position)).divide(new BigInteger("" + size));
+        }
         return decValue.toString(16);
     }
 }

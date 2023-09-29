@@ -40,8 +40,9 @@ public class DoubleSerializer extends AbstractSerializer<Double> {
 
     @Override
     public Double fromByteBuffer(ByteBuffer bytes) {
-        if (bytes == null)
+        if (bytes == null) {
             return null;
+        }
         ByteBuffer dup = bytes.duplicate();
         return Double
                 .longBitsToDouble(LongSerializer.get().fromByteBuffer(dup));

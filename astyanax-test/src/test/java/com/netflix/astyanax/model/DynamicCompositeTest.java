@@ -49,7 +49,7 @@ public class DynamicCompositeTest {
         final String string = "test";
         final byte[] bytes = new byte[] { 0x00 };
         final int intValue = 1;
-        final long longValue = 1l;
+        final long longValue = 1L;
         final UUID uuid = UUID.randomUUID();
 
 

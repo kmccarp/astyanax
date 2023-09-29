@@ -124,30 +124,30 @@ public class CqlColumnSlice<C> extends ColumnSlice<C> {
 
 	@Override
 	public C getStartColumn() {
-		return (cqlRange != null) ? (C) cqlRange.getCqlStart() : null;
+		return cqlRange != null ? (C) cqlRange.getCqlStart() : null;
 	}
 
 	@Override
 	public C getEndColumn() {
-		return (cqlRange != null) ? (C) cqlRange.getCqlEnd() : null;
+		return cqlRange != null ? (C) cqlRange.getCqlEnd() : null;
 	}
 
 	@Override
 	public boolean getReversed() {
-		return (cqlRange != null ) ? cqlRange.isReversed() : false;
+		return cqlRange != null ? cqlRange.isReversed() : false;
 	}
 
 	@Override
 	public int getLimit() {
-		return (cqlRange != null ) ? cqlRange.getLimit() : -1;
+		return cqlRange != null ? cqlRange.getLimit() : -1;
 	}
 	
 	public int getFetchSize() {
-		return (cqlRange != null ) ? cqlRange.getFetchSize() : -1;
+		return cqlRange != null ? cqlRange.getFetchSize() : -1;
 	}
 
 	public boolean isColumnSelectQuery() {
-		return (this.cqlColumns != null);
+		return this.cqlColumns != null;
 	}
 
 	public boolean isRangeQuery() {
@@ -155,21 +155,16 @@ public class CqlColumnSlice<C> extends ColumnSlice<C> {
 		if (isColumnSelectQuery()) {
 			return false;
 		}
-		
-		if (cqlRange != null)  {
-			return true;
-		}
-		
-		return false;
+        return cqlRange != null;
 	}
 	
 	
 	public boolean isSelectAllQuery() {
-		return (!isColumnSelectQuery() && !isRangeQuery());
+		return !isColumnSelectQuery() && !isRangeQuery();
 	}
-	
-	public static enum QueryType {
-		SELECT_ALL, COLUMN_COLLECTION, COLUMN_RANGE;
+
+    public enum QueryType {
+		SELECT_ALL, COLUMN_COLLECTION, COLUMN_RANGE
 	}
 	
 	public QueryType getQueryType() {

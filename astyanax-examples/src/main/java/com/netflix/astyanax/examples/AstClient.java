@@ -52,7 +52,7 @@ public class AstClient {
 
   private AstyanaxContext<Keyspace> keyspaceContext;
   private Keyspace keyspace;
-  private ColumnFamily<Integer, String> EMP_CF;
+  private ColumnFamily<Integer, String> empCf;
   private static final String KEYSPACE_NAME = "test1";
   private static final String EMP_CF_NAME = "employees2";
 
@@ -84,7 +84,7 @@ public class AstClient {
 
     keyspace = keyspaceContext.getEntity();
 
-    EMP_CF = ColumnFamily.newColumnFamily(
+    empCf = ColumnFamily.newColumnFamily(
         EMP_CF_NAME, 
         IntegerSerializer.get(), 
         StringSerializer.get());
@@ -117,7 +117,7 @@ public class AstClient {
     // Don't do in production; better to create from cqlsh to avoid parallel issues from eventual consistency.
     if(ks != null) {
       try {
-        ks.createColumnFamily(EMP_CF, null);
+        ks.createColumnFamily(empCf, null);
       } catch (Exception e) {
         // Do nothing
       }
@@ -127,7 +127,7 @@ public class AstClient {
   public void insert(int empId, int deptId, String firstName, String lastName) {
     MutationBatch m = keyspace.prepareMutationBatch();
 
-    m.withRow(EMP_CF, empId)
+    m.withRow(empCf, empId)
       .putColumn(COL_NAME_EMPID, empId, null)
       .putColumn(COL_NAME_DEPTID, deptId, null)
       .putColumn(COL_NAME_FIRST_NAME, firstName, null)
@@ -147,7 +147,7 @@ public class AstClient {
   public void read(int empId) {
     OperationResult<ColumnList<String>> result;
     try {
-      result = keyspace.prepareQuery(EMP_CF)
+      result = keyspace.prepareQuery(empCf)
         .getKey(empId)
         .execute();
 
@@ -161,10 +161,11 @@ public class AstClient {
       for(Iterator<Column<String>> i = cols.iterator(); i.hasNext(); ) {
         Column<String> c = i.next();
         Object v = null;
-        if(c.getName().endsWith("id")) // type induction hack
-          v = c.getIntegerValue();
-        else
-          v = c.getStringValue();
+          if (c.getName().endsWith("id")) { // type induction hack
+              v = c.getIntegerValue();
+          } else {
+              v = c.getStringValue();
+          }
         logger.debug("- col: '"+c.getName()+"': "+v);
       }
 

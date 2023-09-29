@@ -55,11 +55,11 @@ public class CqlColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C> {
 	private final KeyspaceContext ksContext;
 	private final CFQueryContext<K,C> cfContext;
 	
-	private boolean useCaching = false;
+	private boolean useCaching;
 	
 	public CqlColumnFamilyQueryImpl(KeyspaceContext ksCtx, ColumnFamily<K,C> cf) {
 		this.ksContext = ksCtx;
-		this.cfContext = new CFQueryContext<K,C>(cf);
+		this.cfContext = new CFQueryContext<>(cf);
 		this.cfContext.setConsistencyLevel(ConsistencyLevel.CL_ONE);
 	}
 	
@@ -82,12 +82,12 @@ public class CqlColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C> {
 
 	@Override
 	public RowQuery<K, C> getKey(K rowKey) {
-		return new CqlRowQueryImpl<K, C>(ksContext, cfContext, rowKey, useCaching);
+		return new CqlRowQueryImpl<>(ksContext, cfContext, rowKey, useCaching);
 	}
 
 	@Override
 	public RowQuery<K, C> getRow(K rowKey) {
-		return new CqlRowQueryImpl<K, C>(ksContext, cfContext, rowKey, useCaching);
+		return new CqlRowQueryImpl<>(ksContext, cfContext, rowKey, useCaching);
 	}
 
 	@Override
@@ -97,8 +97,8 @@ public class CqlColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C> {
 
 	@Override
 	public RowSliceQuery<K, C> getRowRange(K startKey, K endKey, String startToken, String endToken, int count) {
-		CqlRowSlice<K> rowSlice = new CqlRowSlice<K>(startKey, endKey, startToken, endToken, count);
-		return new CqlRowSliceQueryImpl<K, C>(ksContext, cfContext, rowSlice, useCaching);
+		CqlRowSlice<K> rowSlice = new CqlRowSlice<>(startKey, endKey, startToken, endToken, count);
+		return new CqlRowSliceQueryImpl<>(ksContext, cfContext, rowSlice, useCaching);
 	}
 
 	@Override
@@ -119,8 +119,8 @@ public class CqlColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C> {
 
 	@Override
 	public RowSliceQuery<K, C> getRowSlice(Collection<K> keys) {
-		CqlRowSlice<K> rowSlice = new CqlRowSlice<K>(keys);
-		return new CqlRowSliceQueryImpl<K, C>(ksContext, cfContext, rowSlice, useCaching);
+		CqlRowSlice<K> rowSlice = new CqlRowSlice<>(keys);
+		return new CqlRowSliceQueryImpl<>(ksContext, cfContext, rowSlice, useCaching);
 	}
 
 	@Override
@@ -130,7 +130,7 @@ public class CqlColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C> {
 
 	@Override
 	public RowSliceQuery<K, C> getRowSlice(Iterable<K> keys) {
-		List<K> keyList = new ArrayList<K>();
+		List<K> keyList = new ArrayList<>();
 		for (K key : keys) {
 			keyList.add(key);
 		}
@@ -139,12 +139,12 @@ public class CqlColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C> {
 
 	@Override
 	public AllRowsQuery<K, C> getAllRows() {
-		return new CqlAllRowsQueryImpl<K, C>(ksContext.getKeyspaceContext(), cfContext.getColumnFamily());
+		return new CqlAllRowsQueryImpl<>(ksContext.getKeyspaceContext(), cfContext.getColumnFamily());
 	}
 
 	@Override
 	public CqlQuery<K, C> withCql(String cql) {
-		return new DirectCqlQueryImpl<K, C>(ksContext, cfContext, cql);
+		return new DirectCqlQueryImpl<>(ksContext, cfContext, cql);
 	}
 
 	@Override

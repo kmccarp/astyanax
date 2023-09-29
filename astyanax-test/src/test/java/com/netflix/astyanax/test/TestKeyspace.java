@@ -40,7 +40,7 @@ import com.netflix.astyanax.retry.RetryPolicy;
 import com.netflix.astyanax.serializers.SerializerPackageImpl;
 
 public class TestKeyspace implements Keyspace {
-    private String keyspaceName;
+    private final String keyspaceName;
     private List<TokenRange> tokenRange;
 
     public TestKeyspace(String name) {

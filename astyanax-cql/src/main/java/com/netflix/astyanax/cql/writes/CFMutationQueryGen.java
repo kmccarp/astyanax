@@ -37,8 +37,8 @@ public class CFMutationQueryGen {
 
 	private static final Logger Logger = LoggerFactory.getLogger(CFMutationQueryGen.class);
 
-	public static enum MutationType {
-		ColumnUpdate, ColumnDelete, RowDelete, CounterColumnUpdate;
+    public enum MutationType {
+		ColumnUpdate, ColumnDelete, RowDelete, counterColumnUpdate
 	}
 
 	// Constants that are used frequently for constructing the query
@@ -78,20 +78,20 @@ public class CFMutationQueryGen {
 		}
 
 		if (ttl != null) {
-			sb.append(TTL + ttl);
+			sb.append(TTL).append(ttl);
 		}
 
 		if (timestamp != null) {
 			if (ttl != null) {
 				sb.append(AND);
 			}
-			sb.append(TIMESTAMP + timestamp);
+			sb.append(TIMESTAMP).append(timestamp);
 		}	
 	}	
 	
 	abstract class MutationQueryCache<M> {
 
-		private final AtomicReference<PreparedStatement> cachedStatement = new AtomicReference<PreparedStatement>(null);
+		private final AtomicReference<PreparedStatement> cachedStatement = new AtomicReference<>(null);
 
 		public abstract Callable<String> getQueryGen(M mutation);
 
@@ -136,26 +136,26 @@ public class CFMutationQueryGen {
 	}
 
 
-	private MutationQueryCache<CqlColumnListMutationImpl<?,?>> DeleteRowQuery = new MutationQueryCache<CqlColumnListMutationImpl<?,?>>() {
+    private final MutationQueryCache<CqlColumnListMutationImpl<?, ?>> deleteRowQuery = new MutationQueryCache<CqlColumnListMutationImpl<?, ?>>() {
 
-		private final Callable<String> queryGen = new Callable<String>() {
-			@Override
-			public String call() throws Exception {
-				return DELETE_FROM + keyspace + "." + cfDef.getName() + 
-						WHERE + cfDef.getPartitionKeyColumnDefinition().getName() + EQUALS + LAST_BIND_MARKER;
-			}
-		};
+        private final Callable<String> queryGen = new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                return DELETE_FROM + keyspace + "." + cfDef.getName() +
+                        WHERE + cfDef.getPartitionKeyColumnDefinition().getName() + EQUALS + LAST_BIND_MARKER;
+            }
+        };
 
-		@Override
-		public Callable<String> getQueryGen(CqlColumnListMutationImpl<?, ?> mutation) {
-			return queryGen;
-		}
+        @Override
+        public Callable<String> getQueryGen(CqlColumnListMutationImpl<?, ?> mutation) {
+            return queryGen;
+        }
 
-		@Override
-		public BoundStatement bindValues(PreparedStatement pStatement, CqlColumnListMutationImpl<?, ?> mutation) {
-			return pStatement.bind(mutation.getRowKey());
-		}
-	};
+        @Override
+        public BoundStatement bindValues(PreparedStatement pStatement, CqlColumnListMutationImpl<?, ?> mutation) {
+            return pStatement.bind(mutation.getRowKey());
+        }
+    };
 
 	abstract class BaseClusteringKeyMutation extends MutationQueryCache<CqlColumnMutationImpl<?,?>> {
 
@@ -202,454 +202,460 @@ public class CFMutationQueryGen {
 	}
 
 
-	private BaseClusteringKeyMutation InsertColumnWithClusteringKey = new BaseClusteringKeyMutation() {
-
-		@Override
-		public Callable<String> getQueryGen(final CqlColumnMutationImpl<?, ?> mutation) {
-			return new Callable<String>() {
-				@Override
-				public String call() throws Exception {
-					return genQuery().toString();
-				}
-
-				private StringBuilder genQuery() {
-					
-					/**
-					 * e.g 
-					 *    insert into t (key, column1, value) values ('a', '2' , 'a2') using ttl 86400 and timestamp = 1234444;
-					 */
-
-					int columnCount = 0; 
-
-					StringBuilder sb = new StringBuilder(INSERT_INTO);
-					sb.append(keyspace + "." + cfDef.getName());
-					sb.append(OPEN_PARA);
-
-					Iterator<ColumnDefinition> iter = cfDef.getPartitionKeyColumnDefinitionList().iterator();
-					while (iter.hasNext()) {
-						sb.append(iter.next().getName());
-						columnCount++;
-						if (iter.hasNext()) {
-							sb.append(COMMA);
-						}
-					}
-
-					iter = cfDef.getClusteringKeyColumnDefinitionList().iterator();
-					if (iter.hasNext()) {
-						sb.append(COMMA);
-						while (iter.hasNext()) {
-							sb.append(iter.next().getName());
-							columnCount++;
-							if (iter.hasNext()) {
-								sb.append(COMMA);
-							}
-						}
-					}
-
-					iter = cfDef.getRegularColumnDefinitionList().iterator();
-					if (iter.hasNext()) {
-						sb.append(COMMA);
-						while (iter.hasNext()) {
-							sb.append(iter.next().getName());
-							columnCount++;
-							if (iter.hasNext()) {
-								sb.append(COMMA);
-							}
-						}
-					}
-
-					sb.append(VALUES);
-					for (int i=0; i<columnCount; i++) {
-						if (i < (columnCount-1)) {
-							sb.append(BIND_MARKER);
-						} else {
-							sb.append(LAST_BIND_MARKER);
-						}
-					}
-					sb.append(CLOSE_PARA);
-
-					appendWriteOptions(sb, mutation.getTTL(), mutation.getTimestamp());
-					
-					return sb;
-				}	
-			};
-		}
-
-		@Override
-		public boolean isDeleteQuery() {
-			return false;
-		}
-	};
-
-	private BaseClusteringKeyMutation DeleteColumnWithClusteringKey = new BaseClusteringKeyMutation() {
-
-		@Override
-		public Callable<String> getQueryGen(final CqlColumnMutationImpl<?, ?> mutation) {
-			
-			return new Callable<String>() {
-				@Override
-				public String call() throws Exception {
-					return genQuery().toString();
-				}
-
-				private StringBuilder genQuery() {
-
-					StringBuilder sb = new StringBuilder(DELETE_FROM);
-					sb.append(keyspace + "." + cfDef.getName());
-
-					appendWriteOptions(sb, mutation.getTTL(), mutation.getTimestamp());
-
-					Iterator<ColumnDefinition> iter = cfDef.getPartitionKeyColumnDefinitionList().iterator();
-
-					sb.append(WHERE);
-					while (iter.hasNext()) {
-						sb.append(iter.next().getName()).append(EQUALS).append(LAST_BIND_MARKER);
-						if (iter.hasNext()) {
-							sb.append(AND);
-						}
-					}
-
-					iter = cfDef.getClusteringKeyColumnDefinitionList().iterator();
-					if (iter.hasNext()) {
-						sb.append(AND);
-						while (iter.hasNext()) {
-							sb.append(iter.next().getName()).append(EQUALS).append(LAST_BIND_MARKER);
-							if (iter.hasNext()) {
-								sb.append(AND);
-							}
-						}
-					}
-
-
-					return sb;
-				}
-			};
-		}
-
-		@Override
-		public boolean isDeleteQuery() {
-			return true;
-		}
-	};
-	
-	private MutationQueryCache<CqlColumnMutationImpl<?,?>> CounterColumnUpdate = new MutationQueryCache<CqlColumnMutationImpl<?,?>>() {
-
-		@Override
-		public Callable<String> getQueryGen(final CqlColumnMutationImpl<?, ?> mutation) {
-			return new Callable<String>() {
-
-				@Override
-				public String call() throws Exception {
-					
-					String valueAlias = cfDef.getRegularColumnDefinitionList().get(0).getName();
-					
-
-					StringBuilder sb = new StringBuilder();
-					sb.append(UPDATE + keyspace + "." + cfDef.getName()); 
-					appendWriteOptions(sb, mutation.getTTL(), mutation.getTimestamp());
-					sb.append(SET + valueAlias + " = " + valueAlias + " + ? ");
-					
-					Iterator<ColumnDefinition> iter = cfDef.getPartitionKeyColumnDefinitionList().iterator();
-
-					sb.append(WHERE);
-					while (iter.hasNext()) {
-						sb.append(iter.next().getName()).append(EQUALS).append(LAST_BIND_MARKER);
-						if (iter.hasNext()) {
-							sb.append(AND);
-						}
-					}
-
-					iter = cfDef.getClusteringKeyColumnDefinitionList().iterator();
-					if (iter.hasNext()) {
-						sb.append(AND);
-						while (iter.hasNext()) {
-							sb.append(iter.next().getName()).append(EQUALS).append(LAST_BIND_MARKER);
-							if (iter.hasNext()) {
-								sb.append(AND);
-							}
-						}
-					}
-
-					return sb.toString();
-				}
-			};
-		}
-
-		@Override
-		public BoundStatement bindValues(PreparedStatement pStatement, CqlColumnMutationImpl<?, ?> mutation) {
-			
-			int size = 1 + cfDef.getPartitionKeyColumnDefinitionList().size() + cfDef.getClusteringKeyColumnDefinitionList().size();
-
-			Object[] arr = new Object[size];
-
-			int index = 0;
-
-			arr[index++] = mutation.columnValue;
-			arr[index++] = mutation.getRowKey();
-
-			ColumnFamily<?,?> cf = mutation.cfContext.getColumnFamily();
-			boolean isCompositeColumn = cf.getColumnSerializer().getComparatorType() == ComparatorType.COMPOSITETYPE;
-
-			if (isCompositeColumn) {
-				AnnotatedCompositeSerializer<?> compSerializer = (AnnotatedCompositeSerializer<?>) cf.getColumnSerializer();
-				for (ComponentSerializer<?> component : compSerializer.getComponents()) {
-					try {
-						arr[index++] = component.getFieldValueDirectly(mutation.columnName);
-					} catch (Exception e) {
-						throw new RuntimeException(e);
-					}
-				}
-			} else {
-				arr[index++] = mutation.columnName;
-			}
-
-			return pStatement.bind(arr);
-		}
-	};
-
-	private MutationQueryCache<CqlColumnListMutationImpl<?,?>> InsertOrDeleteWithClusteringKey = new MutationQueryCache<CqlColumnListMutationImpl<?,?>>() {
-
-		@Override
-		public void addToBatch(BatchStatement batch, CqlColumnListMutationImpl<?,?> colListMutation, boolean useCaching) {
-			
-			for (CqlColumnMutationImpl<?,?> colMutation : colListMutation.getMutationList()) {
-
-				switch (colMutation.getType()) {
-
-				case UpdateColumn :
-					InsertColumnWithClusteringKey.addToBatch(batch, colMutation, useCaching);
-					break;
-				case DeleteColumn : 
-					DeleteColumnWithClusteringKey.addToBatch(batch, colMutation, useCaching);
-					break;
-				case CounterColumn : 
-					throw new RuntimeException("Counter column update not allowed with other updates");
-				default:
-					throw new RuntimeException("Unsupported type: " + colMutation.getType());
-				};
-			}
-		}
-
-		@Override
-		public Callable<String> getQueryGen(CqlColumnListMutationImpl<?, ?> colListMutation) {
-			throw new RuntimeException("Not Supported");
-		}
-
-		@Override
-		public BoundStatement bindValues(PreparedStatement pStatement, CqlColumnListMutationImpl<?, ?> colListMutation) {
-			throw new RuntimeException("Not Supported");
-		}
-	};
-
-	private MutationQueryCache<CqlColumnListMutationImpl<?,?>> InsertOrDeleteColumnListWithClusteringKey = new MutationQueryCache<CqlColumnListMutationImpl<?,?>>() {
-
-		@Override
-		public void addToBatch(BatchStatement batch, CqlColumnListMutationImpl<?,?> colListMutation, boolean useCaching) {
-			
-			for (CqlColumnMutationImpl<?,?> colMutation : colListMutation.getMutationList()) {
-				InsertOrDeleteColumnWithClusteringKey.addToBatch(batch, colMutation, useCaching);
-			}
-		}
-
-		@Override
-		public Callable<String> getQueryGen(CqlColumnListMutationImpl<?, ?> colListMutation) {
-			throw new RuntimeException("Not Supported");
-		}
-
-		@Override
-		public BoundStatement bindValues(PreparedStatement pStatement, CqlColumnListMutationImpl<?, ?> colListMutation) {
-			throw new RuntimeException("Not Supported");
-		}
-	};
-
-	private MutationQueryCache<CqlColumnMutationImpl<?,?>> InsertOrDeleteColumnWithClusteringKey = new MutationQueryCache<CqlColumnMutationImpl<?,?>>() {
-
-		@Override
-		public BoundStatement getBoundStatement(CqlColumnMutationImpl<?, ?> mutation, boolean useCaching) {
-			switch (mutation.getType()) {
-
-			case UpdateColumn :
-				return InsertColumnWithClusteringKey.getBoundStatement(mutation, useCaching);
-			case DeleteColumn : 
-				return DeleteColumnWithClusteringKey.getBoundStatement(mutation, useCaching);
-			case CounterColumn : 
-				return CounterColumnUpdate.getBoundStatement(mutation, useCaching);
-			default:
-				throw new RuntimeException("Unsupported type: " + mutation.getType());
-			}
-		}
-
-		@Override
-		public Callable<String> getQueryGen(CqlColumnMutationImpl<?, ?> colMutation) {
-			throw new RuntimeException("Not Supported");
-		}
-
-		@Override
-		public BoundStatement bindValues(PreparedStatement pStatement, CqlColumnMutationImpl<?, ?> colMutation) {
-			throw new RuntimeException("Not Supported");
-		}
-	};
-
-
-	private MutationQueryCache<CqlColumnListMutationImpl<?,?>> CounterColumnList = new MutationQueryCache<CqlColumnListMutationImpl<?,?>>() {
-
-		@Override
-		public void addToBatch(BatchStatement batch, CqlColumnListMutationImpl<?,?> colListMutation, boolean useCaching) {
-			
-			for (CqlColumnMutationImpl<?,?> colMutation : colListMutation.getMutationList()) {
-				CounterColumnUpdate.addToBatch(batch, colMutation, useCaching);
-			}
-		}
-
-		@Override
-		public Callable<String> getQueryGen(CqlColumnListMutationImpl<?, ?> colListMutation) {
-			throw new RuntimeException("Not Supported");
-		}
-
-		@Override
-		public BoundStatement bindValues(PreparedStatement pStatement, CqlColumnListMutationImpl<?, ?> colListMutation) {
-			throw new RuntimeException("Not Supported");
-		}
-	};
-	
-	private MutationQueryCache<CqlColumnListMutationImpl<?,?>> FlatTableInsertQuery = new MutationQueryCache<CqlColumnListMutationImpl<?,?>> () {
-
-		@Override
-		public void addToBatch(BatchStatement batch, CqlColumnListMutationImpl<?, ?> colListMutation, boolean useCaching) {
-
-			StringBuilder sb = new StringBuilder();
-			sb.append(INSERT_INTO).append(keyspace + "." + cfDef.getName());
-			sb.append(OPEN_PARA);
-
-			// Init the object array for the bind values
-			int size = colListMutation.getMutationList().size() + 1;
-			Object[] values = new Object[size];
-			int index = 0;
-			
-			// Add in the primary key
-			sb.append(cfDef.getPartitionKeyColumnDefinition().getName()).append(COMMA);
-			values[index++] = colListMutation.getRowKey();
-			
-			for (CqlColumnMutationImpl<?,?> colMutation : colListMutation.getMutationList()) {
-				sb.append(colMutation.columnName);
-				values[index++] = colMutation.columnValue;
-				if (index < size) {
-					sb.append(COMMA);
-				}
-			}
-			
-			sb.append(VALUES); 
-			
-			for (int i=0; i<size; i++) {
-				if (i < (size-1)) {
-					sb.append(BIND_MARKER);
-				} else {
-					sb.append(LAST_BIND_MARKER);
-				}
-			}
-			
-			sb.append(CLOSE_PARA);
-			
-			appendWriteOptions(sb, colListMutation.getDefaultTtl(), colListMutation.getTimestamp());
-			
-			String query = sb.toString(); 
-			
-			if (Logger.isDebugEnabled()) {
-				Logger.debug("Query: " + query);
-			}
-			
-			try {
-				PreparedStatement pStatement = session.prepare(query);
-				batch.add(pStatement.bind(values));
-			} catch (Exception e) {
-				throw new RuntimeException(e);
-			}
-		}
-
-		@Override
-		public Callable<String> getQueryGen(CqlColumnListMutationImpl<?, ?> mutation) {
-			throw new RuntimeException("Not Supported");
-		}
-
-		@Override
-		public BoundStatement bindValues(PreparedStatement pStatement, CqlColumnListMutationImpl<?, ?> mutation) {
-			throw new RuntimeException("Not Supported");
-		}
-	};
-
-	private MutationQueryCache<CqlColumnMutationImpl<?,?>> FlatTableInsertQueryForColumn = new MutationQueryCache<CqlColumnMutationImpl<?,?>> () {
-
-		@Override
-		public Callable<String> getQueryGen(CqlColumnMutationImpl<?, ?> mutation) {
-			throw new RuntimeException("Not Supported");
-		}
-
-
-		@Override
-		public BoundStatement bindValues(PreparedStatement pStatement, CqlColumnMutationImpl<?, ?> mutation) {
-			throw new RuntimeException("Not Supported");
-		}
-		
-		@Override
-		public void addToBatch(BatchStatement batch, CqlColumnMutationImpl<?, ?> mutation, boolean useCaching) {
-			throw new RuntimeException("Not Supported");
-		}
-		
-		@Override
-		public BoundStatement getBoundStatement(CqlColumnMutationImpl<?, ?> mutation, boolean useCaching) {
-
-			StringBuilder sb = new StringBuilder();
-			sb.append(INSERT_INTO).append(keyspace + "." + cfDef.getName());
-			sb.append(OPEN_PARA);
-
-			sb.append(cfDef.getPartitionKeyColumnDefinition().getName());
-			sb.append(COMMA);
-			sb.append(mutation.columnName);
-
-			sb.append(VALUES); 
-			sb.append(BIND_MARKER);
-			sb.append(LAST_BIND_MARKER);
-			sb.append(CLOSE_PARA);
-			
-			appendWriteOptions(sb, mutation.getTTL(), mutation.getTimestamp());
-			
-			String query = sb.toString(); 
-			
-			if (Logger.isDebugEnabled()) {
-				Logger.debug("Query: " + query);
-			}
-
-			// Init the object array for the bind values
-			Object[] values = new Object[2];
-			values[0] = mutation.getRowKey();
-			values[1] = mutation.columnValue;
-			
-			try {
-				PreparedStatement pStatement = session.prepare(query);
-				return pStatement.bind(values);
-			} catch (Exception e) {
-				throw new RuntimeException(e);
-			}
-		}
-	};
+    private final BaseClusteringKeyMutation insertColumnWithClusteringKey = new BaseClusteringKeyMutation() {
+
+        @Override
+        public Callable<String> getQueryGen(final CqlColumnMutationImpl<?, ?> mutation) {
+            return new Callable<String>() {
+                @Override
+                public String call() throws Exception {
+                    return genQuery().toString();
+                }
+
+                private StringBuilder genQuery() {
+
+                    /**
+                     * e.g 
+                     *    insert into t (key, column1, value) values ('a', '2' , 'a2') using ttl 86400 and timestamp = 1234444;
+                     */
+
+                    int columnCount = 0;
+
+                    StringBuilder sb = new StringBuilder(INSERT_INTO);
+                    
+                            sb.append(keyspace + ".").append(cfDef.getName());
+                    sb.append(OPEN_PARA);
+
+                    Iterator<ColumnDefinition> iter = cfDef.getPartitionKeyColumnDefinitionList().iterator();
+                    while (iter.hasNext()) {
+                        sb.append(iter.next().getName());
+                        columnCount++;
+                        if (iter.hasNext()) {
+                            sb.append(COMMA);
+                        }
+                    }
+
+                    iter = cfDef.getClusteringKeyColumnDefinitionList().iterator();
+                    if (iter.hasNext()) {
+                        sb.append(COMMA);
+                        while (iter.hasNext()) {
+                            sb.append(iter.next().getName());
+                            columnCount++;
+                            if (iter.hasNext()) {
+                                sb.append(COMMA);
+                            }
+                        }
+                    }
+
+                    iter = cfDef.getRegularColumnDefinitionList().iterator();
+                    if (iter.hasNext()) {
+                        sb.append(COMMA);
+                        while (iter.hasNext()) {
+                            sb.append(iter.next().getName());
+                            columnCount++;
+                            if (iter.hasNext()) {
+                                sb.append(COMMA);
+                            }
+                        }
+                    }
+
+                    sb.append(VALUES);
+                    for (int i = 0; i < columnCount; i++) {
+                        if (i < (columnCount - 1)) {
+                            sb.append(BIND_MARKER);
+                        } else {
+                            sb.append(LAST_BIND_MARKER);
+                        }
+                    }
+                    sb.append(CLOSE_PARA);
+
+                    appendWriteOptions(sb, mutation.getTTL(), mutation.getTimestamp());
+
+                    return sb;
+                }
+            };
+        }
+
+        @Override
+        public boolean isDeleteQuery() {
+            return false;
+        }
+    };
+
+    private final BaseClusteringKeyMutation deleteColumnWithClusteringKey = new BaseClusteringKeyMutation() {
+
+        @Override
+        public Callable<String> getQueryGen(final CqlColumnMutationImpl<?, ?> mutation) {
+
+            return new Callable<String>() {
+                @Override
+                public String call() throws Exception {
+                    return genQuery().toString();
+                }
+
+                private StringBuilder genQuery() {
+
+                    StringBuilder sb = new StringBuilder(DELETE_FROM);
+                    
+                            sb.append(keyspace + ".").append(cfDef.getName());
+
+                    appendWriteOptions(sb, mutation.getTTL(), mutation.getTimestamp());
+
+                    Iterator<ColumnDefinition> iter = cfDef.getPartitionKeyColumnDefinitionList().iterator();
+
+                    sb.append(WHERE);
+                    while (iter.hasNext()) {
+                        sb.append(iter.next().getName()).append(EQUALS).append(LAST_BIND_MARKER);
+                        if (iter.hasNext()) {
+                            sb.append(AND);
+                        }
+                    }
+
+                    iter = cfDef.getClusteringKeyColumnDefinitionList().iterator();
+                    if (iter.hasNext()) {
+                        sb.append(AND);
+                        while (iter.hasNext()) {
+                            sb.append(iter.next().getName()).append(EQUALS).append(LAST_BIND_MARKER);
+                            if (iter.hasNext()) {
+                                sb.append(AND);
+                            }
+                        }
+                    }
+
+
+                    return sb;
+                }
+            };
+        }
+
+        @Override
+        public boolean isDeleteQuery() {
+            return true;
+        }
+    };
+
+    private final MutationQueryCache<CqlColumnMutationImpl<?, ?>> counterColumnUpdate = new MutationQueryCache<CqlColumnMutationImpl<?, ?>>() {
+
+        @Override
+        public Callable<String> getQueryGen(final CqlColumnMutationImpl<?, ?> mutation) {
+            return new Callable<String>() {
+
+                @Override
+                public String call() throws Exception {
+
+                    String valueAlias = cfDef.getRegularColumnDefinitionList().get(0).getName();
+
+
+                    StringBuilder sb = new StringBuilder();
+                    
+                            sb.append(UPDATE).append(keyspace).append(".").append(cfDef.getName());
+                    appendWriteOptions(sb, mutation.getTTL(), mutation.getTimestamp());
+                    
+                            sb.append(SET).append(valueAlias).append(" = ").append(valueAlias).append(" + ? ");
+
+                    Iterator<ColumnDefinition> iter = cfDef.getPartitionKeyColumnDefinitionList().iterator();
+
+                    sb.append(WHERE);
+                    while (iter.hasNext()) {
+                        sb.append(iter.next().getName()).append(EQUALS).append(LAST_BIND_MARKER);
+                        if (iter.hasNext()) {
+                            sb.append(AND);
+                        }
+                    }
+
+                    iter = cfDef.getClusteringKeyColumnDefinitionList().iterator();
+                    if (iter.hasNext()) {
+                        sb.append(AND);
+                        while (iter.hasNext()) {
+                            sb.append(iter.next().getName()).append(EQUALS).append(LAST_BIND_MARKER);
+                            if (iter.hasNext()) {
+                                sb.append(AND);
+                            }
+                        }
+                    }
+
+                    return sb.toString();
+                }
+            };
+        }
+
+        @Override
+        public BoundStatement bindValues(PreparedStatement pStatement, CqlColumnMutationImpl<?, ?> mutation) {
+
+            int size = 1 + cfDef.getPartitionKeyColumnDefinitionList().size() + cfDef.getClusteringKeyColumnDefinitionList().size();
+
+            Object[] arr = new Object[size];
+
+            int index = 0;
+
+            arr[index++] = mutation.columnValue;
+            arr[index++] = mutation.getRowKey();
+
+            ColumnFamily<?, ?> cf = mutation.cfContext.getColumnFamily();
+            boolean isCompositeColumn = cf.getColumnSerializer().getComparatorType() == ComparatorType.COMPOSITETYPE;
+
+            if (isCompositeColumn) {
+                AnnotatedCompositeSerializer<?> compSerializer = (AnnotatedCompositeSerializer<?>) cf.getColumnSerializer();
+                for (ComponentSerializer<?> component : compSerializer.getComponents()) {
+                    try {
+                        arr[index++] = component.getFieldValueDirectly(mutation.columnName);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            } else {
+                arr[index++] = mutation.columnName;
+            }
+
+            return pStatement.bind(arr);
+        }
+    };
+
+    private final MutationQueryCache<CqlColumnListMutationImpl<?, ?>> insertOrDeleteWithClusteringKey = new MutationQueryCache<CqlColumnListMutationImpl<?, ?>>() {
+
+        @Override
+        public void addToBatch(BatchStatement batch, CqlColumnListMutationImpl<?, ?> colListMutation, boolean useCaching) {
+
+            for (CqlColumnMutationImpl<?, ?> colMutation : colListMutation.getMutationList()) {
+
+                switch (colMutation.getType()) {
+
+                    case UpdateColumn :
+                        insertColumnWithClusteringKey.addToBatch(batch, colMutation, useCaching);
+                        break;
+                    case DeleteColumn :
+                        deleteColumnWithClusteringKey.addToBatch(batch, colMutation, useCaching);
+                        break;
+                    case CounterColumn :
+                        throw new RuntimeException("Counter column update not allowed with other updates");
+                    default:
+                        throw new RuntimeException("Unsupported type: " + colMutation.getType());
+                }
+            }
+        }
+
+        @Override
+        public Callable<String> getQueryGen(CqlColumnListMutationImpl<?, ?> colListMutation) {
+            throw new RuntimeException("Not Supported");
+        }
+
+        @Override
+        public BoundStatement bindValues(PreparedStatement pStatement, CqlColumnListMutationImpl<?, ?> colListMutation) {
+            throw new RuntimeException("Not Supported");
+        }
+    };
+
+    private final MutationQueryCache<CqlColumnListMutationImpl<?, ?>> insertOrDeleteColumnListWithClusteringKey = new MutationQueryCache<CqlColumnListMutationImpl<?, ?>>() {
+
+        @Override
+        public void addToBatch(BatchStatement batch, CqlColumnListMutationImpl<?, ?> colListMutation, boolean useCaching) {
+
+            for (CqlColumnMutationImpl<?, ?> colMutation : colListMutation.getMutationList()) {
+                insertOrDeleteColumnWithClusteringKey.addToBatch(batch, colMutation, useCaching);
+            }
+        }
+
+        @Override
+        public Callable<String> getQueryGen(CqlColumnListMutationImpl<?, ?> colListMutation) {
+            throw new RuntimeException("Not Supported");
+        }
+
+        @Override
+        public BoundStatement bindValues(PreparedStatement pStatement, CqlColumnListMutationImpl<?, ?> colListMutation) {
+            throw new RuntimeException("Not Supported");
+        }
+    };
+
+    private final MutationQueryCache<CqlColumnMutationImpl<?, ?>> insertOrDeleteColumnWithClusteringKey = new MutationQueryCache<CqlColumnMutationImpl<?, ?>>() {
+
+        @Override
+        public BoundStatement getBoundStatement(CqlColumnMutationImpl<?, ?> mutation, boolean useCaching) {
+            switch (mutation.getType()) {
+
+                case UpdateColumn :
+                    return insertColumnWithClusteringKey.getBoundStatement(mutation, useCaching);
+                case DeleteColumn :
+                    return deleteColumnWithClusteringKey.getBoundStatement(mutation, useCaching);
+                case CounterColumn :
+                    return counterColumnUpdate.getBoundStatement(mutation, useCaching);
+                default:
+                    throw new RuntimeException("Unsupported type: " + mutation.getType());
+            }
+        }
+
+        @Override
+        public Callable<String> getQueryGen(CqlColumnMutationImpl<?, ?> colMutation) {
+            throw new RuntimeException("Not Supported");
+        }
+
+        @Override
+        public BoundStatement bindValues(PreparedStatement pStatement, CqlColumnMutationImpl<?, ?> colMutation) {
+            throw new RuntimeException("Not Supported");
+        }
+    };
+
+
+    private final MutationQueryCache<CqlColumnListMutationImpl<?, ?>> counterColumnList = new MutationQueryCache<CqlColumnListMutationImpl<?, ?>>() {
+
+        @Override
+        public void addToBatch(BatchStatement batch, CqlColumnListMutationImpl<?, ?> colListMutation, boolean useCaching) {
+
+            for (CqlColumnMutationImpl<?, ?> colMutation : colListMutation.getMutationList()) {
+                counterColumnUpdate.addToBatch(batch, colMutation, useCaching);
+            }
+        }
+
+        @Override
+        public Callable<String> getQueryGen(CqlColumnListMutationImpl<?, ?> colListMutation) {
+            throw new RuntimeException("Not Supported");
+        }
+
+        @Override
+        public BoundStatement bindValues(PreparedStatement pStatement, CqlColumnListMutationImpl<?, ?> colListMutation) {
+            throw new RuntimeException("Not Supported");
+        }
+    };
+
+    private final MutationQueryCache<CqlColumnListMutationImpl<?, ?>> flatTableInsertQuery = new MutationQueryCache<CqlColumnListMutationImpl<?, ?>>() {
+
+        @Override
+        public void addToBatch(BatchStatement batch, CqlColumnListMutationImpl<?, ?> colListMutation, boolean useCaching) {
+
+            StringBuilder sb = new StringBuilder();
+            
+                    sb.append(INSERT_INTO).append(keyspace + ".").append(cfDef.getName());
+            sb.append(OPEN_PARA);
+
+            // Init the object array for the bind values
+            int size = colListMutation.getMutationList().size() + 1;
+            Object[] values = new Object[size];
+            int index = 0;
+
+            // Add in the primary key
+            sb.append(cfDef.getPartitionKeyColumnDefinition().getName()).append(COMMA);
+            values[index++] = colListMutation.getRowKey();
+
+            for (CqlColumnMutationImpl<?, ?> colMutation : colListMutation.getMutationList()) {
+                sb.append(colMutation.columnName);
+                values[index++] = colMutation.columnValue;
+                if (index < size) {
+                    sb.append(COMMA);
+                }
+            }
+
+            sb.append(VALUES);
+
+            for (int i = 0; i < size; i++) {
+                if (i < (size - 1)) {
+                    sb.append(BIND_MARKER);
+                } else {
+                    sb.append(LAST_BIND_MARKER);
+                }
+            }
+
+            sb.append(CLOSE_PARA);
+
+            appendWriteOptions(sb, colListMutation.getDefaultTtl(), colListMutation.getTimestamp());
+
+            String query = sb.toString();
+
+            if (Logger.isDebugEnabled()) {
+                Logger.debug("Query: " + query);
+            }
+
+            try {
+                PreparedStatement pStatement = session.prepare(query);
+                batch.add(pStatement.bind(values));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        @Override
+        public Callable<String> getQueryGen(CqlColumnListMutationImpl<?, ?> mutation) {
+            throw new RuntimeException("Not Supported");
+        }
+
+        @Override
+        public BoundStatement bindValues(PreparedStatement pStatement, CqlColumnListMutationImpl<?, ?> mutation) {
+            throw new RuntimeException("Not Supported");
+        }
+    };
+
+    private final MutationQueryCache<CqlColumnMutationImpl<?, ?>> flatTableInsertQueryForColumn = new MutationQueryCache<CqlColumnMutationImpl<?, ?>>() {
+
+        @Override
+        public Callable<String> getQueryGen(CqlColumnMutationImpl<?, ?> mutation) {
+            throw new RuntimeException("Not Supported");
+        }
+
+
+        @Override
+        public BoundStatement bindValues(PreparedStatement pStatement, CqlColumnMutationImpl<?, ?> mutation) {
+            throw new RuntimeException("Not Supported");
+        }
+
+        @Override
+        public void addToBatch(BatchStatement batch, CqlColumnMutationImpl<?, ?> mutation, boolean useCaching) {
+            throw new RuntimeException("Not Supported");
+        }
+
+        @Override
+        public BoundStatement getBoundStatement(CqlColumnMutationImpl<?, ?> mutation, boolean useCaching) {
+
+            StringBuilder sb = new StringBuilder();
+            
+                    sb.append(INSERT_INTO).append(keyspace + ".").append(cfDef.getName());
+            sb.append(OPEN_PARA);
+
+            sb.append(cfDef.getPartitionKeyColumnDefinition().getName());
+            sb.append(COMMA);
+            sb.append(mutation.columnName);
+
+            sb.append(VALUES);
+            sb.append(BIND_MARKER);
+            sb.append(LAST_BIND_MARKER);
+            sb.append(CLOSE_PARA);
+
+            appendWriteOptions(sb, mutation.getTTL(), mutation.getTimestamp());
+
+            String query = sb.toString();
+
+            if (Logger.isDebugEnabled()) {
+                Logger.debug("Query: " + query);
+            }
+
+            // Init the object array for the bind values
+            Object[] values = new Object[2];
+            values[0] = mutation.getRowKey();
+            values[1] = mutation.columnValue;
+
+            try {
+                PreparedStatement pStatement = session.prepare(query);
+                return pStatement.bind(values);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    };
 
 
 	public void addColumnListMutationToBatch(BatchStatement batch, CqlColumnListMutationImpl<?,?> colListMutation, boolean useCaching) {
 
 		switch (colListMutation.getType()) {
 		case RowDelete:
-			DeleteRowQuery.addToBatch(batch, colListMutation, useCaching);
+			deleteRowQuery.addToBatch(batch, colListMutation, useCaching);
 			break;
 		case ColumnsUpdate:
-			if (cfDef.getClusteringKeyColumnDefinitionList().size() == 0) {
+			if (cfDef.getClusteringKeyColumnDefinitionList().isEmpty()) {
 				// THIS IS A FLAT TABLE QUERY
-				FlatTableInsertQuery.addToBatch(batch, colListMutation, useCaching);
+				flatTableInsertQuery.addToBatch(batch, colListMutation, useCaching);
 			} else {
-				InsertOrDeleteWithClusteringKey.addToBatch(batch, colListMutation, useCaching);
+				insertOrDeleteWithClusteringKey.addToBatch(batch, colListMutation, useCaching);
 			}
 			break;
 		case CounterColumnsUpdate:
-			CounterColumnList.addToBatch(batch, colListMutation, useCaching);
+			counterColumnList.addToBatch(batch, colListMutation, useCaching);
 			break;
 		default:
 			throw new RuntimeException("Unrecognized ColumnListMutation Type");
@@ -658,11 +664,11 @@ public class CFMutationQueryGen {
 
 	public BoundStatement getColumnMutationStatement(CqlColumnMutationImpl<?,?> mutation, boolean useCaching) {
 
-		if (cfDef.getClusteringKeyColumnDefinitionList().size() == 0) {
+		if (cfDef.getClusteringKeyColumnDefinitionList().isEmpty()) {
 			// THIS IS A FLAT TABLE QUERY
-			return FlatTableInsertQueryForColumn.getBoundStatement(mutation, useCaching);
+			return flatTableInsertQueryForColumn.getBoundStatement(mutation, useCaching);
 		} else {
-			return InsertOrDeleteColumnWithClusteringKey.getBoundStatement(mutation, useCaching);
+			return insertOrDeleteColumnWithClusteringKey.getBoundStatement(mutation, useCaching);
 		}
 	}
 }

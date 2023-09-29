@@ -39,10 +39,11 @@ public abstract class AbstractExecutionImpl<R> implements Execution<R> {
                 return execute();
             }
             catch (ConnectionException ex) {
-                if (ex instanceof IsRetryableException)
+                if (ex instanceof IsRetryableException) {
                     lastException = ex;
-                else
+                } else {
                     throw ex;
+                }
             }
         } while (retry.allowRetry());
 

@@ -77,7 +77,7 @@ public class CqlAllRowsQueryImpl<K,C> implements AllRowsQuery<K,C> {
     private static final Logger LOG = LoggerFactory.getLogger(CqlAllRowsQueryImpl.class);
     
     private static final Partitioner DEFAULT_PARTITIONER = Murmur3Partitioner.get();
-    private final static int DEFAULT_PAGE_SIZE = 100;
+    private static final int DEFAULT_PAGE_SIZE = 100;
     
     private final Keyspace      keyspace;
     private final ColumnFamily<K, C> columnFamily;
@@ -92,12 +92,12 @@ public class CqlAllRowsQueryImpl<K,C> implements AllRowsQuery<K,C> {
     private    String              startToken;
     private    String              endToken;
     private    Boolean             includeEmptyRows;  // Default to null will discard tombstones
-    private    List<Future<Boolean>> futures = Lists.newArrayList();
-    private    AtomicBoolean       cancelling = new AtomicBoolean(false);
-    private    Partitioner         partitioner = DEFAULT_PARTITIONER;
+    private final    List<Future<Boolean>> futures = Lists.newArrayList();
+    private final    AtomicBoolean       cancelling = new AtomicBoolean(false);
+    private final    Partitioner         partitioner = DEFAULT_PARTITIONER;
     private    ConsistencyLevel	consistencyLevel;
     private    ExceptionCallback   exceptionCallback;
-    private AtomicReference<Exception>  error = new AtomicReference<Exception>();
+    private final AtomicReference<Exception>  error = new AtomicReference<>();
 
     public CqlAllRowsQueryImpl(Keyspace ks, ColumnFamily<K,C> cf) {
     	this.keyspace = ks;
@@ -146,13 +146,13 @@ public class CqlAllRowsQueryImpl<K,C> implements AllRowsQuery<K,C> {
 
 	@Override
 	public AllRowsQuery<K, C>  withColumnSlice(Collection<C> columns) {
-		this.columnSlice = new CqlColumnSlice<C>(columns);
+		this.columnSlice = new CqlColumnSlice<>(columns);
 		return this;
 	}
 
 	@Override
 	public AllRowsQuery<K, C>  withColumnSlice(ColumnSlice<C> columns) {
-		this.columnSlice = new CqlColumnSlice<C>(columns);
+		this.columnSlice = new CqlColumnSlice<>(columns);
 		return this;
 	}
 
@@ -162,7 +162,7 @@ public class CqlAllRowsQueryImpl<K,C> implements AllRowsQuery<K,C> {
 		CqlColumnFamilyDefinitionImpl cfDef = (CqlColumnFamilyDefinitionImpl) columnFamily.getColumnFamilyDefinition();
 		String pkColName = cfDef.getPartitionKeyColumnDefinitionList().get(1).getName();
 		
-		this.columnSlice = new CqlColumnSlice<C>(new CqlRangeBuilder<C>()
+		this.columnSlice = new CqlColumnSlice<>(new CqlRangeBuilder<C>()
 				.setColumn(pkColName)
 				.setStart(startColumn)
 				.setEnd(endColumn)
@@ -175,15 +175,15 @@ public class CqlAllRowsQueryImpl<K,C> implements AllRowsQuery<K,C> {
 	@Override
 	public AllRowsQuery<K, C>  withColumnRange(ByteBuffer startColumn, ByteBuffer endColumn, boolean reversed, int limit) {
 		Serializer<C> colSerializer = columnFamily.getColumnSerializer();
-		C start = (startColumn != null && startColumn.capacity() > 0) ? colSerializer.fromByteBuffer(startColumn) : null;
-		C end = (endColumn != null && endColumn.capacity() > 0) ? colSerializer.fromByteBuffer(endColumn) : null;
+		C start = startColumn != null && startColumn.capacity() > 0 ? colSerializer.fromByteBuffer(startColumn) : null;
+		C end = endColumn != null && endColumn.capacity() > 0 ? colSerializer.fromByteBuffer(endColumn) : null;
 		return this.withColumnRange(start, end, reversed, limit);
 	}
 
 	@Override
 	public AllRowsQuery<K, C> withColumnRange(ByteBufferRange range) {
 		if (range instanceof CqlRangeImpl) {
-			this.columnSlice = new CqlColumnSlice<C>();
+			this.columnSlice = new CqlColumnSlice<>();
 			((CqlColumnSlice<C>) this.columnSlice).setCqlRange((CqlRangeImpl<C>) range);
 			return this;
 		} else {
@@ -225,9 +225,9 @@ public class CqlAllRowsQueryImpl<K,C> implements AllRowsQuery<K,C> {
 	@Override
 	public OperationResult<Rows<K, C>> execute() throws ConnectionException {
 		
-		final AtomicReference<ConnectionException> reference = new AtomicReference<ConnectionException>(null);
+		final AtomicReference<ConnectionException> reference = new AtomicReference<>(null);
 		
-		final List<Row<K,C>> list = Collections.synchronizedList(new LinkedList<Row<K,C>>());
+		final List<Row<K,C>> list = Collections.synchronizedList(new LinkedList<>());
 		
 		RowCallback<K,C> rowCallback = new RowCallback<K,C>() {
 
@@ -253,8 +253,8 @@ public class CqlAllRowsQueryImpl<K,C> implements AllRowsQuery<K,C> {
 			throw reference.get();
 		}
 		
-		CqlRowListImpl<K,C> allRows = new CqlRowListImpl<K,C>(list);
-		return new CqlOperationResultImpl<Rows<K,C>>(null, allRows);
+		CqlRowListImpl<K,C> allRows = new CqlRowListImpl<>(list);
+		return new CqlOperationResultImpl<>(null, allRows);
 	}
 
 	@Override
@@ -350,9 +350,10 @@ public class CqlAllRowsQueryImpl<K,C> implements AllRowsQuery<K,C> {
                     int rowsToSkip = 0;
                     while (!cancelling.get()) {
                         RowSliceQuery<K, C> query = prepareQuery().getKeyRange(null, null, currentToken, endToken, -1);
-                        
-                        if (columnSlice != null)
+
+                        if (columnSlice != null) {
                             query.withColumnSlice(columnSlice);
+                        }
                         
                         Rows<K, C> rows = query.execute().getResult();
                         if (!rows.isEmpty()) {
@@ -465,8 +466,9 @@ public class CqlAllRowsQueryImpl<K,C> implements AllRowsQuery<K,C> {
     
     private ColumnFamilyQuery<K, C> prepareQuery() {
     	ColumnFamilyQuery<K, C> query = keyspace.prepareQuery(columnFamily);
-    	if (consistencyLevel != null)
-    		query.setConsistencyLevel(consistencyLevel);
+        if (consistencyLevel != null) {
+            query.setConsistencyLevel(consistencyLevel);
+        }
     	return query;
     }
     

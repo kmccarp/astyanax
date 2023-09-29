@@ -31,7 +31,7 @@ import com.netflix.astyanax.serializers.StringSerializer;
 import com.netflix.astyanax.serializers.UUIDSerializer;
 
 public abstract class AbstractPreparedCqlQuery<K, C> implements PreparedCqlQuery<K, C> {
-    private List<ByteBuffer> values = Lists.newArrayList();
+    private final List<ByteBuffer> values = Lists.newArrayList();
 
     protected List<ByteBuffer> getValues() {
         return values;
