@@ -27,7 +27,7 @@ import com.netflix.astyanax.recipes.queue.MessageQueueMetadata;
  *
  */
 public class TimeModShardPolicy implements ModShardPolicy {
-    private static TimeModShardPolicy instance = new TimeModShardPolicy();
+    private static final TimeModShardPolicy instance = new TimeModShardPolicy();
 
     public static ModShardPolicy getInstance() {
         return instance;

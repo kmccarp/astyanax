@@ -36,7 +36,7 @@ import com.netflix.astyanax.thrift.ThriftTypes;
 import com.netflix.astyanax.thrift.ThriftUtils;
 
 public class ThriftKeyspaceDefinitionImpl implements KeyspaceDefinition {
-    private final static Map<String, FieldMetadata> fieldsMetadata = Maps.newHashMap();
+    private static final Map<String, FieldMetadata> fieldsMetadata = Maps.newHashMap();
     
     static {
         for (Entry<_Fields, FieldMetaData> field : KsDef.metaDataMap.entrySet()) {
@@ -53,11 +53,11 @@ public class ThriftKeyspaceDefinitionImpl implements KeyspaceDefinition {
 
     public ThriftKeyspaceDefinitionImpl() {
         ks_def = new KsDef();
-        ks_def.setCf_defs(new ArrayList<CfDef>());
+        ks_def.setCf_defs(new ArrayList<>());
     }
 
-    public ThriftKeyspaceDefinitionImpl(KsDef ks_def) {
-        this.ks_def = ks_def;
+    public ThriftKeyspaceDefinitionImpl(KsDef ksDef) {
+        this.ks_def = ksDef;
     }
 
     public KsDef getThriftKeyspaceDefinition() {
@@ -95,7 +95,7 @@ public class ThriftKeyspaceDefinitionImpl implements KeyspaceDefinition {
     @Override
     public Map<String, String> getStrategyOptions() {
         if (ks_def.getStrategy_options() == null) {
-            ks_def.strategy_options = new HashMap<String, String>();
+            ks_def.strategy_options = new HashMap<>();
         }
         return ks_def.getStrategy_options();
     }
@@ -109,7 +109,7 @@ public class ThriftKeyspaceDefinitionImpl implements KeyspaceDefinition {
     @Override
     public KeyspaceDefinition addColumnFamily(ColumnFamilyDefinition cfDef) {
         if (ks_def.getCf_defs() == null) {
-            ks_def.setCf_defs(new ArrayList<CfDef>());
+            ks_def.setCf_defs(new ArrayList<>());
         }
 
         CfDef thriftCfDef = ((ThriftColumnFamilyDefinitionImpl) cfDef).getThriftColumnFamilyDefinition();
@@ -122,7 +122,7 @@ public class ThriftKeyspaceDefinitionImpl implements KeyspaceDefinition {
     @Override
     public List<ColumnFamilyDefinition> getColumnFamilyList() {
         List<CfDef> cfdefs = ks_def.getCf_defs();
-        List<ColumnFamilyDefinition> list = new ArrayList<ColumnFamilyDefinition>();
+        List<ColumnFamilyDefinition> list = new ArrayList<>();
         for (CfDef cfdef : cfdefs) {
             list.add(new ThriftColumnFamilyDefinitionImpl(cfdef));
         }

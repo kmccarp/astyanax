@@ -59,8 +59,8 @@ public class CqlKeyspaceDefinitionImpl implements KeyspaceDefinition {
 	
 	private final Session session; 
 	private boolean alterKeyspace; 
-	private final Map<String, Object> options = new HashMap<String, Object>();
-	private final List<CqlColumnFamilyDefinitionImpl> cfDefList = new ArrayList<CqlColumnFamilyDefinitionImpl>();
+	private final Map<String, Object> options = new HashMap<>();
+	private final List<CqlColumnFamilyDefinitionImpl> cfDefList = new ArrayList<>();
 	
 	public CqlKeyspaceDefinitionImpl(Session session) {
 		this.session = session;
@@ -133,7 +133,7 @@ public class CqlKeyspaceDefinitionImpl implements KeyspaceDefinition {
 
 	@Override
 	public Map<String, String> getStrategyOptions() {
-		Map<String, String> map = new HashMap<String, String>();
+		Map<String, String> map = new HashMap<>();
 		Map<String, Object> repMap = getOrCreateReplicationMap();
 		for (String key : repMap.keySet()) {
 			map.put(key, (String) repMap.get(key));
@@ -148,7 +148,7 @@ public class CqlKeyspaceDefinitionImpl implements KeyspaceDefinition {
 				.where(eq("keyspace_name", getName()));
 				
 		ResultSet rs = session.execute(query);
-		List<ColumnFamilyDefinition> cfDefs = new ArrayList<ColumnFamilyDefinition>();
+		List<ColumnFamilyDefinition> cfDefs = new ArrayList<>();
 		List<Row> rows = rs.all();
 		if (rows != null) {
 			for (Row row : rows) {
@@ -200,7 +200,7 @@ public class CqlKeyspaceDefinitionImpl implements KeyspaceDefinition {
 	@Override
 	public Collection<FieldMetadata> getFieldsMetadata() {
 		
-		List<FieldMetadata> list = new ArrayList<FieldMetadata>();
+		List<FieldMetadata> list = new ArrayList<>();
 		
 		for (String key : options.keySet()) {
 			Object value = options.get(key);
@@ -240,7 +240,7 @@ public class CqlKeyspaceDefinitionImpl implements KeyspaceDefinition {
 			Log.debug("Query : " + query);
 		}
 		
-		CqlOperationResultImpl<SchemaChangeResult> result = new CqlOperationResultImpl<SchemaChangeResult>(session.execute(query), null);
+		CqlOperationResultImpl<SchemaChangeResult> result = new CqlOperationResultImpl<>(session.execute(query), null);
 		
 		for (CqlColumnFamilyDefinitionImpl cfDef : cfDefList) {
 			cfDef.execute();
@@ -252,7 +252,7 @@ public class CqlKeyspaceDefinitionImpl implements KeyspaceDefinition {
 	
 	private String getQuery() {
 		
-		String cmd = (alterKeyspace) ? "ALTER" : "CREATE";
+		String cmd = alterKeyspace ? "ALTER" : "CREATE";
 		
 		StringBuilder sb = new StringBuilder(cmd); 
 		sb.append(" KEYSPACE ");
@@ -305,7 +305,7 @@ public class CqlKeyspaceDefinitionImpl implements KeyspaceDefinition {
 			// this is an old style map. Convert to the new spec of CREATE KEYSPACE
 			options.clear();
 			
-			Map<String, Object> replicationOptions = new HashMap<String, Object>();
+			Map<String, Object> replicationOptions = new HashMap<>();
 			options.put("replication", replicationOptions);
 			
 			Map<String, Object> oldStrategyOptions = (Map<String, Object>) input.get("strategy_options");
@@ -319,7 +319,7 @@ public class CqlKeyspaceDefinitionImpl implements KeyspaceDefinition {
 	private Map<String, Object> getOrCreateReplicationMap() {
 		Map<String, Object> replicationMap = (Map<String, Object>) options.get("replication");
 		if (replicationMap == null) {
-			replicationMap = new HashMap<String, Object>();
+			replicationMap = new HashMap<>();
 			options.put("replication", replicationMap);
 		}
 		return replicationMap;
@@ -353,7 +353,7 @@ public class CqlKeyspaceDefinitionImpl implements KeyspaceDefinition {
 		
 		for (Entry<String, Object> entry : subMap.entrySet()) {
 			
-			String key = (prefix != null) ? prefix + "." + entry.getKey() : entry.getKey();
+			String key = prefix != null ? prefix + "." + entry.getKey() : entry.getKey();
 			if (entry.getValue() instanceof Map) {
 				addProperties(props, key, (Map<String, Object>) entry.getValue());
 			} else {
@@ -368,7 +368,7 @@ public class CqlKeyspaceDefinitionImpl implements KeyspaceDefinition {
 			return null;
 		}
 		
-		Map<String, Object> map = new HashMap<String, Object>();
+		Map<String, Object> map = new HashMap<>();
 		try {
 			JSONObject json = new JSONObject(jsonString);
 			Iterator<String> iter = json.keys();

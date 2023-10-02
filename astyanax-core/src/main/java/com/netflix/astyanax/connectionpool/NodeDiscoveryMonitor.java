@@ -17,7 +17,7 @@ package com.netflix.astyanax.connectionpool;
 
 public class NodeDiscoveryMonitor implements NodeDiscoveryMonitorMBean {
 
-    private NodeDiscovery discovery;
+    private final NodeDiscovery discovery;
 
     public NodeDiscoveryMonitor(NodeDiscovery discovery) {
         this.discovery = discovery;
@@ -36,7 +36,7 @@ public class NodeDiscoveryMonitor implements NodeDiscoveryMonitorMBean {
     @Override
     public String getLastException() {
         Exception e = discovery.getLastException();
-        return (e != null) ? e.getMessage() : "none";
+        return e != null ? e.getMessage() : "none";
     }
 
     @Override

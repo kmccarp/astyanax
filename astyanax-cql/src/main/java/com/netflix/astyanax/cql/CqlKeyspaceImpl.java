@@ -168,8 +168,7 @@ public class CqlKeyspaceImpl implements Keyspace, SeedHostListener {
 		if (row == null) {
 			throw new RuntimeException("Missing paritioner");
 		}
-		String pName = row.getString(0);
-		return pName;
+		return row.getString(0);
 	}
 
 	@Override
@@ -200,7 +199,7 @@ public class CqlKeyspaceImpl implements Keyspace, SeedHostListener {
 		if (row == null) {
 			throw new RuntimeException("Keyspace not found: " + keyspaceName);
 		}
-		return (new CqlKeyspaceDefinitionImpl(session, row));
+		return new CqlKeyspaceDefinitionImpl(session, row);
 	}
 
 	@Override
@@ -216,8 +215,9 @@ public class CqlKeyspaceImpl implements Keyspace, SeedHostListener {
 	public Properties getColumnFamilyProperties(String columnFamily) throws ConnectionException {
         KeyspaceDefinition ksDef = this.describeKeyspace();
         ColumnFamilyDefinition cfDef = ksDef.getColumnFamily(columnFamily);
-        if (cfDef == null)
+        if (cfDef == null) {
             throw new NotFoundException(String.format("Column family '%s' in keyspace '%s' not found", columnFamily, getKeyspaceName()));
+        }
         try {
 			return cfDef.getProperties();
 		} catch (Exception e) {
@@ -244,7 +244,7 @@ public class CqlKeyspaceImpl implements Keyspace, SeedHostListener {
 
 	@Override
 	public <K, C> ColumnFamilyQuery<K, C> prepareQuery(ColumnFamily<K, C> cf) {
-		return new CqlColumnFamilyQueryImpl<K,C>(ksContext, cf);
+		return new CqlColumnFamilyQueryImpl<>(ksContext, cf);
 	}
 
 	@Override
@@ -288,19 +288,19 @@ public class CqlKeyspaceImpl implements Keyspace, SeedHostListener {
 
 	@Override
 	public OperationResult<SchemaChangeResult> dropKeyspace() throws ConnectionException {
-		return new CqlOperationResultImpl<SchemaChangeResult>(session.execute("DROP KEYSPACE " + keyspaceName), null);
+		return new CqlOperationResultImpl<>(session.execute("DROP KEYSPACE " + keyspaceName), null);
 	}
 	
 	@Override
 	public <K, C> OperationResult<Void> truncateColumnFamily(ColumnFamily<K, C> columnFamily) throws OperationException, ConnectionException {
 		ResultSet result = session.execute("TRUNCATE " + keyspaceName + "." + columnFamily.getName());
-		return new CqlOperationResultImpl<Void>(result, null);
+		return new CqlOperationResultImpl<>(result, null);
 	}
 
 	@Override
 	public OperationResult<Void> truncateColumnFamily(String columnFamily) throws ConnectionException {
 		ResultSet result = session.execute("TRUNCATE " + keyspaceName + "." + columnFamily);
-		return new CqlOperationResultImpl<Void>(result, null);
+		return new CqlOperationResultImpl<>(result, null);
 	}
 
 	@Override
@@ -335,7 +335,7 @@ public class CqlKeyspaceImpl implements Keyspace, SeedHostListener {
 
 	@Override
 	public OperationResult<SchemaChangeResult> dropColumnFamily(String columnFamilyName) throws ConnectionException {
-		return new CqlOperationResultImpl<SchemaChangeResult>(session.execute("DROP TABLE " + keyspaceName + "." + columnFamilyName), null);
+		return new CqlOperationResultImpl<>(session.execute("DROP TABLE " + keyspaceName + "." + columnFamilyName), null);
 	}
 
 	@Override
@@ -412,8 +412,9 @@ public class CqlKeyspaceImpl implements Keyspace, SeedHostListener {
 			}
 					
 			cluster = builder.build();
-			if (!(this.cpMonitor instanceof JavaDriverConnectionPoolMonitorImpl))
-				this.cluster.getMetrics().getRegistry().addListener((MetricRegistryListener) this.metricsRegListener);
+            if (!(this.cpMonitor instanceof JavaDriverConnectionPoolMonitorImpl)) {
+                this.cluster.getMetrics().getRegistry().addListener((MetricRegistryListener) this.metricsRegListener);
+            }
 			
 			Logger.info("Connecting to cluster");
 			session = cluster.connect();
@@ -502,7 +503,7 @@ public class CqlKeyspaceImpl implements Keyspace, SeedHostListener {
     	ResultSet result = session.execute("select * from system.local where keyspace_name = '" + keyspaceName + "'");
     	List<Row> rows = result.all();
     	if (rows != null && rows.isEmpty()) {
-    		return new OperationResultImpl<SchemaChangeResult>(Host.NO_HOST, new SchemaChangeResponseImpl().setSchemaId("no-op"), 0);
+    		return new OperationResultImpl<>(Host.NO_HOST, new SchemaChangeResponseImpl().setSchemaId("no-op"), 0);
     	}
 
     	try {

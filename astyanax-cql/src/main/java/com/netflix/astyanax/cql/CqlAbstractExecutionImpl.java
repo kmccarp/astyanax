@@ -72,12 +72,12 @@ public abstract class CqlAbstractExecutionImpl<R> implements Execution<R> {
 		
 		this.session = ksContext.getSession();
 		this.keyspace = ksContext.getKeyspace();
-		this.cf = (cfContext != null) ? cfContext.getColumnFamily() : null;
+		this.cf = cfContext != null ? cfContext.getColumnFamily() : null;
 		this.tracerFactory = ksContext.getTracerFactory();
 		
 		// process the override retry policy first
 		RetryPolicy retryPolicy = ksContext.getConfig().getRetryPolicy();
-		retry = (retryPolicy != null) ? retryPolicy : getRetryPolicy(cfContext.getRetryPolicy()); 
+		retry = retryPolicy != null ? retryPolicy : getRetryPolicy(cfContext.getRetryPolicy()); 
 		
 		clLevel = resolveConsistencyLevel(ksContext, cfContext);
 	}
@@ -90,7 +90,7 @@ public abstract class CqlAbstractExecutionImpl<R> implements Execution<R> {
 		this.tracerFactory = ksContext.getTracerFactory();
 		
 		// process the override retry policy first
-		retry = (retryPolicy != null) ? retryPolicy : getRetryPolicy(ksContext.getConfig().getRetryPolicy());
+		retry = retryPolicy != null ? retryPolicy : getRetryPolicy(ksContext.getConfig().getRetryPolicy());
 		clLevel = resolveConsistencyLevel(ksContext, null);
 	}
 
@@ -107,10 +107,11 @@ public abstract class CqlAbstractExecutionImpl<R> implements Execution<R> {
             } catch (RuntimeException ex) {
             	lastException = new OperationException(ex);
             } catch (ConnectionException ex) {
-                if (ex instanceof IsRetryableException)
+                if (ex instanceof IsRetryableException) {
                     lastException = ex;
-                else
+                } else {
                     throw ex;
+                }
             }
         } while (retry.allowRetry());
 
@@ -145,7 +146,7 @@ public abstract class CqlAbstractExecutionImpl<R> implements Execution<R> {
 
         ResultSet resultSet = session.execute(query);
         R result = parseResultSet(resultSet);
-		OperationResult<R> opResult = new CqlOperationResultImpl<R>(resultSet, result);
+		OperationResult<R> opResult = new CqlOperationResultImpl<>(resultSet, result);
 		opResult.setAttemptsCount(retry.getAttemptCount());
 		tracer.success();
 		return opResult;
@@ -173,7 +174,7 @@ public abstract class CqlAbstractExecutionImpl<R> implements Execution<R> {
 					e.printStackTrace();
 				}
 				tracer.success();
-				OperationResult<R> opResult = new CqlOperationResultImpl<R>(resultSet, result);
+				OperationResult<R> opResult = new CqlOperationResultImpl<>(resultSet, result);
 				opResult.setAttemptsCount(retry.getAttemptCount());
 				return opResult;
 			}
@@ -198,7 +199,8 @@ public abstract class CqlAbstractExecutionImpl<R> implements Execution<R> {
 			clLevel = ksContext.getConfig().getDefaultReadConsistencyLevel(); 
 			break;
 		case WRITE:
-			clLevel = ksContext.getConfig().getDefaultWriteConsistencyLevel();
+            clLevel = ksContext.getConfig().getDefaultWriteConsistencyLevel();
+            break;
 		default:
 			clLevel = ksContext.getConfig().getDefaultReadConsistencyLevel(); 
 		}

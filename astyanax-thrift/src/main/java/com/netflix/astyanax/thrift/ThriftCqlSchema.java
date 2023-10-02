@@ -41,7 +41,7 @@ public class ThriftCqlSchema implements CqlSchema {
         
         for (Entry<ByteBuffer, String> value : schema.getValue_types().entrySet()) {
             Serializer serializer = StringSerializer.get(); // ComparatorType.valueOf(value.getValue().toUpperCase()).getSerializer();
-            System.out.println("Type: " + value.getValue() + " = " + ((value.getKey() == null) ? "null" : serializer.getString(value.getKey())));
+            System.out.println("Type: " + value.getValue() + " = " + (value.getKey() == null ? "null" : serializer.getString(value.getKey())));
         }
     }
 }

@@ -52,7 +52,7 @@ public class DualWritesMutationBatch implements MutationBatch {
 	private final DualWritesStrategy writeExecutionStrategy;
 	
 	
-	private final AtomicReference<List<WriteMetadata>> writeMetada = new AtomicReference<List<WriteMetadata>>(new ArrayList<WriteMetadata>());
+	private final AtomicReference<List<WriteMetadata>> writeMetada = new AtomicReference<>(new ArrayList<WriteMetadata>());
 	
 	public DualWritesMutationBatch(DualKeyspaceMetadata dualKSMetadata, 
 	        MutationBatch primaryMB, MutationBatch secondaryMB, DualWritesStrategy strategy) {
@@ -87,7 +87,7 @@ public class DualWritesMutationBatch implements MutationBatch {
 	    
         ColumnListMutation<C> clmPrimary = primary.withRow(columnFamily, rowKey);
         ColumnListMutation<C> clmSecondary = secondary.withRow(columnFamily, rowKey);
-		return new DualWritesColumnListMutation<C>(clmPrimary, clmSecondary);
+		return new DualWritesColumnListMutation<>(clmPrimary, clmSecondary);
 	}
 
 	@Override
@@ -105,7 +105,7 @@ public class DualWritesMutationBatch implements MutationBatch {
 	public void discardMutations() {
 		primary.discardMutations();
 		secondary.discardMutations();
-		writeMetada.set(new ArrayList<WriteMetadata>());
+		writeMetada.set(new ArrayList<>());
 	}
 
 	@Override

@@ -27,7 +27,7 @@ import org.apache.commons.lang.builder.ToStringBuilder;
  *
  */
 public class ExponentialBackoff extends SleepingRetryPolicy {
-    private final int MAX_SHIFT = 30;
+    private static final int MAX_SHIFT = 30;
     
     private final Random random = new Random();
     private final long baseSleepTimeMs;

@@ -36,10 +36,10 @@ import com.netflix.astyanax.model.ColumnFamily;
 import com.netflix.astyanax.serializers.StringSerializer;
 
 public class EntityMapperTests extends KeyspaceTests {
-	
-    private static ColumnFamily<String, String> CF_SAMPLE_TEST_ENTITY = ColumnFamily
+
+    private static final ColumnFamily<String, String> CF_SAMPLE_TEST_ENTITY = ColumnFamily
             .newColumnFamily(
-                    "sampletestentity", 
+                    "sampletestentity",
                     StringSerializer.get(),
                     StringSerializer.get());
 
@@ -106,8 +106,8 @@ public class EntityMapperTests extends KeyspaceTests {
     @Test
     public void testSimpleEntityList() throws Exception {
     	
-    	List<SampleTestEntity> entities = new ArrayList<SampleTestEntity>();
-    	List<String> ids = new ArrayList<String>();
+    	List<SampleTestEntity> entities = new ArrayList<>();
+    	List<String> ids = new ArrayList<>();
     	
     	int entityCount = 11;
     	
@@ -147,14 +147,14 @@ public class EntityMapperTests extends KeyspaceTests {
     	
     	// GET AFTER DELETE
     	getEntities = entityManager.get(ids);
-    	Assert.assertTrue(0 == getEntities.size());
+    	Assert.assertTrue(getEntities.isEmpty());
     }
 
     @Test
     public void testGetAll() throws Exception {
     	
-    	List<SampleTestEntity> entities = new ArrayList<SampleTestEntity>();
-    	List<String> ids = new ArrayList<String>();
+    	List<SampleTestEntity> entities = new ArrayList<>();
+    	List<String> ids = new ArrayList<>();
     	
     	int entityCount = 11;
     	
@@ -191,7 +191,7 @@ public class EntityMapperTests extends KeyspaceTests {
     	entityManager.delete(ids);
     	// GET AFTER DELETE
     	getEntities = entityManager.getAll();
-    	Assert.assertTrue(0 == getEntities.size());
+    	Assert.assertTrue(getEntities.isEmpty());
     }
 
     @Test
@@ -264,7 +264,7 @@ public class EntityMapperTests extends KeyspaceTests {
 		public int hashCode() {
 			final int prime = 31;
 			int result = 1;
-			result = prime * result + ((id == null) ? 0 : id.hashCode());
+			result = prime * result + (id == null ? 0 : id.hashCode());
 			result = prime * result + (testBoolean ? 1231 : 1237);
 			long temp;
 			temp = Double.doubleToLongBits(testDouble);
@@ -272,27 +272,33 @@ public class EntityMapperTests extends KeyspaceTests {
 			result = prime * result + Float.floatToIntBits(testFloat);
 			result = prime * result + testInt;
 			result = prime * result + (int) (testLong ^ (testLong >>> 32));
-			result = prime * result + ((testString == null) ? 0 : testString.hashCode());
+			result = prime * result + (testString == null ? 0 : testString.hashCode());
 			return result;
 		}
 
 		@Override
 		public boolean equals(Object obj) {
-			
-			if (this == obj) return true;
-			if (obj == null) return false;
-			if (getClass() != obj.getClass()) return false;
+
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
 			
 			SampleTestEntity other = (SampleTestEntity) obj;
 			boolean equal = true;
 
-			equal &=  (id != null) ? id.equals(other.id) : other.id == null;
+			equal &=  id != null ? id.equals(other.id) : other.id == null;
 			equal &=  testInt == other.testInt;
 			equal &=  testLong == other.testLong;
 			equal &=  testBoolean == other.testBoolean;
-			equal &=  (testString != null) ? testString.equals(other.testString) : other.testString == null;
-			equal &= (Double.doubleToLongBits(testDouble) == Double.doubleToLongBits(other.testDouble));
-			equal &= (Float.floatToIntBits(testFloat) == Float.floatToIntBits(other.testFloat));
+			equal &=  testString != null ? testString.equals(other.testString) : other.testString == null;
+			equal &= Double.doubleToLongBits(testDouble) == Double.doubleToLongBits(other.testDouble);
+			equal &= Float.floatToIntBits(testFloat) == Float.floatToIntBits(other.testFloat);
 			
 			return equal;
 		}
@@ -339,22 +345,28 @@ public class EntityMapperTests extends KeyspaceTests {
     			int result = 1;
     			result = prime * result + testInnerInt;
     			result = prime * result + (int) (testInnerLong ^ (testInnerLong >>> 32));
-    			result = prime * result + ((testInnerString == null) ? 0 : testInnerString.hashCode());
+    			result = prime * result + (testInnerString == null ? 0 : testInnerString.hashCode());
     			return result;
     		}
 
     		@Override
     		public boolean equals(Object obj) {
-    			
-    			if (this == obj) return true;
-    			if (obj == null) return false;
-    			if (getClass() != obj.getClass()) return false;
+
+                if (this == obj) {
+                    return true;
+                }
+                if (obj == null) {
+                    return false;
+                }
+                if (getClass() != obj.getClass()) {
+                    return false;
+                }
     			
     			InnerEntity other = (InnerEntity) obj;
     			boolean equal = true;
     			equal &=  testInnerInt == other.testInnerInt;
     			equal &=  testInnerLong == other.testInnerLong;
-    			equal &=  (testInnerString != null) ? testInnerString.equals(other.testInnerString) : other.testInnerString == null;
+    			equal &=  testInnerString != null ? testInnerString.equals(other.testInnerString) : other.testInnerString == null;
     			return equal;
     		}
 
@@ -380,7 +392,7 @@ public class EntityMapperTests extends KeyspaceTests {
 		public int hashCode() {
 			final int prime = 31;
 			int result = 1;
-			result = prime * result + ((id == null) ? 0 : id.hashCode());
+			result = prime * result + (id == null ? 0 : id.hashCode());
 			result = prime * result + (testBoolean ? 1231 : 1237);
 			long temp;
 			temp = Double.doubleToLongBits(testDouble);
@@ -388,29 +400,35 @@ public class EntityMapperTests extends KeyspaceTests {
 			result = prime * result + Float.floatToIntBits(testFloat);
 			result = prime * result + testInt;
 			result = prime * result + (int) (testLong ^ (testLong >>> 32));
-			result = prime * result + ((testString == null) ? 0 : testString.hashCode());
-			result = prime * result + ((inner == null) ? 0 : inner.hashCode());
+			result = prime * result + (testString == null ? 0 : testString.hashCode());
+			result = prime * result + (inner == null ? 0 : inner.hashCode());
 			return result;
 		}
 
 		@Override
 		public boolean equals(Object obj) {
-			
-			if (this == obj) return true;
-			if (obj == null) return false;
-			if (getClass() != obj.getClass()) return false;
+
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
 			
 			SampleTestCompositeEntity other = (SampleTestCompositeEntity) obj;
 			boolean equal = true;
 
-			equal &=  (id != null) ? id.equals(other.id) : other.id == null;
+			equal &=  id != null ? id.equals(other.id) : other.id == null;
 			equal &=  testInt == other.testInt;
 			equal &=  testLong == other.testLong;
 			equal &=  testBoolean == other.testBoolean;
-			equal &=  (testString != null) ? testString.equals(other.testString) : other.testString == null;
-			equal &= (Double.doubleToLongBits(testDouble) == Double.doubleToLongBits(other.testDouble));
-			equal &= (Float.floatToIntBits(testFloat) == Float.floatToIntBits(other.testFloat));
-			equal &=  (inner != null) ? inner.equals(other.inner) : other.inner == null;
+			equal &=  testString != null ? testString.equals(other.testString) : other.testString == null;
+			equal &= Double.doubleToLongBits(testDouble) == Double.doubleToLongBits(other.testDouble);
+			equal &= Float.floatToIntBits(testFloat) == Float.floatToIntBits(other.testFloat);
+			equal &=  inner != null ? inner.equals(other.inner) : other.inner == null;
 			
 			return equal;
 		}

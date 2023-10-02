@@ -28,10 +28,11 @@ public class RunOnceTrigger extends AbstractTrigger {
         }
         
         public RunOnceTrigger build() {
-            if (trigger.delay != null)
+            if (trigger.delay != null) {
                 trigger.setTriggerTime(System.currentTimeMillis() + trigger.delay);
-            else 
+            } else {
                 trigger.setTriggerTime(System.currentTimeMillis());
+            }
             return trigger;
         }
     }

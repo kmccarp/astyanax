@@ -72,18 +72,24 @@ public  class WriteMetadata {
         final int prime = 31;
         int result = 1;
         result = prime * result + dualKeyspaceMetadata.hashCode();
-        result = prime * result + ((cfName == null) ? 0 : cfName.hashCode());
-        result = prime * result + ((rowKey == null) ? 0 : rowKey.hashCode());
-        result = prime * result + ((uuid == null) ? 0 : uuid.hashCode());
+        result = prime * result + (cfName == null ? 0 : cfName.hashCode());
+        result = prime * result + (rowKey == null ? 0 : rowKey.hashCode());
+        result = prime * result + (uuid == null ? 0 : uuid.hashCode());
         return result;
     }
 
     @Override
     public boolean equals(Object obj) {
-        
-        if (this == obj) return true;
-        if (obj == null) return false;
-        if (getClass() != obj.getClass()) return false;
+
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
         
         WriteMetadata other = (WriteMetadata) obj;
         boolean equals = true; 

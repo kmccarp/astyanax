@@ -38,7 +38,7 @@ public class ColumnPrefixUniquenessConstraint<K> implements UniquenessConstraint
     private final ColumnPrefixDistributedRowLock<K> lock;
 
     public ColumnPrefixUniquenessConstraint(Keyspace keyspace, ColumnFamily<K, String> columnFamily, K key) {
-        lock = new ColumnPrefixDistributedRowLock<K>(keyspace, columnFamily, key);
+        lock = new ColumnPrefixDistributedRowLock<>(keyspace, columnFamily, key);
     }
 
     public ColumnPrefixUniquenessConstraint<K> withTtl(Integer ttl) {
@@ -82,9 +82,10 @@ public class ColumnPrefixUniquenessConstraint<K> implements UniquenessConstraint
                 }
             }
         }
-        
-        if (column == null)
+
+        if (column == null) {
             throw new NotFoundException("Unique column not found for " + lock.getKey());
+        }
         return column;
         
     }
@@ -114,8 +115,9 @@ public class ColumnPrefixUniquenessConstraint<K> implements UniquenessConstraint
         lock.acquire();
         
         MutationBatch mb = lock.getKeyspace().prepareMutationBatch();
-        if (callback != null)
+        if (callback != null) {
             callback.apply(mb);
+        }
         lock.fillReleaseMutation(mb,  true);
         lock.fillLockMutation(mb, null, null);
         mb.setConsistencyLevel(lock.getConsistencyLevel())

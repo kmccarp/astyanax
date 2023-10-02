@@ -27,18 +27,18 @@ import com.google.common.collect.Lists;
  * @author elandau
  */
 public class EmaLatencyScoreStrategyImpl extends AbstractLatencyScoreStrategyImpl {
-    private final static String NAME = "EMA";
+    private static final String NAME = "EMA";
     
-    private final int    N; // Number of samples
+    private static final int    N; // Number of samples
     private final double k; // cached value for calculation
-    private final double one_minus_k; // cached value for calculation
+    private final double oneMinusK; // cached value for calculation
     
     public EmaLatencyScoreStrategyImpl(int updateInterval, int resetInterval, int windowSize, int blockedThreshold, double keepRatio, double scoreThreshold) {
         super(NAME, updateInterval, resetInterval, blockedThreshold, keepRatio, scoreThreshold);
         
         this.N = windowSize;
         this.k = (double)2 / (double)(this.N + 1);
-        this.one_minus_k = 1 - this.k;
+        this.oneMinusK = 1 - this.k;
     }
     
     public EmaLatencyScoreStrategyImpl(int updateInterval, int resetInterval, int windowSize) {
@@ -46,7 +46,7 @@ public class EmaLatencyScoreStrategyImpl extends AbstractLatencyScoreStrategyImp
         
         this.N = windowSize;
         this.k = (double)2 / (double)(this.N + 1);
-        this.one_minus_k = 1 - this.k;
+        this.oneMinusK = 1 - this.k;
     }
     
     public EmaLatencyScoreStrategyImpl(int windowSize) {
@@ -54,14 +54,14 @@ public class EmaLatencyScoreStrategyImpl extends AbstractLatencyScoreStrategyImp
         
         this.N = windowSize;
         this.k = (double)2 / (double)(this.N + 1);
-        this.one_minus_k = 1 - this.k;
+        this.oneMinusK = 1 - this.k;
     }
     
     @Override
     public final Instance newInstance() {
         return new Instance() {
-            private final LinkedBlockingQueue<Long> latencies = new LinkedBlockingQueue<Long>(N);
-            private volatile double cachedScore = 0.0d;
+            private final LinkedBlockingQueue<Long> latencies = new LinkedBlockingQueue<>(N);
+            private volatile double cachedScore = 0.0D;
     
             @Override
             public void addSample(long sample) {
@@ -94,7 +94,7 @@ public class EmaLatencyScoreStrategyImpl extends AbstractLatencyScoreStrategyImp
                 Double ema = cachedScore;
                 ArrayList<Long> samples = Lists.newArrayList();
                 latencies.drainTo(samples);
-                if (samples.size() == 0) {
+                if (samples.isEmpty()) {
                     samples.add(0L);
                 }                    
                 
@@ -102,7 +102,7 @@ public class EmaLatencyScoreStrategyImpl extends AbstractLatencyScoreStrategyImp
                     ema = (double)samples.remove(0);
                 }
                 for (Long sample : samples) {
-                    ema = sample * k + ema * one_minus_k;
+                    ema = sample * k + ema * oneMinusK;
                 }
                 cachedScore = ema;
             }

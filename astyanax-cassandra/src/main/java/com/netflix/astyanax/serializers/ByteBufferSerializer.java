@@ -33,7 +33,7 @@ import com.netflix.astyanax.shaded.org.apache.cassandra.db.marshal.BytesType;
  */
 public final class ByteBufferSerializer extends AbstractSerializer<ByteBuffer> {
 
-    private static ByteBufferSerializer instance = new ByteBufferSerializer();
+    private static final ByteBufferSerializer instance = new ByteBufferSerializer();
 
     public static ByteBufferSerializer get() {
         return instance;

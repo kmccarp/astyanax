@@ -34,8 +34,7 @@ public class TestCompositeType2 {
     }
 
     public String toString() {
-        return new StringBuilder().append("MockCompositeType2(").append(part1)
-                .append(",").append(part2).append(")").toString();
+        return "MockCompositeType2(" + part1 + "," + part2 + ")";
     }
 
 }

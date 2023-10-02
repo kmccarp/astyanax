@@ -40,8 +40,9 @@ class CompositeColumnMapper extends AbstractColumnMapper {
 		this.clazz = field.getType();
 		// clazz should be annotated with @Entity
 		Entity entityAnnotation = clazz.getAnnotation(Entity.class);
-		if(entityAnnotation == null)
-			throw new IllegalArgumentException("class is NOT annotated with @javax.persistence.Entity: " + clazz.getName());
+        if (entityAnnotation == null) {
+            throw new IllegalArgumentException("class is NOT annotated with @javax.persistence.Entity: " + clazz.getName());
+        }
 
 		columnList = Maps.newHashMapWithExpectedSize(clazz.getDeclaredFields().length);
 		nonNullableFields = Lists.newArrayList();
@@ -50,7 +51,7 @@ class CompositeColumnMapper extends AbstractColumnMapper {
 		for (Field childField : clazz.getDeclaredFields()) {
 			// extract @Column annotated fields
 			Column annotation = childField.getAnnotation(Column.class);
-			if ((annotation != null)) {
+			if (annotation != null) {
 				childField.setAccessible(true);
 				ColumnMapper columnMapper = null;
 				Entity compositeAnnotation = childField.getType().getAnnotation(Entity.class);
@@ -96,8 +97,9 @@ class CompositeColumnMapper extends AbstractColumnMapper {
 		boolean hasNonNullChildField = false;
 		for (ColumnMapper mapper : columnList.values()) {
 			boolean childFilled = mapper.fillMutationBatch(childEntity, clm, prefix);
-			if(childFilled)
-				hasNonNullChildField = true;
+            if (childFilled) {
+                hasNonNullChildField = true;
+            }
 		}
 		return hasNonNullChildField;
 	}
@@ -111,8 +113,9 @@ class CompositeColumnMapper extends AbstractColumnMapper {
         }
         
         ColumnMapper mapper = this.columnList.get(name.next());
-        if (mapper == null)
+        if (mapper == null) {
             return false;
+        }
         
         return mapper.setField(childEntity, name, column);
     }
@@ -121,8 +124,9 @@ class CompositeColumnMapper extends AbstractColumnMapper {
     public void validate(Object entity) throws Exception {
         Object objForThisField = field.get(entity);
         if (objForThisField == null) {
-            if (!columnAnnotation.nullable())
+            if (!columnAnnotation.nullable()) {
                 throw new IllegalArgumentException("cannot find non-nullable column: " + columnName);
+            }
         }
         else {
             for (ColumnMapper childField : this.nonNullableFields) {
