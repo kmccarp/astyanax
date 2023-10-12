@@ -39,13 +39,13 @@ import com.netflix.astyanax.ddl.FieldMetadata;
  */
 public class CqlColumnDefinitionImpl implements ColumnDefinition, Comparable<CqlColumnDefinitionImpl> {
 
-	Map<String, Object> options = new HashMap<String, Object>();
+	Map<String, Object> options = new HashMap<>();
 
 	private CqlColumnType colType;
 	private Integer componentIndex; 
 	
 	public enum CqlColumnType {
-		partition_key, clustering_key, regular, compact_value;
+		partition_key, clustering_key, regular, compact_value
 	}
 	
 	public CqlColumnDefinitionImpl() {
@@ -143,7 +143,7 @@ public class CqlColumnDefinitionImpl implements ColumnDefinition, Comparable<Cql
 
 	@Override
 	public Map<String, String> getOptions() {
-		Map<String, String> result = new HashMap<String, String>();
+		Map<String, String> result = new HashMap<>();
 		for (String key : options.keySet()) {
 			result.put(key, options.get(key).toString());
 		}
@@ -180,7 +180,7 @@ public class CqlColumnDefinitionImpl implements ColumnDefinition, Comparable<Cql
 	@Override
 	public Collection<FieldMetadata> getFieldsMetadata() {
 		
-		List<FieldMetadata> list = new ArrayList<FieldMetadata>();
+		List<FieldMetadata> list = new ArrayList<>();
 		
 		for (String key : options.keySet()) {
 			Object value = options.get(key);

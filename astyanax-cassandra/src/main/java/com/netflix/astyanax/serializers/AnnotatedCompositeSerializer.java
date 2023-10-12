@@ -68,8 +68,7 @@ public class AnnotatedCompositeSerializer<T> extends AbstractSerializer<T> {
 
         public ByteBuffer serialize(Object obj) throws IllegalArgumentException, IllegalAccessException {
             Object value = field.get(obj);
-            ByteBuffer buf = serializer.toByteBuffer((P) value);
-            return buf;
+            return serializer.toByteBuffer((P) value);
         }
 
         public void deserialize(Object obj, ByteBuffer value) throws IllegalArgumentException, IllegalAccessException {
@@ -93,8 +92,7 @@ public class AnnotatedCompositeSerializer<T> extends AbstractSerializer<T> {
         }
 
         public ByteBuffer serializeValue(Object value) {
-            ByteBuffer buf = serializer.toByteBuffer((P) value);
-            return buf;
+            return serializer.toByteBuffer((P) value);
         }
 
         @Override
@@ -112,8 +110,7 @@ public class AnnotatedCompositeSerializer<T> extends AbstractSerializer<T> {
     private final int bufferSize;
     
     public AnnotatedCompositeSerializer<T> clone() {
-    	AnnotatedCompositeSerializer<T> clone = new AnnotatedCompositeSerializer<T>(this.clazz, this.bufferSize, false);
-    	return clone;
+    	return new AnnotatedCompositeSerializer<>(this.clazz, this.bufferSize, false);
     }
     
     public AnnotatedCompositeSerializer(Class<T> clazz, boolean includeParentFields) {
@@ -130,7 +127,7 @@ public class AnnotatedCompositeSerializer<T> extends AbstractSerializer<T> {
 
     public AnnotatedCompositeSerializer(Class<T> clazz, int bufferSize, boolean includeParentFields) {
         this.clazz      = clazz;
-        this.components = new ArrayList<ComponentSerializer<?>>();
+        this.components = new ArrayList<>();
         this.bufferSize = bufferSize;
 
         for (Field field : getFields(clazz, includeParentFields)) {
@@ -145,7 +142,7 @@ public class AnnotatedCompositeSerializer<T> extends AbstractSerializer<T> {
     }
 
 	private List<Field> getFields(Class clazz, boolean recursively) {
-		List<Field> allFields = new ArrayList<Field>();
+		List<Field> allFields = new ArrayList<>();
 		if (clazz.getDeclaredFields() != null && clazz.getDeclaredFields().length > 0) {
 			allFields.addAll(Arrays.asList(clazz.getDeclaredFields()));
 		}
@@ -200,8 +197,8 @@ public class AnnotatedCompositeSerializer<T> extends AbstractSerializer<T> {
                     if (data.remaining() > 0) {
                         serializer.deserialize(obj, data);
                     }
-                    byte end_of_component = byteBuffer.get();
-                    if (end_of_component != END_OF_COMPONENT) {
+                    byte endOfComponent = byteBuffer.get();
+                    if (endOfComponent != END_OF_COMPONENT) {
                         throw new RuntimeException("Invalid composite column.  Expected END_OF_COMPONENT.");
                     }
                 }
@@ -239,7 +236,7 @@ public class AnnotatedCompositeSerializer<T> extends AbstractSerializer<T> {
     }
 
     private static <P> ComponentSerializer<P> makeComponent(Field field, Serializer<P> serializer, int ordinal) {
-        return new ComponentSerializer<P>(field, serializer, ordinal);
+        return new ComponentSerializer<>(field, serializer, ordinal);
     }
 
     private T createContents(Class<T> clazz) throws InstantiationException, IllegalAccessException {

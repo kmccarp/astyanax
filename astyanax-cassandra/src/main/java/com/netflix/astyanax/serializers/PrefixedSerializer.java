@@ -30,7 +30,7 @@ import com.netflix.astyanax.connectionpool.exceptions.SerializationException;
 
 public class PrefixedSerializer<P, S> extends AbstractSerializer<S> {
 
-    private static Logger log = LoggerFactory.getLogger(PrefixedSerializer.class);
+    private static final Logger log = LoggerFactory.getLogger(PrefixedSerializer.class);
 
     P prefix;
     Serializer<P> prefixSerializer;
@@ -78,13 +78,12 @@ public class PrefixedSerializer<P, S> extends AbstractSerializer<S> {
             throw new SerializationException("Unexpected prefix value");
         } 
         dup.position(prefixBytes.remaining());
-        S s = suffixSerializer.fromByteBuffer(dup);
-        return s;
+        return suffixSerializer.fromByteBuffer(dup);
      }
 
     @Override
     public List<S> fromBytesList(List<ByteBuffer> list) {
-        List<S> objList = new ArrayList<S>(list.size());
+        List<S> objList = new ArrayList<>(list.size());
         for (ByteBuffer s : list) {
             try {
                 ByteBuffer bb = s.slice();
@@ -100,7 +99,7 @@ public class PrefixedSerializer<P, S> extends AbstractSerializer<S> {
 
     @Override
     public <V> Map<S, V> fromBytesMap(Map<ByteBuffer, V> map) {
-        Map<S, V> objMap = new LinkedHashMap<S, V>(computeInitialHashSize(map.size()));
+        Map<S, V> objMap = new LinkedHashMap<>(computeInitialHashSize(map.size()));
         for (Entry<ByteBuffer, V> entry : map.entrySet()) {
             try {
                 ByteBuffer bb = entry.getKey().slice();
@@ -148,7 +147,7 @@ public class PrefixedSerializer<P, S> extends AbstractSerializer<S> {
             return 0;
         }
         else {
-            return (len1 < len2) ? -1 : 1;
+            return len1 < len2 ? -1 : 1;
         }
     }
 

@@ -35,12 +35,12 @@ public class DefaultAnnotationSet implements AnnotationSet<Id, Column> {
     @Override
     public String getIdName(Field field, Id annotation) {
         String name = annotation.value();
-        return (name.length() > 0) ? name : field.getName();
+        return name.length() > 0 ? name : field.getName();
     }
 
     @Override
     public String getColumnName(Field field, Column annotation) {
         String name = annotation.value();
-        return (name.length() > 0) ? name : field.getName();
+        return name.length() > 0 ? name : field.getName();
     }
 }

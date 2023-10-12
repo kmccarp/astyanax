@@ -70,16 +70,16 @@ public class CqlRowQueryImpl<K, C> implements RowQuery<K, C> {
 	private final CFQueryContext<K,C> cfContext;
 
 	private final Object rowKey;
-	private final CqlColumnSlice<C> columnSlice = new CqlColumnSlice<C>();
+	private final CqlColumnSlice<C> columnSlice = new CqlColumnSlice<>();
 	private CompositeByteBufferRange compositeRange;
 	private final PaginationContext paginationContext = new PaginationContext();
 
 	public enum RowQueryType {
-		AllColumns, ColumnSlice, ColumnRange, SingleColumn; 
+		AllColumns, ColumnSlice, ColumnRange, SingleColumn 
 	}
 	
 	private RowQueryType queryType = RowQueryType.AllColumns;  // The default
-	private boolean useCaching = false;
+    private final boolean useCaching;
 	
 	public CqlRowQueryImpl(KeyspaceContext ksCtx, CFQueryContext<K,C> cfCtx, K rKey, boolean useCaching) {
 		this.ksContext = ksCtx;
@@ -93,7 +93,7 @@ public class CqlRowQueryImpl<K, C> implements RowQuery<K, C> {
 
 		if (paginationContext.isPaginating()) {
 			if (!paginationContext.isFirstPage()) {
-				return new CqlOperationResultImpl<ColumnList<C>>(paginationContext.getResultSet(), paginationContext.getNextColumns());
+				return new CqlOperationResultImpl<>(paginationContext.getResultSet(), paginationContext.getNextColumns());
 			}
 			// Note that if we are paginating, and if this is the first time / page, 
 			// then we will just execute the query normally, and then init the pagination context
@@ -110,7 +110,7 @@ public class CqlRowQueryImpl<K, C> implements RowQuery<K, C> {
 	@Override
 	public ColumnQuery<C> getColumn(C column) {
 		queryType = RowQueryType.SingleColumn;
-		return new CqlColumnQueryImpl<C>(ksContext, cfContext, rowKey, column, useCaching);
+		return new CqlColumnQueryImpl<>(ksContext, cfContext, rowKey, column, useCaching);
 	}
 
 	@Override
@@ -156,8 +156,8 @@ public class CqlRowQueryImpl<K, C> implements RowQuery<K, C> {
 		queryType = RowQueryType.ColumnRange;
 
 		Serializer<C> colSerializer = cfContext.getColumnFamily().getColumnSerializer();
-		C start = (startColumn != null && startColumn.capacity() > 0) ? colSerializer.fromByteBuffer(startColumn) : null;
-		C end = (endColumn != null && endColumn.capacity() > 0) ? colSerializer.fromByteBuffer(endColumn) : null;
+		C start = startColumn != null && startColumn.capacity() > 0 ? colSerializer.fromByteBuffer(startColumn) : null;
+		C end = endColumn != null && endColumn.capacity() > 0 ? colSerializer.fromByteBuffer(endColumn) : null;
 		return this.withColumnRange(start, end, reversed, limit);
 	}
 
@@ -196,7 +196,7 @@ public class CqlRowQueryImpl<K, C> implements RowQuery<K, C> {
 
 	@Override
 	public RowCopier<K, C> copyTo(ColumnFamily<K, C> columnFamily, K rowKey) {
-		return new CqlRowCopier<K,C>(columnFamily, rowKey, this, ksContext);
+		return new CqlRowCopier<>(columnFamily, rowKey, this, ksContext);
 	}
 
 	@Override
@@ -243,9 +243,9 @@ public class CqlRowQueryImpl<K, C> implements RowQuery<K, C> {
 			if (allPkColumnNames.length == 1 || regularCols.size() > 1) {
 				List<Row> rows = resultSet.all(); 
 				if (rows == null || rows.isEmpty()) {
-					return new CqlColumnListImpl<C>();
+					return new CqlColumnListImpl<>();
 				} else {
-					return new CqlColumnListImpl<C>(rows.get(0), cf);
+					return new CqlColumnListImpl<>(rows.get(0), cf);
 				}
 			}
 			
@@ -259,9 +259,9 @@ public class CqlRowQueryImpl<K, C> implements RowQuery<K, C> {
 				
 				List<Row> rows = resultSet.all(); 
 				if (rows == null || rows.isEmpty()) {
-					return new CqlColumnListImpl<C>();
+					return new CqlColumnListImpl<>();
 				} else {
-					return new CqlColumnListImpl<C>(rows, cf);
+					return new CqlColumnListImpl<>(rows, cf);
 				}
 			}
 			
@@ -287,21 +287,21 @@ public class CqlRowQueryImpl<K, C> implements RowQuery<K, C> {
 
 
 	}
-	
-	
-	private class PaginationContext {
+
+
+    private final class PaginationContext {
 		
 		// How many rows to fetch at a time
 		private int fetchSize = Integer.MAX_VALUE; 
 		
 		// Turn pagination ON/OFF
-		private boolean paginate = false;
+		private boolean paginate;
 		// Indicate whether the first page has been consumed. 
 		private boolean isFirstPage = true;
 		// Track the result set
-		private ResultSet resultSet = null;
+		private ResultSet resultSet;
 		// State for all rows
-		private Iterator<Row> rowIter = null;
+		private Iterator<Row> rowIter;
 		
 		private PaginationContext() {
 		}
@@ -326,12 +326,12 @@ public class CqlRowQueryImpl<K, C> implements RowQuery<K, C> {
 			
 			try { 
 				int count = 0;
-				List<Row> rows = new ArrayList<Row>();
+				List<Row> rows = new ArrayList<>();
 				while ((count < fetchSize) && rowIter.hasNext()) {
 					rows.add(rowIter.next());
 					count++;
 				}
-				return new CqlColumnListImpl<C>(rows, cfContext.getColumnFamily());
+				return new CqlColumnListImpl<>(rows, cfContext.getColumnFamily());
 			} finally {
 				firstPageConsumed();
 			}

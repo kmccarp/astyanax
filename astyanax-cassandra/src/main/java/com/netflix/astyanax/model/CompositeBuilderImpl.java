@@ -31,7 +31,7 @@ import com.netflix.astyanax.serializers.UUIDSerializer;
 import com.netflix.astyanax.util.TimeUUIDUtils;
 
 public class CompositeBuilderImpl implements CompositeBuilder {
-    private AbstractComposite composite;
+    private final AbstractComposite composite;
     private ComponentEquality equality = ComponentEquality.EQUAL;
 
     public CompositeBuilderImpl(AbstractComposite composite) {

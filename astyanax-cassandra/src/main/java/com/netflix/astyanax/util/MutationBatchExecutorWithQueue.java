@@ -32,15 +32,15 @@ import com.netflix.astyanax.impl.AckingQueue;
 
 public class MutationBatchExecutorWithQueue {
     private static final Logger LOG = LoggerFactory.getLogger(MutationBatchExecutorWithQueue.class);
-    
-    private ExecutorService executor;
+
+    private final ExecutorService executor;
     private Predicate<Exception> retryablePredicate = Predicates.alwaysFalse();
-    private long waitOnNoHosts = 1000;
-    private int nThreads;
+    private final long waitOnNoHosts = 1000;
+    private final int nThreads;
     private long timeout;
-    private AckingQueue queue;
-    private AtomicLong successCount = new AtomicLong(0);
-    private AtomicLong failureCount = new AtomicLong(0);
+    private final AckingQueue queue;
+    private final AtomicLong successCount = new AtomicLong(0);
+    private final AtomicLong failureCount = new AtomicLong(0);
 
     public MutationBatchExecutorWithQueue(AckingQueue queue, int nThreads) {
         this.executor = Executors.newFixedThreadPool(nThreads, new ThreadFactoryBuilder().setDaemon(true).build());

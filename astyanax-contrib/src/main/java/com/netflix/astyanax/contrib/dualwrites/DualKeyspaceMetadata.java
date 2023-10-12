@@ -59,28 +59,34 @@ public class DualKeyspaceMetadata {
 
     public boolean isReverse(DualKeyspaceMetadata newDualKeyspaceSetup) {
         
-        return (!this.equals(newDualKeyspaceSetup) && 
+        return !this.equals(newDualKeyspaceSetup) && 
                 this.primaryCluster.equals(newDualKeyspaceSetup.getSecondaryCluster()) &&
-                this.secondaryCluster.equals(newDualKeyspaceSetup.getPrimaryCluster()));
+                this.secondaryCluster.equals(newDualKeyspaceSetup.getPrimaryCluster());
     }
     
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((primaryCluster == null) ? 0 : primaryCluster.hashCode());
-        result = prime * result + ((primaryKeyspaceName == null) ? 0 : primaryKeyspaceName.hashCode());
-        result = prime * result + ((secondaryCluster == null) ? 0 : secondaryCluster.hashCode());
-        result = prime * result + ((secondaryKeyspaceName == null) ? 0 : secondaryKeyspaceName.hashCode());
+        result = prime * result + (primaryCluster == null ? 0 : primaryCluster.hashCode());
+        result = prime * result + (primaryKeyspaceName == null ? 0 : primaryKeyspaceName.hashCode());
+        result = prime * result + (secondaryCluster == null ? 0 : secondaryCluster.hashCode());
+        result = prime * result + (secondaryKeyspaceName == null ? 0 : secondaryKeyspaceName.hashCode());
         return result;
     }
 
     @Override
     public boolean equals(Object obj) {
-        
-        if (this == obj) return true;
-        if (obj == null) return false;
-        if (getClass() != obj.getClass()) return false;
+
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
         
         DualKeyspaceMetadata other = (DualKeyspaceMetadata) obj;
         boolean equals = true; 

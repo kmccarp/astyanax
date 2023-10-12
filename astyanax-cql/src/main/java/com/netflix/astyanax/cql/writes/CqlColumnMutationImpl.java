@@ -56,13 +56,13 @@ public class CqlColumnMutationImpl<K,C> implements ColumnMutation {
 
 	// Tracking state
 	public enum ColMutationType {
-		UpdateColumn, CounterColumn, DeleteColumn;
+		UpdateColumn, CounterColumn, DeleteColumn
 	}
 	private ColMutationType type = ColMutationType.UpdateColumn;
 
 	private ConsistencyLevel consistencyLevel;
-	private final AtomicReference<Long> timestamp = new AtomicReference<Long>(null);
-	private final AtomicReference<Integer> ttl = new AtomicReference<Integer>(null);
+	private final AtomicReference<Long> timestamp = new AtomicReference<>(null);
+	private final AtomicReference<Integer> ttl = new AtomicReference<>(null);
 	
 	private final CFMutationQueryGen queryGen; 
 	
@@ -157,12 +157,12 @@ public class CqlColumnMutationImpl<K,C> implements ColumnMutation {
 	@Override
 	public <T> Execution<Void> putValue(T value, Serializer<T> serializer, Integer ttl) {
 		
-		if (cfDef.getClusteringKeyColumnDefinitionList().size() == 0) {
+		if (cfDef.getClusteringKeyColumnDefinitionList().isEmpty()) {
 			return exec(value, ttl, CassandraOperationType.COLUMN_MUTATE);
 		}
 		
 		if (cfContext.getColumnFamily().getDefaultValueSerializer().getComparatorType() == ByteBufferSerializer.get().getComparatorType()) {
-			ByteBuffer valueBytes = ((value instanceof ByteBuffer) ? (ByteBuffer) value : serializer.toByteBuffer(value));
+			ByteBuffer valueBytes = value instanceof ByteBuffer ? (ByteBuffer) value : serializer.toByteBuffer(value);
 			return exec(valueBytes, ttl, CassandraOperationType.COLUMN_MUTATE);
 		} else {
 			return exec(value, ttl, CassandraOperationType.COLUMN_MUTATE);

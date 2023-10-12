@@ -25,8 +25,8 @@ public class ThriftClusterImplTest {
     
     private static final String SEEDS = "localhost:9160";
     private static final long   CASSANDRA_WAIT_TIME = 3000;
-    private static String TEST_CLUSTER_NAME  = "cass_sandbox";
-    private static String TEST_KEYSPACE_NAME = "AstyanaxUnitTests";
+    private static final String TEST_CLUSTER_NAME = "cass_sandbox";
+    private static final String TEST_KEYSPACE_NAME = "AstyanaxUnitTests";
     
     private static AstyanaxContext<Cluster> context;
     private static Cluster cluster;
@@ -67,8 +67,9 @@ public class ThriftClusterImplTest {
 
     @AfterClass
     public static void teardown() throws Exception {
-        if (context != null)
+        if (context != null) {
             context.shutdown();
+        }
         
         Thread.sleep(CASSANDRA_WAIT_TIME);
     }

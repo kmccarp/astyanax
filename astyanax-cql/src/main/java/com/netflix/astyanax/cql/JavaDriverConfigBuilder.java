@@ -47,19 +47,19 @@ public class JavaDriverConfigBuilder {
     private RetryPolicy retryPolicy = DefaultRetryPolicy.INSTANCE;
 
     // Config for ProtocolOptions
-    private int nativeProtocolPort = -1; 
-    
+    private int nativeProtocolPort = -1;
+
     // Config for PoolingOptions
-    private PoolingOptions poolingOptions = new PoolingOptions();
-    
+    private final PoolingOptions poolingOptions = new PoolingOptions();
+
     // Config for SocketOptions
-    private SocketOptions socketOptions = new SocketOptions();
+    private final SocketOptions socketOptions = new SocketOptions();
     
     // Config for MetricsOptions
     private boolean jmxReportingEnabled = true;
-    
+
     // Config for QueryOptions
-    private QueryOptions queryOptions = new QueryOptions();
+    private final QueryOptions queryOptions = new QueryOptions();
     
 	public JavaDriverConfigBuilder() {
 		super();
@@ -70,7 +70,7 @@ public class JavaDriverConfigBuilder {
 				.withLoadBalancingPolicy(loadBalancingPolicy)
 				.withReconnectionPolicy(reconnectionPolicy)
 				.withRetryPolicy(retryPolicy).build();
-		ProtocolOptions protocolOptions = (nativeProtocolPort == -1) ? new ProtocolOptions() : new ProtocolOptions(nativeProtocolPort);
+		ProtocolOptions protocolOptions = nativeProtocolPort == -1 ? new ProtocolOptions() : new ProtocolOptions(nativeProtocolPort);
 		MetricsOptions metricsOptions = new MetricsOptions(true, jmxReportingEnabled);
 		return new JavaDriverConnectionPoolConfigurationImpl(Configuration.builder()
 				.withPolicies(policies)

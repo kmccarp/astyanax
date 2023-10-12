@@ -103,13 +103,13 @@ public class ObjectWriter implements Callable<ObjectMetadata> {
 
         final AtomicLong nBytesWritten = new AtomicLong(0);
         final AtomicInteger nChunksWritten = new AtomicInteger(0);
-        final AtomicReference<Exception> exception = new AtomicReference<Exception>();
+        final AtomicReference<Exception> exception = new AtomicReference<>();
 
         try {
             final ExecutorService executor = Executors.newFixedThreadPool(concurrencyLevel, new ThreadFactoryBuilder()
                     .setDaemon(true).setNameFormat("ChunkWriter-" + objectName + "-%d").build());
             final BlockingConcurrentWindowCounter chunkCounter = new BlockingConcurrentWindowCounter(concurrencyLevel);
-            final AutoAllocatingLinkedBlockingQueue<ByteBuffer> blocks = new AutoAllocatingLinkedBlockingQueue<ByteBuffer>(
+            final AutoAllocatingLinkedBlockingQueue<ByteBuffer> blocks = new AutoAllocatingLinkedBlockingQueue<>(
                     concurrencyLevel);
             try {
                 // Write file data one block at a time
@@ -214,12 +214,13 @@ public class ObjectWriter implements Callable<ObjectMetadata> {
         for (;;) {
             int got = in.read(b, off + total, len - total);
             if (got < 0) {
-                return (total == 0) ? -1 : total;
+                return total == 0 ? -1 : total;
             }
             else {
                 total += got;
-                if (total == len)
+                if (total == len) {
                     return total;
+                }
             }
         }
     }

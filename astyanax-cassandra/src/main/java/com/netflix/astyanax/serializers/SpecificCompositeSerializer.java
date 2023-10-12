@@ -26,12 +26,12 @@ import com.google.common.base.Preconditions;
 
 public class SpecificCompositeSerializer extends CompositeSerializer {
 	private final CompositeType type;
-	private List<String> comparators;
+    private final List<String> comparators;
 
 	public SpecificCompositeSerializer(CompositeType type) {
 		Preconditions.checkNotNull(type);
 		this.type = type;
-		comparators = new ArrayList<String>( type.types.size() );
+		comparators = new ArrayList<>( type.types.size() );
 		for ( AbstractType<?> compType : type.types ) {
 			String typeName = compType.toString();
 			comparators.add( ComparatorType.getShadedTypeName(typeName) );

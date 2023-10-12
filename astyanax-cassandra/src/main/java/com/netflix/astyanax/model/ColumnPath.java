@@ -45,7 +45,7 @@ import com.netflix.astyanax.serializers.StringSerializer;
  * @deprecated Super columns should be replaced with composite columns
  */
 public class ColumnPath<C> implements Iterable<ByteBuffer> {
-    private List<ByteBuffer> path = new ArrayList<ByteBuffer>();
+    private List<ByteBuffer> path = new ArrayList<>();
     private Serializer<C> columnSerializer;
 
     /**

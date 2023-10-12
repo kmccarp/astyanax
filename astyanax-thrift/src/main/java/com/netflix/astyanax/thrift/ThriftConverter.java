@@ -136,9 +136,9 @@ public class ThriftConverter {
         }
         else {
             SlicePredicate predicate = new SlicePredicate();
-            predicate.setSlice_range(new SliceRange((columns.getStartColumn() == null) ? ByteBuffer.wrap(new byte[0])
+            predicate.setSlice_range(new SliceRange(columns.getStartColumn() == null ? ByteBuffer.wrap(new byte[0])
                     : ByteBuffer.wrap(colSer.toBytes(columns.getStartColumn())),
-                    (columns.getEndColumn() == null) ? ByteBuffer.wrap(new byte[0]) : ByteBuffer.wrap(colSer
+                    columns.getEndColumn() == null ? ByteBuffer.wrap(new byte[0]) : ByteBuffer.wrap(colSer
                             .toBytes(columns.getEndColumn())), columns.getReversed(), columns.getLimit()));
             return predicate;
         }

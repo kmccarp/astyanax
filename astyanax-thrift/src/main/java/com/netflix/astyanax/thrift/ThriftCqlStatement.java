@@ -33,11 +33,11 @@ import com.netflix.astyanax.retry.RetryPolicy;
 import com.netflix.astyanax.serializers.StringSerializer;
 
 class ThriftCqlStatement implements CqlStatement {
-    
-    private ThriftKeyspaceImpl keyspace;
+
+    private final ThriftKeyspaceImpl keyspace;
     private ByteBuffer  query;
     private Compression compression = Compression.NONE;
-    private RetryPolicy retry;
+    private final RetryPolicy retry;
     
     public ThriftCqlStatement(ThriftKeyspaceImpl keyspace) {
         this.keyspace = keyspace;
@@ -68,10 +68,11 @@ class ThriftCqlStatement implements CqlStatement {
     }
     
     public CqlStatement withCompression(Boolean flag) {
-        if (flag)
+        if (flag) {
             compression = Compression.GZIP;
-        else
+        } else {
             compression = Compression.NONE;
+        }
         return this;
     }
 
